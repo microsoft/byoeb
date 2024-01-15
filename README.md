@@ -3,8 +3,8 @@ BYOeB (Build Your Own Expert Bot) is a platform designed to build expert-in-the-
 
 **Follow the `Local installation` instructions below, and use the steps provided in `CUSTOMISE.md` to create your own expert-in-the-loop chatbot.**
 
-## Local installation
-### Creating virtual environment and installing dependencies
+# Local installation
+## Creating virtual environment and installing dependencies
 ```console
 > virtualenv .venv
 > source .venv/bin/activate
@@ -13,7 +13,7 @@ BYOeB (Build Your Own Expert Bot) is a platform designed to build expert-in-the-
 > sudo apt install g++ ffmpeg
 ```
 
-### Azure dependencies setup for language and audio processing
+## Azure dependencies setup for language and audio processing
 ```console
 > wget -O - https://www.openssl.org/source/openssl-1.1.1u.tar.gz | tar zxf -
 > cd openssl-1.1.1u
@@ -26,7 +26,7 @@ BYOeB (Build Your Own Expert Bot) is a platform designed to build expert-in-the-
 > sudo apt-get install build-essential libssl-dev ca-certificates libasound2 wget
 ```
 
-### For ngrok hosting
+## For ngrok hosting
 ```console
 > curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | \
   sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null && \
@@ -82,8 +82,7 @@ If `flask run` is giving error, instead use `python3 app.py`.
 - `processing/translate_language_prompt.py`: Translate the chose language question during onboarding.
 - `processing/generate_audio_onboarding.py`: Onboarding Audio messages are saved.
 
-## Contributing
-
+# Contributing
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
 the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
@@ -96,8 +95,7 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-## Trademarks
-
+# Trademarks
 This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
 trademarks or logos is subject to and must follow 
 [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
