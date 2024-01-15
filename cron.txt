@@ -1,0 +1,3 @@
+30 * * * * python3 $APP_PATH/cron_jobs/escalate.py
+00 20 * * * python3 $APP_PATH/cron_jobs/send_email.py
+00 03 * * * python3 $APP_PATH/cron_jobs/kb_update.py

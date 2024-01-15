@@ -1,0 +1,40 @@
+# For details of the below fields, please refer CUSTOMISE.md
+PROJECT_NAME: science_bot
+CHAT_APPLICATION: whatsapp
+API_ACTIVATED: true
+USERS : ['Student']
+EXPERTS:
+  Teacher: 'Academic'
+ESCALATION:
+  Teacher: 
+    name: 'Senior Teacher'
+    whatsapp_id: '919876543210'
+USER_PROMPT : 'You are a science bot. Your purpose is to help students with any queries that they might have.'
+
+RECREATE_EMBEDDINGS: false
+SHOW_CITATIONS: true
+SEND_POLL: true
+SUGGEST_NEXT_QUESTIONS: true
+MAX_CONVERSATION_LENGTH: 5
+
+OPENING_MESSAGES:
+  USERS:
+    - 'Hi! I am a science bot. I can help you with any queries that you have regarding your science curriculum.'
+  EXPERTS:
+    - 'Hi! I am a science bot. Thank you for volunteering to help students with their science queries.'
+ONBOARDING_QUESTIONS:
+  - 'What topics can you help me with?'
+  - 'What is photosynthesis?'
+  - 'What is the difference between a plant cell and an animal cell?'
+
+COSMOS_DB_NAME: science_bot
+COSMOS_DB_COLLECTION: conversation_science_bot
+COSMOS_LONGTERM_COLLECTION: science_bot_users
+COSMOS_LOGGING_COLLECTION: logs_science_bot
+AZURE_BLOB_CONTAINER_NAME: science-bot-audio-storage
+
+SPREADSHEET_ID: abcd
+SHEET_LINK: https://docs.google.com/spreadsheets/d/abcd/edit?usp=sharing
+EMAIL_ID: abcd@gmail.com
+EMAIL_PASS: abcd
+EMAIL_LIST: ["test@microsoft.com"]
