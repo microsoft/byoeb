@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Introduction 
 BYOeB (Build Your Own Expert Bot) is a platform designed to build expert-in-the-loop WhatsApp-based chatbots. It enables developers to build chatbots that leverages human expertise to verify and edit responses. It is particularly valuable in fields like medicine and law. The platform offers various features, such as support to integrate custom knowledge base, compatibility with multiple languages, supports both text and audio inputs/outputs, and the ability to improve the knowledge base using edits provided by experts.
 
@@ -82,18 +81,6 @@ If `flask run` is giving error, instead use `python3 app.py`.
 - `processing/translate_suggestion_questions.py`: Translate onboarding questions.
 - `processing/translate_language_prompt.py`: Translate the chose language question during onboarding.
 - `processing/generate_audio_onboarding.py`: Onboarding Audio messages are saved.
-=======
-# Project
-
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
-
-As the maintainer of this project, please make a few updates:
-
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
 
 ## Contributing
 
@@ -116,4 +103,3 @@ trademarks or logos is subject to and must follow
 [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
 Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
 Any use of third-party trademarks or logos are subject to those third-party's policies.
->>>>>>> 2a544e44c1b56440a4914c3afa667eeffad5a8e9
