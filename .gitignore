@@ -4,7 +4,6 @@
 *.ogg
 *.exe
 *.wav
-*.env
 *.ipynb
 **/*.ipynb
 # anything in scratch
