@@ -16,13 +16,14 @@ SHOW_CITATIONS: true
 SEND_POLL: true
 SUGGEST_NEXT_QUESTIONS: true
 MAX_CONVERSATION_LENGTH: 5
+GLOB_SUFFIX: '*.txt'
 
-OPENING_MESSAGES:
+WELCOME_MESSAGES:
   USERS:
     - 'Hi! I am a science bot. I can help you with any queries that you have regarding your science curriculum.'
   EXPERTS:
     - 'Hi! I am a science bot. Thank you for volunteering to help students with their science queries.'
-ONBOARDING_QUESTIONS:
+SUGGESTION_QUESTIONS:
   - 'What topics can you help me with?'
   - 'What is photosynthesis?'
   - 'What is the difference between a plant cell and an animal cell?'

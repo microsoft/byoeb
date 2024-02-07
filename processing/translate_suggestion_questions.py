@@ -15,7 +15,7 @@ azure_translate = translator()
 
 title = "What to do next?"
 list_title = "Related questions"
-questions = config['INITIAL_SUGGESTION_QUESTIONS']
+questions = config['SUGGESTION_QUESTIONS']
 data = {"title": title, "list_title": list_title, "questions": questions}
 onboard_ques = {"en": data}
 languages = ["hi", "kn", "ta", "te"]
