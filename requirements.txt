@@ -28,7 +28,7 @@ coloredlogs==15.0.1
 comm==0.1.4
 croniter==2.0.1
 crontab==1.0.1
-cryptography==41.0.3
+cryptography==42.0.2
 cssselect==1.2.0
 dataclasses-json==0.5.14
 debugpy==1.6.7.post1
