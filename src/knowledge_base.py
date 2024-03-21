@@ -12,6 +12,7 @@ from conversation_database import (
     LongTermDatabase,
     LoggingDatabase,
 )
+from database import UserConvDB
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import DirectoryLoader
 from chromadb.utils import embedding_functions
@@ -37,7 +38,7 @@ class KnowledgeBase:
 
     def answer_query(
         self,
-        database: ConversationDatabase,
+        user_conv_db,
         db_id: str,
         logger: LoggingDatabase,
     ) -> tuple[str, str]:
@@ -68,10 +69,14 @@ class KnowledgeBase:
         collection_count = collection.count()
         print('collection ids count: ', collection_count)
 
-        db_row = database.get_row_with_id(db_id)
+        db_row = user_conv_db.get_from_db_id(db_id)
+        query = db_row["message_english"]
+        if not query.endswith("?"):
+            query += "?"
+
         relevant_chunks = collection.query(
-            query_texts=[db_row["query"]],
-            n_results=3,  # take the top 3 most relevant chunks, think of a better way to do this later
+            query_texts=[query],
+            n_results=3, 
         )
         citations: str = "\n".join(
             [metadata["source"] for metadata in relevant_chunks["metadatas"][0]]
@@ -79,6 +84,7 @@ class KnowledgeBase:
 
         relevant_chunks_string = ""
         relevant_update_chunks_string = ""
+        chunks = []
 
         chunk1 = 0
         chunk2 = 0
@@ -88,32 +94,37 @@ class KnowledgeBase:
                     f"Chunk #{chunk2 + 1}\n{chunk_text}\n\n"
                 )
                 chunk2 += 1
+                chunks.append((chunk_text, relevant_chunks["metadatas"][0][chunk]["source"].strip()))
             else:
                 relevant_chunks_string += f"Chunk #{chunk1 + 1}\n{chunk_text}\n\n"
                 chunk1 += 1
+                chunks.append((chunk_text, relevant_chunks["metadatas"][0][chunk]["source"].strip()))
 
         logger.add_log(
             sender_id="bot",
             receiver_id="bot",
             message_id=None,
             action_type="get_citations",
-            details={"query": db_row["query"], "citations": citations},
+            details={"query": query, "chunks": chunks, "transaction_id": db_row["message_id"]},
             timestamp=datetime.now(),
         )
 
         # take all non empty conversations 
-        all_conversations = database.get_rows_with_user_id(db_row['user_id'], db_row['user_type'])
-        conversation_string = "\n".join(
-            [
-                row["query"] + "\n" + row["response"]
-                for row in all_conversations
-                if row["response"]
-            ][-5:]
-        )
+        all_conversations = user_conv_db.get_all_user_conv(db_row["user_id"], db_row["user_type"])
+        conversation_string = ""
+        # "\n".join(
+        #     [
+        #         row["query"] + "\n" + row["response"]
+        #         for row in all_conversations
+        #         if row["response"]
+        #     ][-3:]
+        # )
 
         system_prompt = self.llm_prompts["answer_query"]
         query_prompt = f"""
-            The following knowledge base have been provided to you as reference:\n\n\
+            Today's date is {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\n\
+            
+            The following knowledge base chunks have been provided to you as reference:\n\n\
             Raw documents are as follows:\n\
             {relevant_chunks_string}\n\n\
             New documents are as follows:\n\
@@ -121,22 +132,35 @@ class KnowledgeBase:
             The most recent conversations are here:\n\n\
             {conversation_string}\n\
             You are asked the following query:\n\n\
-            "{db_row['query']}"\n\n\
+            "{query}"\n\n\
 
         """
 
         prompt = [{"role": "system", "content": system_prompt}]
         prompt.append({"role": "user", "content": query_prompt})
-        gpt_output = get_llm_response(prompt)
         logger.add_log(
             sender_id="bot",
+            receiver_id="gpt4",
+            message_id=None,
+            action_type="answer_query_request",
+            details={
+                "system_prompt": system_prompt,
+                "query_prompt": query_prompt,
+                "transaction_id": db_row["message_id"],
+            },
+            timestamp=datetime.now(),
+        )
+        gpt_output = get_llm_response(prompt)
+        logger.add_log(
+            sender_id="gpt4",
             receiver_id="bot",
             message_id=None,
-            action_type="gpt4",
+            action_type="answer_query_response",
             details={
                 "system_prompt": system_prompt,
                 "query_prompt": query_prompt,
                 "gpt_output": gpt_output,
+                "transaction_id": db_row["message_id"],
             },
             timestamp=datetime.now(),
         )
@@ -155,17 +179,31 @@ class KnowledgeBase:
             query_prompt = f"""You are given the following response: {bot_response}"""
             prompt = [{"role": "system", "content": system_prompt}]
             prompt.append({"role": "user", "content": query_prompt})
-
-            gpt_output = get_llm_response(prompt)
             logger.add_log(
                 sender_id="bot",
+                receiver_id="gpt4",
+                message_id=None,
+                action_type="answer_summary_request",
+                details={
+                    "system_prompt": system_prompt,
+                    "query_prompt": query_prompt,
+                    "transaction_id": db_row["message_id"],
+                },
+                timestamp=datetime.now(),
+            )
+
+            gpt_output = get_llm_response(prompt)
+
+            logger.add_log(
+                sender_id="gpt4",
                 receiver_id="bot",
                 message_id=None,
-                action_type="gpt4",
+                action_type="answer_summary_response",
                 details={
                     "system_prompt": system_prompt,
                     "query_prompt": query_prompt,
                     "gpt_output": gpt_output,
+                    "transaction_id": db_row["message_id"],
                 },
                 timestamp=datetime.now(),
             )

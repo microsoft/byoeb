@@ -28,9 +28,9 @@ SUGGESTION_QUESTIONS:
   - 'What is photosynthesis?'
   - 'What is the difference between a plant cell and an animal cell?'
 
-COSMOS_DB_NAME: science_bot
+COSMOS_DB_NAME: byoeb
 COSMOS_DB_COLLECTION: conversation_science_bot
-COSMOS_LONGTERM_COLLECTION: science_bot_users
+COSMOS_LONGTERM_COLLECTION: science-bot_users
 COSMOS_LOGGING_COLLECTION: logs_science_bot
 AZURE_BLOB_CONTAINER_NAME: science-bot-audio-storage
 
@@ -38,7 +38,7 @@ AZURE_BLOB_CONTAINER_NAME: science-bot-audio-storage
 
 COSMOS_USER_CONV_COLLECTION: user_conversations
 COSMOS_BOT_CONV_COLLECTION: bot_conversations
-COSMOS_EXPERT_COLLECTION: experts_conversations
+COSMOS_EXPERT_CONV_COLLECTION: experts_conversations
 
 SPREADSHEET_ID: abcd
 SHEET_LINK: https://docs.google.com/spreadsheets/d/abcd/edit?usp=sharing

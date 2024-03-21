@@ -19,7 +19,7 @@ sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
 sys.path.append("src")
 from onboard import onboard_template
 from conversation_database import LoggingDatabase
-from responder.whatsapp import WhatsappResponder
+from responder import WhatsappResponder
 
 
 with open("config.yaml") as file:
@@ -60,6 +60,7 @@ def index():
 def webhook():
     body = request.json
     # adding request to queue
+    print("Adding message to queue, ", body)
     queue_client.send_message(json.dumps(body))
     return "OK", 200
 
@@ -157,7 +158,7 @@ def process_queue():
             sleep(0.01)
             continue
         try:
-            messages = queue_client.receive_messages(messages_per_page=1)
+            messages = queue_client.receive_messages(messages_per_page=1, visibility_timeout=5)
             for message in messages:
                 try:
                     print("Message received", message.content)

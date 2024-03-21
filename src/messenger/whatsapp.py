@@ -304,7 +304,7 @@ class WhatsappMessenger(BaseMessenger):
             timestamp=datetime.now(),
         )
 
-        return
+        return msg_id
 
     def send_template(
         self,

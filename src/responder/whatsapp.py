@@ -58,12 +58,14 @@ class WhatsappResponder(BaseResponder):
 
     def check_user_type(self, from_number):
         for user in self.config["USERS"]:
-            rows = self.long_term_db.get_rows_by(user+"_whatsapp_id", from_number)
+            rows = self.long_term_db.get_rows(from_number, user+"_whatsapp_id")
+            print(user, rows)
             if len(rows) > 0:
                 return user, rows[0]
             
         for expert in self.config["EXPERTS"]:
-            rows = self.long_term_db.get_rows_by(expert+"_whatsapp_id", from_number)
+            rows = self.long_term_db.get_rows(from_number, expert+"_whatsapp_id")
+            print(expert, rows)
             if len(rows) > 0:
                 return expert, rows[0]
             
@@ -100,12 +102,12 @@ class WhatsappResponder(BaseResponder):
         #     print("Message already processed", datetime.now())
         #     return
 
-        if len(self.user_conv_db.get_from_message_id(msg_id)) > 0:
+        if self.user_conv_db.get_from_message_id(msg_id) or self.bot_conv_db.get_from_message_id(msg_id) or self.expert_conv_db.get_from_message_id(msg_id):
             print("Message already processed", datetime.now())
             return
 
-        user_type, row_lt = self.check_user_type()
-
+        user_type, row_lt = self.check_user_type(from_number)
+        print("User type: ", user_type, "Row: ", row_lt)
         if user_type is None:
             self.messenger.send_message(
                 from_number,
@@ -341,24 +343,20 @@ class WhatsappResponder(BaseResponder):
         user_type = data["user_type"]
         msg_type = data["msg_type"]
 
-        query = (
-            translated_message + "?"
-            if translated_message[-1] != "?"
-            else translated_message
-        )
-        db_id = self.database.insert_row(
-            user_id=user_id,
-            user_type=user_type,
-            query=query,
-            query_source_lang=message,
-            source_lang=source_lang,
-            query_message_id=msg_id,
-            msg_type=msg_type,
-            timestamp=datetime.now(),
+        db_id = self.user_conv_db.insert_row(
+            user_id = user_id,
+            user_type = user_type,
+            message_id = msg_id,
+            message_type = msg_type,
+            message_source_lang = message,
+            source_language = source_lang,
+            message_translated = translated_message,
+            audio_blob_path = None if msg_type != "audio" else data["blob_name"],
+            message_timestamp = datetime.now()
         ).inserted_id
 
         gpt_output, citations, query_type = self.knowledge_base.answer_query(
-            self.database, db_id, self.logger
+            self.user_conv_db, db_id, self.logger
         )
         citations = "".join(citations)
         citations_str = citations
@@ -373,6 +371,8 @@ class WhatsappResponder(BaseResponder):
             sent_msg_id = self.messenger.send_message(
                 from_number, gpt_output_source, msg_id
             )
+
+
 
         if msg_type == "audio":
             audio_input_file = "test_audio_input.aac"
@@ -401,20 +401,28 @@ class WhatsappResponder(BaseResponder):
             audio_msg_id = self.messenger.send_audio(
                 audio_output_file, from_number, msg_id
             )
-            self.database.add_audio_name(db_id, data["blob_name"])
             utils.remove_extra_voice_files(audio_input_file, audio_output_file)
 
         print("GPT output: ", gpt_output)
-        self.database.add_response(
-            db_id,
-            gpt_output,
-            gpt_output_source,
-            sent_msg_id,
-            audio_msg_id,
-            query_type,
-            datetime.now(),
+
+        self.user_conv_db.add_llm_response(
+            message_id=msg_id,
+            query_type=query_type,
+            llm_response=gpt_output,
+            citations=citations_str)
+
+        self.bot_conv_db.insert_row(
+            receiver_id=from_number,
+            message_type="query_response",
+            message_id=sent_msg_id,
+            audio_message_id=audio_msg_id,
+            message_source_lang=gpt_output_source,
+            message_language=source_lang,
+            message_english=gpt_output,
+            message_timestamp=datetime.now(),
+            transaction_message_id=msg_id,
         )
-        self.database.add_citations(db_id, citations_str)
+
 
         if (
             self.config["SEND_POLL"]
@@ -428,16 +436,18 @@ class WhatsappResponder(BaseResponder):
             )
 
         if self.config["SUGGEST_NEXT_QUESTIONS"]:
+            print("Sending suggestions")
             self.send_suggestions(
                 {
                     "from_number": from_number,
                     "db_id": db_id,
                     "user_id": user_id,
-                    "query": query,
+                    "query": translated_message,
                     "gpt_output": gpt_output,
                     "source_lang": source_lang,
                     "user_type": user_type,
                     "query_type": query_type,
+                    "transaction_message_id": msg_id,
                 }
             )
 
@@ -455,7 +465,7 @@ class WhatsappResponder(BaseResponder):
         query_type = data["query_type"]
 
         if (
-            not gpt_output.strip().startswith("I do not know the answer to your question.")
+            (not gpt_output.strip().startswith("I do not know the answer to your question"))
             and query_type != "small-talk"
         ):
             next_questions = None
@@ -463,8 +473,6 @@ class WhatsappResponder(BaseResponder):
             next_questions = self.knowledge_base.follow_up_questions(
                 query, gpt_output, user_type, self.logger
             )
-            self.database.add_next_questions(db_id, next_questions)
-            print("Next questions: ", next_questions)
             questions_source = []
             for question in next_questions:
                 question_source = self.azure_translate.translate_text(
@@ -475,11 +483,24 @@ class WhatsappResponder(BaseResponder):
                 self.onboarding_questions[source_lang]["title"],
                 self.onboarding_questions[source_lang]["list_title"],
             )
-            self.messenger.send_suggestions(
+            suggested_ques_msg_id = self.messenger.send_suggestions(
                 from_number, title, list_title, questions_source
             )
 
-        elif self.database.get_next_questions(user_id, user_type):
+            self.bot_conv_db.insert_row(
+                receiver_id=from_number,
+                message_type="suggested_questions",
+                message_id=suggested_ques_msg_id,
+                audio_message_id=None,
+                message_source_lang=questions_source,
+                message_language=source_lang,
+                message_english=next_questions,
+                message_timestamp=datetime.now(),
+                transaction_message_id=data["transaction_message_id"],
+            )
+
+
+        elif False and self.database.get_next_questions(user_id, user_type):
             next_questions = self.database.get_next_questions(user_id, user_type)
             print("Next questions: ", next_questions)
             questions_source = []
@@ -489,7 +510,7 @@ class WhatsappResponder(BaseResponder):
                 )
                 questions_source.append(question_source)
 
-            self.database.add_next_questions(db_id, next_questions)
+            self.add_next_questions(db_id, next_questions)
             title, list_title = (
                 self.onboarding_questions[source_lang]["title"],
                 self.onboarding_questions[source_lang]["list_title"],
@@ -587,7 +608,7 @@ class WhatsappResponder(BaseResponder):
             blob_service_client = BlobServiceClient.from_connection_string(connect_str)
             container_name = self.config["AZURE_BLOB_CONTAINER_NAME"].strip()
 
-            blob_name = str(datetime.now()) + "_" + str(from_number)
+            blob_name = str(datetime.now()) + "_" + str(from_number) + ".aac"
             blob_client = blob_service_client.get_blob_client(
                 container=container_name, blob=blob_name
             )
