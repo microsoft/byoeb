@@ -14,6 +14,7 @@ from conversation_database import (
     LongTermDatabase,
     LoggingDatabase,
 )
+from database import BaseDB, UserConvDB, BotConvDB, ExpertConvDB
 from messenger.whatsapp import WhatsappMessenger
 import utils
 from onboard import onboard_wa_helper
@@ -24,13 +25,15 @@ class WhatsappResponder(BaseResponder):
     def __init__(self, config):
         self.config = config
         self.knowledge_base = KnowledgeBase(config)
-        self.database = ConversationDatabase(config)
+        # self.database = ConversationDatabase(config)
         self.long_term_db = LongTermDatabase(config)
         self.logger = LoggingDatabase(config)
         self.messenger = WhatsappMessenger(config, self.logger)
         self.azure_translate = translator()
 
-        self.update_users()
+        self.user_conv_db = UserConvDB(config)
+        self.bot_conv_db = BotConvDB(config)
+        self.expert_conv_db = ExpertConvDB(config)
 
         self.welcome_messages = json.load(
             open(os.path.join(os.environ['DATA_PATH'], "onboarding/welcome_messages.json"), "r")
@@ -52,33 +55,24 @@ class WhatsappResponder(BaseResponder):
             if key[-2:] == "no"
         ]
 
-    def update_users(self):
-        self.expert_list = []
 
-        for expert in self.config["EXPERTS"]:
-            self.expert_list.extend(self.long_term_db.get_list_of(expert+"_whatsapp_id"))
-        
-        self.user_list = []
+    def check_user_type(self, from_number):
         for user in self.config["USERS"]:
-            self.user_list.extend(self.long_term_db.get_list_of(user+"_whatsapp_id"))
-
-        self.user_types = self.config["USERS"]
-
-        self.expert_types = []
-        self.query_types = []
+            rows = self.long_term_db.get_rows_by(user+"_whatsapp_id", from_number)
+            if len(rows) > 0:
+                return user, rows[0]
+            
         for expert in self.config["EXPERTS"]:
-            self.expert_types.append(expert)
-            self.query_types.append(self.config["EXPERTS"][expert])
-
-        self.all_users = self.expert_list + self.user_list
-
-        print(self.all_users)
+            rows = self.long_term_db.get_rows_by(expert+"_whatsapp_id", from_number)
+            if len(rows) > 0:
+                return expert, rows[0]
+            
+        return None, None
 
     def update_kb(self):
         self.knowledge_base = KnowledgeBase(self.config)
 
     def response(self, body):
-        self.update_users()
         print("Entering response function")
         if (
             body.get("object")
@@ -100,7 +94,19 @@ class WhatsappResponder(BaseResponder):
         print("Message object: ", msg_object)
 
 
-        if from_number not in self.all_users:
+        
+
+        # if msg_id in self.database.get_all_message_ids():
+        #     print("Message already processed", datetime.now())
+        #     return
+
+        if len(self.user_conv_db.get_from_message_id(msg_id)) > 0:
+            print("Message already processed", datetime.now())
+            return
+
+        user_type, row_lt = self.check_user_type()
+
+        if user_type is None:
             self.messenger.send_message(
                 from_number,
                 "Unknown User, Kindly fill the onboarding form",
@@ -108,13 +114,9 @@ class WhatsappResponder(BaseResponder):
             )
             return
 
-        if msg_id in self.database.get_all_message_ids():
-            row_db = self.database.get_rows_by_msg_id(msg_id)[0]
-            print("Message already processed", datetime.now())
+        if self.check_expiration(from_number, user_type, row_lt):
             return
 
-        if self.check_expiration(from_number):
-            return
 
         unsupported_types = ["image", "document", "video", "location", "contacts"]
         if msg_type in unsupported_types:
@@ -273,19 +275,7 @@ class WhatsappResponder(BaseResponder):
         )
         return
 
-    def check_expiration(self, from_number):
-        print("Checking expiration")
-        for user in self.config["USERS"]:
-            if self.check_expiration_helper(from_number, user):
-                return True
-
-        return False
-
-    def check_expiration_helper(self, from_number, user_type):
-        row_lt = self.long_term_db.get_rows(from_number, user_type + "_whatsapp_id")
-        if len(row_lt) == 0:
-            return False
-        row_lt = row_lt[0]
+    def check_expiration(self, from_number, user_type, row_lt):
         if row_lt.get("is_expired", False):
             message_text = "Your account has expired. Please contact your admin."
             source_lang = row_lt[user_type + "_language"]
