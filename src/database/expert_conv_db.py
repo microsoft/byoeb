@@ -11,15 +11,22 @@ class ExpertConvDB(BaseDB):
         self.collection = self.db[config['COSMOS_USER_CONV_COLLECTION']]
 
     def insert_row(self,
-        expert_whatsapp_id,
-        expert_type,
-        message_id):
+        user_id,
+        message_id,
+        message_type,
+        message,
+        reply_id,
+        message_timestamp,
+        transaction_message_id):
 
         row = {
-            'expert_whatsapp_id': expert_whatsapp_id,
-            'expert_type': expert_type,
+            'user_id': user_id,
             'message_id': message_id,
-            'timestamp': datetime.datetime.now()
+            'message_type': message_type,
+            'message': message,
+            'reply_id': reply_id,
+            'message_timestamp': message_timestamp,
+            'transaction_message_id': transaction_message_id
         }
 
         db_id = self.collection.insert_one(row)
@@ -28,4 +35,8 @@ class ExpertConvDB(BaseDB):
     def get_from_message_id(self, message_id):
         row = self.collection.find_one({'message_id': message_id})
         return row
+    
+    def get_from_transaction_message_id(self, transaction_message_id):
+        rows = self.collection.find({'transaction_message_id': transaction_message_id})
+        return rows
     

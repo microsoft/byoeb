@@ -18,6 +18,7 @@ class BotConvDB(BaseDB):
         message_source_lang,
         message_language,
         message_english,
+        citations,
         message_timestamp,
         transaction_message_id):
 
@@ -29,6 +30,7 @@ class BotConvDB(BaseDB):
             'message_source_lang': message_source_lang,
             'message_language': message_language,
             'message_english': message_english,
+            'citations': citations,
             'message_timestamp': message_timestamp,
             'transaction_message_id': transaction_message_id
         }
@@ -39,4 +41,16 @@ class BotConvDB(BaseDB):
 
     def get_from_message_id(self, message_id):
         bot_conv = self.collection.find_one({'message_id': message_id})
+        return bot_conv
+    
+    def find_with_transaction_id(self, transaction_message_id, message_type):
+        bot_conv = self.collection.find_one({'$and': [{'transaction_message_id': transaction_message_id}, {'message_type': message_type}]})
+        return bot_conv
+    
+    def find_all_with_transaction_id(self, transaction_message_id, message_type):
+        bot_conv = self.collection.find({'$and': [{'transaction_message_id': transaction_message_id}, {'message_type': message_type}]})
+        return bot_conv
+    
+    def find_with_receiver_id(self, receiver_id, message_type):
+        bot_conv = self.collection.find_one({'$and': [{'receiver_id': receiver_id}, {'message_type': message_type}]})
         return bot_conv

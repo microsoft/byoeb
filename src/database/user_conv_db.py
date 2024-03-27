@@ -12,7 +12,6 @@ class UserConvDB(BaseDB):
 
     def insert_row(self,
         user_id,
-        user_type,
         message_id,
         message_type,
         message_source_lang,
@@ -23,7 +22,6 @@ class UserConvDB(BaseDB):
 
         user_conv = {
             'user_id': user_id,
-            'user_type': user_type,
             'message_id': message_id,
             'message_type': message_type,
             'message_source_lang': message_source_lang,
@@ -43,10 +41,10 @@ class UserConvDB(BaseDB):
         user_conv = self.collection.find_one({'message_id': message_id})
         return user_conv
     
-    def get_all_user_conv(self, user_id, user_type):
-        user_conv = self.collection.find({'user_id': user_id, 'user_type': user_type})
+    def get_all_user_conv(self, user_id):
+        user_conv = self.collection.find({'user_id': user_id})
         return user_conv
-                        
+
     def add_llm_response(self,
         message_id,
         query_type,
@@ -59,5 +57,21 @@ class UserConvDB(BaseDB):
                 'llm_response': llm_response,
                 'citations': citations,
                 'query_type': query_type
+            }}
+        )
+
+    def add_query_type(self, message_id, query_type):
+        self.collection.update_one(
+            {'message_id': message_id},
+            {'$set': {
+                'query_type': query_type
+            }}
+        )
+
+    def mark_resolved(self, message_id):
+        self.collection.update_one(
+            {'message_id': message_id},
+            {'$set': {
+                'resolved': True
             }}
         )

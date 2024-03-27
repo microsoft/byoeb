@@ -230,7 +230,7 @@ class WhatsappMessenger(BaseMessenger):
         )
 
         msg_output = requests.post(url, json=payload, headers=headers)
-
+        print(msg_output.json())
         msg_id = msg_output.json()["messages"][0]["id"]
         self.logger.add_log(
             sender_id="bot",
@@ -356,9 +356,8 @@ class WhatsappMessenger(BaseMessenger):
 
     def send_correction_poll_expert(
         self,
-        database: ConversationDatabase,
-        long_term_db: LongTermDatabase,
-        db_id: str,
+        row_lt,
+        row_query,
         escalation: bool = False,
     ) -> None:
         """Sends a poll asking if the bot's response was correct
@@ -367,16 +366,19 @@ class WhatsappMessenger(BaseMessenger):
             database (ConversationDatabase): the database
             db_id (str): the database ID
         """
-        row = database.get_row_with_id(db_id)
-        user_type = row["user_type"]
-        query_type = row["query_type"]
 
 
-        row_lt = long_term_db.get_rows(row["user_id"], "user_id")[0]
+        query_type = row_query["query_type"]
+        expert_type = self.category_to_expert[query_type]
+        user_secondary_id = self.user_relation_db.get_from_user_id(row_lt['user_id'], expert_type)['user_id']
+        expert_row_lt = self.user_db.get_from_user_id(user_secondary_id)
+        
 
+        user_type = row_lt["user_type"]
+        
         poll_string = f"Was the bot's answer correct and complete?"
 
-        citations = row["citations"]
+        citations = row_query["citations"]
         try:
             split_citations = citations.split("\n")
             split_citations = np.unique(
@@ -391,9 +393,9 @@ class WhatsappMessenger(BaseMessenger):
         except:
             final_citations = "No citations found."
 
-        expert = self.category_to_expert[row['query_type']]
+        expert = self.category_to_expert[row_query['query_type']]
         if escalation is False:
-            receiver = row_lt[expert + "_whatsapp_id"]
+            receiver = expert_row_lt["whatsapp_id"]
             forward_to = expert
         else:
             receiver = self.config["ESCALATION"][expert]['whatsapp_id']
@@ -402,23 +404,23 @@ class WhatsappMessenger(BaseMessenger):
 
         
 
-        poll_text = f'*Query*: "{row["query"]}" \n*Bot\'s Response*: {row["response"].strip()} \n\n*User*: {user_type} \n*Citations*: {final_citations.strip()}. \n\n{poll_string}'
+        poll_text = f'*Query*: "{row_query["query"]}" \n*Bot\'s Response*: {row_query["llm_response"].strip()} \n\n*User*: {user_type} \n*Citations*: {final_citations.strip()}. \n\n{poll_string}'
         message_id = self.send_poll(
             receiver, poll_text, poll_id="POLL_PRIMARY", send_to=forward_to
         )
 
-        if escalation is False:
-            database.add_poll_primary_id(db_id, message_id)
-            database.add_poll_escalated_id(db_id, None)
-        else:
-            database.add_poll_escalated_id(db_id, message_id)
-            receiver_name = self.config["ESCALATION"][expert]['name']
-            primanry_notif = row_lt[expert + "_whatsapp_id"]
-            self.send_message(
-                primanry_notif,
-                "Escalating it to " + receiver_name,
-                reply_to_msg_id=row["poll_primary_id"],
-            )
+        # if escalation is False:
+        #     database.add_poll_primary_id(db_id, message_id)
+        #     database.add_poll_escalated_id(db_id, None)
+        # else:
+        #     database.add_poll_escalated_id(db_id, message_id)
+        #     receiver_name = self.config["ESCALATION"][expert]['name']
+        #     primanry_notif = row_lt[expert + "_whatsapp_id"]
+        #     self.send_message(
+        #         primanry_notif,
+        #         "Escalating it to " + receiver_name,
+        #         reply_to_msg_id=row["poll_primary_id"],
+        #     )
 
 
 
