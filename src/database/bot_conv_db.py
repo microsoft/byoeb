@@ -61,7 +61,8 @@ class BotConvDB(BaseDB):
     
     def find_with_receiver_id(self, receiver_id, message_type=None):
         if message_type:
-            bot_conv = self.collection.find_one({'$and': [{'receiver_id': receiver_id}, {'message_type': message_type}]}, sort=[('message_timestamp', pymongo.DESCENDING)])
+            bot_conv = self.collection.find({'$and': [{'receiver_id': receiver_id}, {'message_type': message_type}]})
         else:
-            bot_conv = self.collection.find_one({'receiver_id': receiver_id}, sort=[('message_timestamp', pymongo.DESCENDING)])
+            bot_conv = self.collection.find({'receiver_id': receiver_id})
+        bot_conv = list(bot_conv)
         return bot_conv

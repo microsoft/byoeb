@@ -397,9 +397,10 @@ class WhatsappResponder(BaseResponder):
             )
 
         else:
-            prev_row = self.bot_conv_db.find_with_receiver_id(row_query["user_id"], "suggested_questions")
-            if prev_row is None:
+            prev_rows = self.bot_conv_db.find_with_receiver_id(row_query["user_id"], "suggested_questions")
+            if len(prev_rows) == 0:
                 return
+            prev_row = prev_rows[-1]
             next_questions = list(prev_row["message_english"])
             print("Next questions: ", next_questions)
             questions_source = []
