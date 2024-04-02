@@ -17,6 +17,7 @@ from conversation_database import (
 from database import UserDB, UserConvDB, BotConvDB, ExpertConvDB, UserRelationDB
 from messenger.whatsapp import WhatsappMessenger
 import utils
+from utils import remove_extra_voice_files
 from onboard import onboard_wa_helper
 from responder.base import BaseResponder
 
@@ -275,7 +276,7 @@ class WhatsappResponder(BaseResponder):
         ).inserted_id
 
         gpt_output, citations, query_type = self.knowledge_base.answer_query(
-            self.user_conv_db, db_id, self.logger
+            self.user_conv_db, msg_id, self.logger
         )
         citations = "".join(citations)
         citations_str = citations
@@ -329,8 +330,6 @@ class WhatsappResponder(BaseResponder):
             query_type=query_type
         )
 
-        #TODO: move llm response, citations to bot_conv_db
-
         self.bot_conv_db.insert_row(
             receiver_id=row_lt['user_id'],
             message_type="query_response",
@@ -339,6 +338,7 @@ class WhatsappResponder(BaseResponder):
             message_source_lang=gpt_output_source,
             message_language=row_lt['user_language'],
             message_english=gpt_output,
+            reply_id=msg_id,
             citations=citations_str,
             message_timestamp=datetime.now(),
             transaction_message_id=msg_id,
@@ -346,8 +346,8 @@ class WhatsappResponder(BaseResponder):
 
 
 
-        #expert replied: YES Dr Anand expert sent to staff, staff says correct, escalation dr says yes, This query was forwarded to the staff
-
+        row_query = self.user_conv_db.get_from_db_id(db_id)
+            
         if (
             self.config["SEND_POLL"]
             and query_type != "small-talk"
@@ -355,12 +355,14 @@ class WhatsappResponder(BaseResponder):
             self.messenger.send_reaction(row_lt['whatsapp_id'], sent_msg_id, "\u2753")
             if msg_type == "audio":
                 self.messenger.send_reaction(row_lt['whatsapp_id'], audio_msg_id, "\u2753")
-            row_query = self.user_conv_db.get_from_db_id(db_id)
             self.send_correction_poll_expert(row_lt, row_query)
-
+        
+        
         if self.config["SUGGEST_NEXT_QUESTIONS"]:
             print("Sending suggestions")
             self.send_suggestions(row_lt, row_query, gpt_output)
+
+        
 
         return
 
@@ -395,7 +397,7 @@ class WhatsappResponder(BaseResponder):
             )
 
         else:
-            prev_row = self.bot_conv_db.find_with_transaction_id(row_query["message_id"], "suggested_questions")
+            prev_row = self.bot_conv_db.find_with_receiver_id(row_query["user_id"], "suggested_questions")
             if prev_row is None:
                 return
             next_questions = list(prev_row["message_english"])
@@ -423,9 +425,12 @@ class WhatsappResponder(BaseResponder):
             message_source_lang=questions_source,
             message_language=source_lang,
             message_english=next_questions,
+            reply_id=None,
+            citations=None,
             message_timestamp=datetime.now(),
             transaction_message_id=row_query['message_id'],
         )
+
 
     def handle_response_user(self, msg_object, row_lt):
         # data is a dictionary that contains from_number, msg_id, msg_object, user_type
@@ -490,7 +495,7 @@ class WhatsappResponder(BaseResponder):
             blob_service_client = BlobServiceClient.from_connection_string(connect_str)
             container_name = self.config["AZURE_BLOB_CONTAINER_NAME"].strip()
 
-            blob_name = str(datetime.now()) + "_" + str(row_lt['whatsapp_id']) + ".aac"
+            blob_name = str(datetime.now()) + "_" + str(row_lt['whatsapp_id']) + ".ogg"
             blob_client = blob_service_client.get_blob_client(
                 container=container_name, blob=blob_name
             )
@@ -512,6 +517,7 @@ class WhatsappResponder(BaseResponder):
             response = self.answer_query_text(msg_id, source_lang_text, eng_text, msg_type, row_lt, blob_name)
             return
 
+
     def handle_response_expert(self, msg_object, row_lt):
         msg_type = msg_object["type"]
 
@@ -523,6 +529,7 @@ class WhatsappResponder(BaseResponder):
             self.receive_correction_poll_expert(msg_object, row_lt)
         elif msg_type == "text":
             self.get_correction_from_expert(msg_object, row_lt)
+
 
     def send_correction_poll_expert(self, row_lt, row_query, escalation=False):
 
@@ -569,18 +576,7 @@ class WhatsappResponder(BaseResponder):
             receiver, poll_text, poll_id="POLL_PRIMARY", send_to=forward_to
         )
 
-        # if escalation is False:
-        #     database.add_poll_primary_id(db_id, message_id)
-        #     database.add_poll_escalated_id(db_id, None)
-        # else:
-        #     database.add_poll_escalated_id(db_id, message_id)
-        #     receiver_name = self.config["ESCALATION"][expert]['name']
-        #     primanry_notif = row_lt[expert + "_whatsapp_id"]
-        #     self.send_message(
-        #         primanry_notif,
-        #         "Escalating it to " + receiver_name,
-        #         reply_to_msg_id=row["poll_primary_id"],
-        #     )
+    
 
         
         self.bot_conv_db.insert_row(
@@ -591,6 +587,7 @@ class WhatsappResponder(BaseResponder):
             message_source_lang=poll_text,
             message_language=expert_row_lt["user_language"],
             message_english=poll_text,
+            reply_id=None,
             citations=None,
             message_timestamp=datetime.now(),
             transaction_message_id=row_query["message_id"],
@@ -609,6 +606,7 @@ class WhatsappResponder(BaseResponder):
 
 
         return message_id
+
 
     def receive_correction_poll_expert(self, msg_object, expert_row_lt):
         answer = msg_object["interactive"]["button_reply"]["title"]
@@ -640,6 +638,15 @@ class WhatsappResponder(BaseResponder):
         transaction_message_id = poll["transaction_message_id"]
         row_query = self.user_conv_db.get_from_message_id(transaction_message_id)
 
+        
+        if expert_row_lt['user_type'] != self.category_to_expert[row_query['query_type']]:
+            self.messenger.send_message(
+                expert_row_lt['whatsapp_id'],
+                f"This query has been forwarded to the {self.category_to_expert[row_query['query_type']]}.",
+                context_id,
+            )
+            return
+
         if row_query.get("resolved", False):
             self.messenger.send_message(
                 expert_row_lt['whatsapp_id'],
@@ -653,12 +660,32 @@ class WhatsappResponder(BaseResponder):
         
         print(row_query)
         print(user_row_lt)
+
+        poll_responses = self.expert_conv_db.get_from_transaction_message_id(transaction_message_id, "poll_response")
+        print(poll_responses)
+        if len(poll_responses) > 0:
+            poll_responses = sorted(poll_responses, key=lambda x: x['message_timestamp'])
+            last_poll_response = poll_responses[-1]
+            if last_poll_response['message'] == "No": # and last_poll_response["user_id"] != expert_row_lt["user_id"]:
+                if last_poll_response["user_id"] == expert_row_lt["user_id"]:
+                    self.messenger.send_message(
+                        expert_row_lt['whatsapp_id'],
+                        "You have already replied to this poll, please share the correction.",
+                        context_id,
+                    )
+                else:
+                    self.messenger.send_message(
+                        expert_row_lt['whatsapp_id'],
+                        "This query has already been answered.",
+                        context_id,
+                    )
+                return
+
         
-        rows = self.expert_conv_db.get_from_transaction_message_id(transaction_message_id)
-        rows = list(rows)
-        if len(rows) > 0:
-            print(rows)
-            return
+        # rows = self.expert_conv_db.get_from_transaction_message_id(transaction_message_id)
+        # if len(rows) > 0:
+        #     print(rows)
+        #     return
 
         if answer == "Yes":
             self.messenger.send_message(
@@ -706,10 +733,9 @@ class WhatsappResponder(BaseResponder):
                 )
 
             self.user_conv_db.mark_resolved(transaction_message_id)
-
             self.expert_conv_db.insert_row(
-                receiver_id=expert_row_lt["user_id"],
-                message_type="expert_poll_response",
+                user_id=expert_row_lt["user_id"],
+                message_type="poll_response",
                 message_id=msg_object["id"],
                 reply_id=context_id,
                 message="Yes",
@@ -740,8 +766,8 @@ class WhatsappResponder(BaseResponder):
                 context_id,
             )
             self.expert_conv_db.insert_row(
-                receiver_id=expert_row_lt["user_id"],
-                message_type="expert_poll_response",
+                user_id=expert_row_lt["user_id"],
+                message_type="poll_response",
                 message_id=msg_object["id"],
                 reply_id=context_id,
                 message="No",
@@ -753,83 +779,131 @@ class WhatsappResponder(BaseResponder):
         return
         
     
-    def get_correction_from_expert(self, msg_object):
-        return
-        msg_body = msg_object["text"]["body"]
-        from_number = msg_object["from"]
-        try:
-            msg_context = msg_object["context"]["id"]
-            list_msg_ids = database.find_db_id_with_message_id(msg_context)
-            print(msg_context, list_msg_ids)
-        except:
-            self.send_message(
-                msg_object["from"],
-                f"Please reply to the query you want to fix.",
+    def get_correction_from_expert(self, msg_object, expert_row_lt):
+        
+        if msg_object.get("context", False) == False:
+            self.messenger.send_message(
+                expert_row_lt['whatsapp_id'],
+                "Please reply to the query you want to fix.",
                 msg_object["id"],
             )
             return
 
+
+        msg_body = msg_object["text"]["body"]
+        context_id = msg_object["context"]["id"]
+
         self.logger.add_log(
-            sender_id=from_number,
+            sender_id=msg_object["from"],
             receiver_id="bot",
             message_id=msg_object["id"],
             action_type="received_correction",
-            details={"text": msg_body, "reply_to": msg_context},
+            details={"text": msg_body, "reply_to": context_id},
             timestamp=datetime.now(),
         )
-        if len(list_msg_ids) == 0:
-            self.send_message(
-                msg_object["from"],
-                f"Please reply to the query you want to fix.",
-                msg_object["id"],
+
+        poll = self.bot_conv_db.get_from_message_id(context_id)
+
+        if poll['message_type'] == 'consensus_poll':
+            self.expert_conv_db.insert_row(
+                user_id=expert_row_lt["user_id"],
+                message_id=msg_object["id"],
+                message_type="consensus_response",
+                message=msg_body,
+                reply_id=context_id,
+                message_timestamp=datetime.now(),
+                transaction_message_id=poll["transaction_message_id"],
+            )
+            self.messenger.send_message(
+                msg_object["from"], "Thank you for the response.", msg_object["id"]
             )
             return
+            
 
-        top_row = list_msg_ids[0]
-
-        if top_row["correction"] is not None:
-            self.send_message(
+        if poll is None or (poll["message_type"] != "poll_primary" and poll["message_type"] != "poll_escalated"):
+            self.messenger.send_message(
                 msg_object["from"],
-                f"You have already sent a correction for this query.",
+                f"Please reply to the query you want to fix.",
                 msg_object["id"],
             )
             return
         
-        if top_row['answered_by'] != msg_object['from']:
-            self.send_message(
-                msg_object["from"],
-                f"This query has already been answered.",
-                msg_object["id"],
+        transaction_message_id = poll["transaction_message_id"]
+
+        row_query = self.user_conv_db.get_from_message_id(transaction_message_id)
+        user_row_lt = self.user_db.get_from_user_id(row_query["user_id"])
+
+        if row_query.get("resolved", False):
+            self.messenger.send_message(
+                expert_row_lt['whatsapp_id'],
+                "This query has already been answered.",
+                context_id,
             )
             return
+        
+        if expert_row_lt['user_type'] != self.category_to_expert[row_query['query_type']]:
+            self.messenger.send_message(
+                expert_row_lt['whatsapp_id'],
+                f"This query has been forwarded to the {self.category_to_expert[row_query['query_type']]}.",
+                context_id,
+            )
+            return
+        
+        row_response = self.bot_conv_db.find_with_transaction_id(transaction_message_id, "query_response")
 
-        db_id = top_row["_id"]
-        database.add_correction(db_id, msg_body, msg_object["id"], datetime.now())
-        row = database.get_row_with_id(db_id)
-        row_lt = long_term_db.get_rows(row['user_id'], 'user_id')[0]
+        poll_responses = self.expert_conv_db.get_from_transaction_message_id(transaction_message_id, "poll_response")
+        print(poll_responses)
+        if len(poll_responses) == 0:
+            self.messenger.send_message(
+                expert_row_lt['whatsapp_id'],
+                "Please reply to the poll of the query you are trying to fix before sending a correction.",
+                context_id,
+            )
+            return
+        else:
+            poll_responses = sorted(poll_responses, key=lambda x: x['message_timestamp'])
+            last_poll_response = poll_responses[-1]
+            if last_poll_response['message'] != "No" and last_poll_response["user_id"] != expert_row_lt["user_id"]:
+                self.messenger.send_message(
+                    expert_row_lt['whatsapp_id'],
+                    "This query has already been answered.",
+                    context_id,
+                )
+                return
 
-        database.add_is_correct(db_id, False, msg_object["from"])
+        db_id = self.expert_conv_db.insert_row(
+            user_id=expert_row_lt["user_id"],
+            message_id=msg_object["id"],
+            message_type="correction",
+            message=msg_body,
+            reply_id=context_id,
+            message_timestamp=datetime.now(),
+            transaction_message_id=transaction_message_id,
+        ).inserted_id
 
-        # remove inverted commas from the output in beggining and end
+        row_correction = self.expert_conv_db.get_from_message_id(msg_object["id"])
 
-        gpt_output = knowledge_base.generate_correction(database, db_id, self.logger)
+            
+
+        gpt_output = self.knowledge_base.generate_correction(row_query, row_response, row_correction, self.logger)
         gpt_output = gpt_output.strip('"')
 
-        source_language = row_lt[row["user_type"] + "_language"]
+        
 
-        if row["query_message_type"] == "audio":
+        
+        if row_query["message_type"] == "audio":
             corrected_audio_loc = "corrected_audio.wav"
             remove_extra_voice_files(
                 corrected_audio_loc, corrected_audio_loc[:-3] + ".aac"
             )
-            gpt_output_source = azure_translate.text_translate_speech(
-                gpt_output, source_language + "-IN", corrected_audio_loc, self.logger
+            gpt_output_source = self.azure_translate.text_translate_speech(
+                gpt_output, user_row_lt['user_language'] + "-IN", corrected_audio_loc, self.logger
             )
 
-            updated_msg_id = self.send_message(
-                row_lt[row["user_type"] + "_whatsapp_id"],
+            updated_msg_id = self.messenger.send_message(
+                user_row_lt['whatsapp_id'],
                 gpt_output_source,
-                row["query_message_id"],
+                row_query["message_id"],
             )
 
             subprocess.run(
@@ -844,46 +918,101 @@ class WhatsappResponder(BaseResponder):
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
-            updated_audio_msg_id = self.send_audio(
+            updated_audio_msg_id = self.messenger.send_audio(
                 corrected_audio_loc[:-3] + ".aac",
-                row_lt[row["user_type"] + "_whatsapp_id"],
-                row["query_message_id"],
+                user_row_lt['whatsapp_id'],
+                row_query["message_id"]
             )
             remove_extra_voice_files(
                 corrected_audio_loc, corrected_audio_loc[:-3] + ".aac"
             )
 
-            self.send_reaction(row_lt[row["user_type"] + "_whatsapp_id"], updated_msg_id, "\u2705")
-            self.send_reaction(
-                row_lt[row["user_type"] + "_whatsapp_id"], updated_audio_msg_id, "\u2705"
+            self.messenger.send_reaction(user_row_lt['whatsapp_id'], updated_msg_id, "\u2705")
+            self.messenger.send_reaction(
+                user_row_lt['whatsapp_id'], updated_audio_msg_id, "\u2705"
             )
         else:
-            gpt_output_source = azure_translate.translate_text(
-                gpt_output, "en", source_language, self.logger
+            gpt_output_source = self.azure_translate.translate_text(
+                gpt_output, "en", user_row_lt['user_language'], self.logger
             )
-            updated_msg_id = self.send_message(
-                row_lt[row["user_type"] + "_whatsapp_id"],
+            updated_msg_id = self.messenger.send_message(
+                user_row_lt['whatsapp_id'],
                 gpt_output_source,
-                row["query_message_id"],
+                row_query["message_id"],
             )
+            updated_audio_msg_id = None
+            self.messenger.send_reaction(user_row_lt['whatsapp_id'], updated_msg_id, "\u2705")
 
-            self.send_reaction(row_lt[row["user_type"] + "_whatsapp_id"], updated_msg_id, "\u2705")
-
-        expert = self.category_to_expert[row['query_type']]
-        text = f"This response has been verified by the {expert}."
-        msg_text = azure_translate.translate_text(text, "en", source_language, self.logger)
-        self.send_message(row_lt[row["user_type"] + "_whatsapp_id"], msg_text, updated_msg_id)
-
-        self.send_message(
-            msg_object["from"], "Correction noted. Thank you.", msg_object["id"]
+        self.bot_conv_db.insert_row(
+            receiver_id=user_row_lt['user_id'],
+            message_type="query_correction",
+            message_id=updated_msg_id,
+            audio_message_id=updated_audio_msg_id,
+            message_source_lang=gpt_output_source,
+            message_language=user_row_lt['user_language'],
+            message_english=gpt_output,
+            reply_id=row_query["message_id"],
+            citations="expert_correction",
+            message_timestamp=datetime.now(),
+            transaction_message_id=transaction_message_id
         )
 
-        self.send_reaction(row_lt[expert+"_whatsapp_id"], row["poll_primary_id"], "\u2705")
+        expert = self.category_to_expert[row_query['query_type']]
+        text = f"This response has been verified by the {expert}."
+        msg_text = self.azure_translate.translate_text(text, "en", user_row_lt['user_language'], self.logger)
+        self.messenger.send_message(user_row_lt["whatsapp_id"], msg_text, updated_msg_id)
 
-        database.add_updated_response(db_id, gpt_output, updated_msg_id, datetime.now())
-
-        if row["query_message_type"] == "audio":
+        self.messenger.send_message(
+            msg_object["from"], "Correction noted. Thank you.", msg_object["id"]
+        )
+        self.user_conv_db.mark_resolved(transaction_message_id)
+        
+        
+        if row_query['message_type'] == 'audio':
             remove_extra_voice_files(
                 corrected_audio_loc, corrected_audio_loc[:-3] + ".aac"
             )
         return
+    
+
+    def send_query_expert(self, expert_row_lt, query_row):
+
+        query = query_row["message_source_lang"]
+
+        message = f"*Query*: {query}"
+
+        message_id = self.messenger.send_message(
+            expert_row_lt['whatsapp_id'], message, None
+        )
+
+        if query_row["message_type"] == "audio":
+            audio_file = query_row["audio_blob_path"]
+            
+            
+            connect_str = os.getenv("AZURE_STORAGE_CONNECTION_STRING").strip()
+            blob_service_client = BlobServiceClient.from_connection_string(connect_str)
+            container_name = self.config["AZURE_BLOB_CONTAINER_NAME"].strip()
+
+            blob_client = blob_service_client.get_blob_client(container=container_name, blob=audio_file)
+            download_file_path = "original_audio.ogg"
+            with open(download_file_path, "wb") as download_file:
+                download_file.write(blob_client.download_blob().readall())
+            
+            audio_msg_id = self.messenger.send_audio(audio_file, expert_row_lt['whatsapp_id'], message_id)
+
+        else:
+            audio_msg_id = None
+
+        self.bot_conv_db.insert_row(
+            receiver_id=expert_row_lt["user_id"],
+            message_type="consensus_poll", #ask Mohit
+            message_id=message_id,
+            audio_message_id=audio_msg_id,
+            message_source_lang=query,
+            message_language=query_row["source_language"],
+            message_english=query,
+            reply_id=None,
+            citations=None,
+            message_timestamp=datetime.now(),
+            transaction_message_id=query_row["message_id"],
+        )

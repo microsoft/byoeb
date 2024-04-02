@@ -75,3 +75,7 @@ class UserConvDB(BaseDB):
                 'resolved': True
             }}
         )
+
+    def get_all_unresolved(self, from_ts, to_ts):
+        user_conv = self.collection.find({"$and": [{"resolved": {"$ne": True}}, {'message_timestamp': {'$gte': from_ts, '$lt': to_ts}}]})
+        return user_conv

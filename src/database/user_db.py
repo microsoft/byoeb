@@ -41,3 +41,11 @@ class UserDB(BaseDB):
                 'user_language': user_language
             }}
         )
+    
+    def get_random_expert(self, expert_type, number_of_experts):
+        pipeline = [
+            {"$match": {"user_type": expert_type}},
+            {"$sample": {"size": number_of_experts}}
+        ]
+        experts = list(self.collection.aggregate(pipeline))
+        return experts

@@ -30,16 +30,18 @@ class KnowledgeBase:
             os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"]), "vectordb"
         )
         self.embedding_fn = embedding_functions.OpenAIEmbeddingFunction(
-            api_key=os.environ["OPENAI_API_KEY_EMBED"].strip(),
-            model_name="text-embedding-ada-002",
+            api_key=os.environ['OPENAI_API_KEY'].strip(),
+            api_type='azure',
+            api_base=os.environ['OPENAI_API_ENDPOINT'].strip(),
+            model_name="text-embedding-ada-002"
         )
         
         self.llm_prompts = json.load(open(os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"], "llm_prompt.json")))
 
     def answer_query(
         self,
-        user_conv_db,
-        db_id: str,
+        user_conv_db: UserConvDB,
+        msg_id: str,
         logger: LoggingDatabase,
     ) -> tuple[str, str]:
         """answer the user's query using the knowledge base and chat history
@@ -69,7 +71,7 @@ class KnowledgeBase:
         collection_count = collection.count()
         print('collection ids count: ', collection_count)
 
-        db_row = user_conv_db.get_from_db_id(db_id)
+        db_row = user_conv_db.get_from_message_id(msg_id)
         query = db_row["message_english"]
         if not query.endswith("?"):
             query += "?"
@@ -110,7 +112,7 @@ class KnowledgeBase:
         )
 
         # take all non empty conversations 
-        all_conversations = user_conv_db.get_all_user_conv(db_row["user_id"], db_row["user_type"])
+        all_conversations = user_conv_db.get_all_user_conv(db_row["user_id"])
         conversation_string = ""
         # "\n".join(
         #     [
@@ -211,8 +213,9 @@ class KnowledgeBase:
 
     def generate_correction(
         self,
-        database: ConversationDatabase,
-        db_id: str,
+        row_query: dict[str, Any],
+        row_response: dict[str, Any],
+        row_correction: dict[str, Any],
         logger: LoggingDatabase,
     ):
         
@@ -221,24 +224,25 @@ class KnowledgeBase:
             return gpt_output
 
         system_prompt = self.llm_prompts["generate_correction"]
-        row = database.get_row_with_id(db_id)
-
+        query = row_query["message_english"]
+        response = row_response["message_english"]
+        correction = row_correction["message"]
         query_prompt = f"""
         A user asked the following query:\n\
-                "{row['query']}"\n\
+                "{query}"\n\
             A chatbot answered the following:\n\
-            "{row['response']}"\n\
+            "{response}"\n\
             An expert corrected the response as follows:\n\
-            "{row['correction']}"\n\
+            "{correction}"\n\
 
         """
-
+        transaction_message_id = row_query["message_id"]
         logger.add_log(
             sender_id="bot",
             receiver_id="bot",
             message_id=None,
             action_type="get_correction",
-            details={"system_prompt": system_prompt, "query_prompt": query_prompt},
+            details={"system_prompt": system_prompt, "query_prompt": query_prompt, "transaction_message_id": transaction_message_id},
             timestamp=datetime.now(),
         )
 

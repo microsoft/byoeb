@@ -4,7 +4,7 @@ CHAT_APPLICATION: whatsapp
 API_ACTIVATED: true
 USERS : ['Student']
 EXPERTS:
-  Teacher: 'Academic'
+  Teacher: 'academic'
 ESCALATION:
   Teacher: 
     name: 'Senior Teacher'
@@ -14,6 +14,7 @@ USER_PROMPT : 'You are a science bot. Your purpose is to help students with any 
 RECREATE_EMBEDDINGS: false
 SHOW_CITATIONS: true
 SEND_POLL: false
+SEND_CONSENSUS_POLL: true
 SUGGEST_NEXT_QUESTIONS: true
 MAX_CONVERSATION_LENGTH: 5
 GLOB_SUFFIX: '*.txt'
@@ -32,13 +33,14 @@ COSMOS_DB_NAME: byoeb
 COSMOS_DB_COLLECTION: conversation_science_bot
 COSMOS_LONGTERM_COLLECTION: science-bot_users
 COSMOS_LOGGING_COLLECTION: logs_science_bot
-AZURE_BLOB_CONTAINER_NAME: science-bot-audio-storage
+AZURE_BLOB_CONTAINER_NAME: swaasthya-bot-audio-storage
 
 #NEW_DB
-
+COSMOS_USER_COLLECTION: users
+COSMOS_RELATIONS_COLLECTION: relations
 COSMOS_USER_CONV_COLLECTION: user_conversations
 COSMOS_BOT_CONV_COLLECTION: bot_conversations
-COSMOS_EXPERT_CONV_COLLECTION: experts_conversations
+COSMOS_EXPERT_CONV_COLLECTION: expert_conversations
 
 SPREADSHEET_ID: abcd
 SHEET_LINK: https://docs.google.com/spreadsheets/d/abcd/edit?usp=sharing

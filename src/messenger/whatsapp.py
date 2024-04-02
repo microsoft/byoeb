@@ -739,9 +739,16 @@ class WhatsappMessenger(BaseMessenger):
             + "/media"
         )
         payload = {"messaging_product": "whatsapp"}
-        files = [
-            ("file", (audio_output_file, open(audio_output_file, "rb"), "audio/aac"))
-        ]
+        
+
+        if audio_output_file.endswith(".aac"):
+            files = [
+                ("file", (audio_output_file, open(audio_output_file, "rb"), "audio/aac"))
+            ]
+        elif audio_output_file.endswith(".ogg"):
+            files = [
+                ("file", (audio_output_file, open(audio_output_file, "rb"), "audio/ogg"))
+            ]
 
         headers = {
             "Authorization": f"Bearer {os.environ['WHATSAPP_TOKEN'].strip()}",
