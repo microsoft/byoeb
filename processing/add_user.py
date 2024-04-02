@@ -20,11 +20,11 @@ user_db = UserDB(config)
 user_relation_db = UserRelationDB(config)
 
 
-user_whatsapp_id = '918375066113'
+user_whatsapp_id = '919876543210'
 user_language = 'en'
 user_type = 'Student'
 
-expert_whatsapp_id = '918904954952'
+expert_whatsapp_id = '91987654321'
 expert_language = 'en'
 expert_type = 'Teacher'
 
