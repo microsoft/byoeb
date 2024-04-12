@@ -60,7 +60,7 @@ httplib2==0.22.0
 httptools==0.6.0
 httpx==0.24.1
 humanfriendly==10.0
-idna==3.4
+idna==3.7
 importlib-metadata==6.8.0
 importlib-resources==6.0.1
 ipykernel==6.25.1
