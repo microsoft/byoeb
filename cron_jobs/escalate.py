@@ -9,43 +9,60 @@ with open(local_path + "/config.yaml") as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
 
 sys.path.append(local_path.strip() + "/src")
-from messenger.whatsapp import WhatsappMessenger
+
+NUM_EXPERTS = 1
+from database import UserDB, UserConvDB, BotConvDB, ExpertConvDB, UserRelationDB
+
+
+from messenger import WhatsappMessenger
+from responder import WhatsappResponder
 from conversation_database import (
-    ConversationDatabase,
-    LongTermDatabase,
-    LoggingDatabase,
+    LoggingDatabase
 )
+
+userdb = UserDB(config)
+user_conv_db = UserConvDB(config)
+bot_conv_db = BotConvDB(config)
+expert_conv_db = ExpertConvDB(config)
+
+
 import pandas as pd
 from tqdm import tqdm
 
-database = ConversationDatabase(config)
-long_term_db = LongTermDatabase(config)
 logger = LoggingDatabase(config)
+responder = WhatsappResponder(config)
 
-messenger = WhatsappMessenger(config, logger)
+category_to_expert = {}
 
-to_ts = datetime.datetime.now() - datetime.timedelta(hours=3)
-from_ts = datetime.datetime.now() - datetime.timedelta(hours=6)
-list_cursor = database.get_rows_timestamp("timestamp", from_ts, to_ts)
-df_hour = pd.DataFrame(list_cursor)
+for expert in config["EXPERTS"]:
+    category_to_expert[config["EXPERTS"][expert]] = expert
+print(category_to_expert)
+query_type_to_escalation_expert = {
+}
 
-if df_hour.empty:
-    print("No new messages in the hour")
-    sys.exit()
+for expert in config["EXPERTS"]:
+    query_type_to_escalation_expert[config["EXPERTS"][expert]] = userdb.collection.find_one({"$and": [{"user_type": expert}, {"escalation": True}]})
+print(query_type_to_escalation_expert)
 
-df_hour.reset_index(drop=True, inplace=True)
+to_ts = datetime.datetime.now() - datetime.timedelta(hours=0)
+from_ts = datetime.datetime.now() - datetime.timedelta(days=1)
 
-for i in tqdm(range(len(df_hour))):
-    if (
-        df_hour.loc[i, "is_correct"] == True
-        or df_hour.loc[i, "is_correct"] == False
-        or df_hour.loc[i, "query_type"] == "small-talk"
-    ):
-        continue
-    if df_hour.loc[i, "poll_escalated_id"]:
-        continue
-    messenger.send_correction_poll_expert(
-        database, long_term_db, df_hour.loc[i, "_id"], escalation=True
-    )
+list_cursor = user_conv_db.get_all_unresolved(from_ts, to_ts)
+
+df = pd.DataFrame(list_cursor)
+df = df[df['query_type'] != 'small-talk']
+df.reset_index(drop=True, inplace=True)
+
+for i, row in tqdm(df.iterrows()):
+    print(row.keys())
+    # print(row['message_id'], row['message_english'])
+    try:
+        user_row_lt = userdb.get_from_user_id(row["user_id"])
+        print(query_type_to_escalation_expert[df.loc[i, "query_type"]], user_row_lt, row)
+        responder.send_correction_poll_expert(user_row_lt, query_type_to_escalation_expert[df.loc[i, "query_type"]], row, True)
+    except Exception as e:
+        print(e)
+
+    
 
 print("Escalation done")

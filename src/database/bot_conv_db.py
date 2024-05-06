@@ -66,3 +66,7 @@ class BotConvDB(BaseDB):
             bot_conv = self.collection.find({'receiver_id': receiver_id})
         bot_conv = list(bot_conv)
         return bot_conv
+    
+    def find(self, query):
+        bot_conv = self.collection.find(query)
+        return bot_conv

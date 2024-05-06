@@ -47,16 +47,6 @@ class BaseMessenger(ABC):
     ):
         pass
 
-    @abstractmethod
-    def send_correction_poll_expert(
-        self,
-        database: ConversationDatabase,
-        long_term_db: LongTermDatabase,
-        db_id: str,
-        escalation: bool,
-    ):
-        pass
-
 
     @abstractmethod
     def send_language_poll(

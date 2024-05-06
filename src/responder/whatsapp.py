@@ -355,7 +355,11 @@ class WhatsappResponder(BaseResponder):
             self.messenger.send_reaction(row_lt['whatsapp_id'], sent_msg_id, "\u2753")
             if msg_type == "audio":
                 self.messenger.send_reaction(row_lt['whatsapp_id'], audio_msg_id, "\u2753")
-            self.send_correction_poll_expert(row_lt, row_query)
+            query_type = row_query["query_type"]
+            expert_type = self.category_to_expert[query_type]
+            user_secondary_id = self.user_relation_db.find_user_relations(row_lt['user_id'], expert_type)['user_id_secondary']
+            expert_row_lt = self.user_db.get_from_user_id(user_secondary_id)
+            self.send_correction_poll_expert(row_lt, expert_row_lt, row_query)
         
         
         if self.config["SUGGEST_NEXT_QUESTIONS"]:
@@ -532,12 +536,9 @@ class WhatsappResponder(BaseResponder):
             self.get_correction_from_expert(msg_object, row_lt)
 
 
-    def send_correction_poll_expert(self, row_lt, row_query, escalation=False):
+    def send_correction_poll_expert(self, row_lt, expert_row_lt, row_query, escalation=False, expert_row_lt_notif=None):
 
-        query_type = row_query["query_type"]
-        expert_type = self.category_to_expert[query_type]
-        user_secondary_id = self.user_relation_db.find_user_relations(row_lt['user_id'], expert_type)['user_id_secondary']
-        expert_row_lt = self.user_db.get_from_user_id(user_secondary_id)
+        
         
         row_bot_conv = self.bot_conv_db.find_with_transaction_id(row_query["message_id"], "query_response")
 
@@ -562,19 +563,16 @@ class WhatsappResponder(BaseResponder):
             final_citations = "No citations found."
 
         expert = self.category_to_expert[row_query['query_type']]
-        if escalation is False:
-            receiver = expert_row_lt["whatsapp_id"]
-            forward_to = expert
-        else:
-            receiver = self.config["ESCALATION"][expert]['whatsapp_id']
-            forward_to = expert
-
+        
+        receiver = expert_row_lt["whatsapp_id"]
+        forward_to = expert
+        
 
         
 
         poll_text = f'*Query*: "{row_query["message_english"]}" \n*Bot\'s Response*: {row_bot_conv["message_english"].strip()} \n\n*User*: {user_type} \n*Citations*: {final_citations.strip()}. \n\n{poll_string}'
         message_id = self.messenger.send_poll(
-            receiver, poll_text, poll_id="POLL_PRIMARY", send_to=forward_to
+            receiver, poll_text, poll_id="POLL_PRIMARY"
         )
 
     
@@ -595,11 +593,11 @@ class WhatsappResponder(BaseResponder):
         )
 
         if escalation:
-            primary_poll = self.bot_conv_db.find_with_transaction_id(row_query["message_id"], "poll_primary")
 
-            receiver_name = self.config["ESCALATION"][expert]['name']
-            primanry_notif = expert_row_lt["whatsapp_id"]
-            self.send_message(
+            primary_poll = self.bot_conv_db.find({"$and" : [{"receiver_id": expert_row_lt["user_id"]}, {"transaction_message_id": row_query["message_id"]}, {"message_type": "poll_primary"}]})
+            receiver_name = f"escalation {expert}"
+            primanry_notif = expert_row_lt_notif["whatsapp_id"]
+            self.messenger.send_message(
                 primanry_notif,
                 "Escalating it to " + receiver_name,
                 reply_to_msg_id=primary_poll["message_id"],
@@ -805,7 +803,7 @@ class WhatsappResponder(BaseResponder):
 
         poll = self.bot_conv_db.get_from_message_id(context_id)
 
-        if poll['message_type'] == 'consensus_poll':
+        if poll is not None and poll['message_type'] == 'consensus_poll':
             self.expert_conv_db.insert_row(
                 user_id=expert_row_lt["user_id"],
                 message_id=msg_object["id"],
@@ -822,6 +820,7 @@ class WhatsappResponder(BaseResponder):
             
 
         if poll is None or (poll["message_type"] != "poll_primary" and poll["message_type"] != "poll_escalated"):
+            print(poll)
             self.messenger.send_message(
                 msg_object["from"],
                 f"Please reply to the query you want to fix.",
