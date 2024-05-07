@@ -10,11 +10,9 @@ import numpy as np
 import json
 from knowledge_base import KnowledgeBase
 from conversation_database import (
-    ConversationDatabase,
-    LongTermDatabase,
     LoggingDatabase,
 )
-from database import UserDB, UserConvDB, BotConvDB, ExpertConvDB, UserRelationDB
+from database import UserDB, UserConvDB, BotConvDB, ExpertConvDB, UserRelationDB, FAQDB
 from messenger.whatsapp import WhatsappMessenger
 import utils
 from utils import remove_extra_voice_files
@@ -34,7 +32,7 @@ class WhatsappResponder(BaseResponder):
 
         self.user_db = UserDB(config)
         self.user_relation_db = UserRelationDB(config)
-        
+        self.faq_db = FAQDB(config)
 
         self.user_conv_db = UserConvDB(config)
         self.bot_conv_db = BotConvDB(config)
@@ -275,21 +273,34 @@ class WhatsappResponder(BaseResponder):
             message_timestamp = datetime.now()
         ).inserted_id
 
-        gpt_output, citations, query_type = self.knowledge_base.answer_query(
+        response = None
+        response_from_faq = False
+        org_id = 'science-bot'
+        if self.config['FAQ']:
+            response, citations, query_type = self.faq_db.answer_query_faq(
+                self.user_conv_db, db_id, org_id, self.logger
+            )
+
+        if response is None:
+            response, citations, query_type = self.knowledge_base.answer_query(
             self.user_conv_db, msg_id, self.logger
-        )
+            )
+        else:
+            response_from_faq = True
+            print("Response from FAQ: ", response)
+        
         citations = "".join(citations)
         citations_str = citations
 
-        print("GPT output: ", gpt_output)
+        print("Response: ", response)
 
         if msg_type == "text" or msg_type == "interactive":
             audio_msg_id = None
-            gpt_output_source = self.azure_translate.translate_text(
-                gpt_output, "en", row_lt['user_language'], self.logger
+            response_source = self.azure_translate.translate_text(
+                response, "en", row_lt['user_language'], self.logger
             )
             sent_msg_id = self.messenger.send_message(
-                row_lt['whatsapp_id'], gpt_output_source, msg_id
+                row_lt['whatsapp_id'], response_source, msg_id
             )
 
 
@@ -297,8 +308,8 @@ class WhatsappResponder(BaseResponder):
         if msg_type == "audio":
             audio_input_file = "test_audio_input.aac"
             audio_output_file = "test_audio_output.aac"
-            gpt_output_source = self.azure_translate.text_translate_speech(
-                gpt_output,
+            response_source = self.azure_translate.text_translate_speech(
+                response,
                 row_lt['user_language'] + "-IN",
                 audio_output_file[:-3] + "wav",
                 self.logger,
@@ -316,14 +327,14 @@ class WhatsappResponder(BaseResponder):
                 stderr=subprocess.DEVNULL,
             )
             sent_msg_id = self.messenger.send_message(
-                row_lt['whatsapp_id'], gpt_output_source, msg_id
+                row_lt['whatsapp_id'], response_source, msg_id
             )
             audio_msg_id = self.messenger.send_audio(
                 audio_output_file, row_lt['whatsapp_id'], msg_id
             )
             utils.remove_extra_voice_files(audio_input_file, audio_output_file)
 
-        print("GPT output: ", gpt_output)
+        print("GPT output: ", response)
 
         self.user_conv_db.add_query_type(
             message_id=msg_id,
@@ -335,9 +346,9 @@ class WhatsappResponder(BaseResponder):
             message_type="query_response",
             message_id=sent_msg_id,
             audio_message_id=audio_msg_id,
-            message_source_lang=gpt_output_source,
+            message_source_lang=response_source,
             message_language=row_lt['user_language'],
-            message_english=gpt_output,
+            message_english=response,
             reply_id=msg_id,
             citations=citations_str,
             message_timestamp=datetime.now(),
@@ -349,7 +360,7 @@ class WhatsappResponder(BaseResponder):
         row_query = self.user_conv_db.get_from_db_id(db_id)
             
         if (
-            self.config["SEND_POLL"]
+            self.config["SEND_POLL"] and response_from_faq == False
             and query_type != "small-talk"
         ):
             self.messenger.send_reaction(row_lt['whatsapp_id'], sent_msg_id, "\u2753")
@@ -364,7 +375,7 @@ class WhatsappResponder(BaseResponder):
         
         if self.config["SUGGEST_NEXT_QUESTIONS"]:
             print("Sending suggestions")
-            self.send_suggestions(row_lt, row_query, gpt_output)
+            self.send_suggestions(row_lt, row_query, response)
 
         
 
@@ -383,9 +394,16 @@ class WhatsappResponder(BaseResponder):
         ):
             next_questions = None
             
-            next_questions = self.knowledge_base.follow_up_questions(
-                query, gpt_output, row_lt['user_type'], self.logger
-            )
+            if self.config['FAQ']:
+                next_questions = self.faq_db.find_related_qns(
+                    row_query, gpt_output, 3
+                )
+                print("FAQ next questions: ", next_questions)
+
+            else:
+                next_questions = self.knowledge_base.follow_up_questions(
+                    query, gpt_output, row_lt['user_type'], self.logger
+                )
             questions_source = []
             for question in next_questions:
                 question_source = self.azure_translate.translate_text(
