@@ -259,40 +259,8 @@ class WhatsappResponder(BaseResponder):
 
         self.user_db.update_user_language(row_lt['user_id'], lang_detected)
         return
-
-    def answer_query_text(self, msg_id, message, translated_message, msg_type, row_lt, blob_name=None):
-        print("Answering query")
-        db_id = self.user_conv_db.insert_row(
-            user_id = row_lt['user_id'],
-            message_id = msg_id,
-            message_type = msg_type,
-            message_source_lang = message,
-            source_language = row_lt['user_language'],
-            message_translated = translated_message,
-            audio_blob_path = None if msg_type != "audio" else blob_name,
-            message_timestamp = datetime.now()
-        ).inserted_id
-
-        response = None
-        response_from_faq = False
-        org_id = 'science-bot'
-        if self.config['FAQ']:
-            response, citations, query_type = self.faq_db.answer_query_faq(
-                self.user_conv_db, db_id, org_id, self.logger
-            )
-
-        if response is None:
-            response, citations, query_type = self.knowledge_base.answer_query(
-            self.user_conv_db, msg_id, self.logger
-            )
-        else:
-            response_from_faq = True
-            print("Response from FAQ: ", response)
-        
-        citations = "".join(citations)
-        citations_str = citations
-
-        print("Response: ", response)
+    
+    def send_query_response(self, msg_type, msg_id, response, row_lt):
 
         if msg_type == "text" or msg_type == "interactive":
             audio_msg_id = None
@@ -302,10 +270,7 @@ class WhatsappResponder(BaseResponder):
             sent_msg_id = self.messenger.send_message(
                 row_lt['whatsapp_id'], response_source, msg_id
             )
-
-
-
-        if msg_type == "audio":
+        elif msg_type == "audio":
             audio_input_file = "test_audio_input.aac"
             audio_output_file = "test_audio_output.aac"
             response_source = self.azure_translate.text_translate_speech(
@@ -334,8 +299,90 @@ class WhatsappResponder(BaseResponder):
             )
             utils.remove_extra_voice_files(audio_input_file, audio_output_file)
 
-        print("GPT output: ", response)
+        return sent_msg_id, audio_msg_id, response_source
+        
 
+    def answer_query_text(self, msg_id, message, translated_message, msg_type, row_lt, blob_name=None):
+        print("Answering query")
+        db_id = self.user_conv_db.insert_row(
+            user_id = row_lt['user_id'],
+            message_id = msg_id,
+            message_type = msg_type,
+            message_source_lang = message,
+            source_language = row_lt['user_language'],
+            message_translated = translated_message,
+            audio_blob_path = None if msg_type != "audio" else blob_name,
+            message_timestamp = datetime.now()
+        ).inserted_id
+
+        response = None
+        response_from_faq = True
+        org_id = row_lt['org_id']
+        if self.config['FAQ']:
+            response, citations, query_type = self.faq_db.answer_query_faq(
+                self.user_conv_db, db_id, org_id, self.logger
+            )
+
+        if response is None:
+            response_from_faq = False
+            response, citations, query_type = self.knowledge_base.answer_query(
+            self.user_conv_db, msg_id, self.logger, org_id
+            )
+            if query_type != "small-talk":
+                citations = "".join(citations)
+                citations_str = citations
+                self.bot_conv_db.insert_row(
+                    receiver_id=None,
+                    message_type="query_response_gpt",
+                    message_id=None,
+                    audio_message_id=None,
+                    message_source_lang=None,
+                    message_language=None,
+                    message_english=response,
+                    reply_id=None,
+                    citations=citations,
+                    message_timestamp=datetime.now(),
+                    transaction_message_id=msg_id,
+                )
+                self.user_conv_db.add_query_type(
+                    message_id=msg_id,
+                    query_type=query_type
+                )
+                row_query = self.user_conv_db.get_from_db_id(db_id)
+                expert_type = self.category_to_expert[query_type]
+                user_secondary_id = self.user_relation_db.find_user_relations(row_lt['user_id'], expert_type)['user_id_secondary']
+                expert_row_lt = self.user_db.get_from_user_id(user_secondary_id)
+                
+                self.send_correction_poll_expert(row_lt, expert_row_lt, row_query)
+                text = 'Thank you for your query, I will get back to you soon.'
+            
+    
+                sent_msg_id, audio_msg_id, response_source = self.send_query_response(msg_type, msg_id, text, row_lt)
+
+                self.bot_conv_db.insert_row(
+                    receiver_id=row_lt['user_id'],
+                    message_type="response_pending",
+                    message_id=sent_msg_id,
+                    audio_message_id=audio_msg_id,
+                    message_source_lang=response_source,
+                    message_language=row_lt['user_language'],
+                    message_english=text,
+                    reply_id=msg_id,
+                    citations=None,
+                    message_timestamp=datetime.now(),
+                    transaction_message_id=msg_id,
+                )
+                return
+            
+                
+        print("Response from FAQ: ", response)
+        
+        citations = "".join(citations)
+        citations_str = citations
+
+        print("Response: ", response)
+        sent_msg_id, audio_msg_id, response_source = self.send_query_response(msg_type, msg_id, response, row_lt)
+        
         self.user_conv_db.add_query_type(
             message_id=msg_id,
             query_type=query_type
@@ -358,19 +405,19 @@ class WhatsappResponder(BaseResponder):
 
 
         row_query = self.user_conv_db.get_from_db_id(db_id)
-            
-        if (
-            self.config["SEND_POLL"] and response_from_faq == False
-            and query_type != "small-talk"
-        ):
-            self.messenger.send_reaction(row_lt['whatsapp_id'], sent_msg_id, "\u2753")
-            if msg_type == "audio":
-                self.messenger.send_reaction(row_lt['whatsapp_id'], audio_msg_id, "\u2753")
-            query_type = row_query["query_type"]
-            expert_type = self.category_to_expert[query_type]
-            user_secondary_id = self.user_relation_db.find_user_relations(row_lt['user_id'], expert_type)['user_id_secondary']
-            expert_row_lt = self.user_db.get_from_user_id(user_secondary_id)
-            self.send_correction_poll_expert(row_lt, expert_row_lt, row_query)
+        self.user_conv_db.mark_resolved(row_query['message_id'])
+        # if (
+        #     self.config["SEND_POLL"] and response_from_faq == False
+        #     and query_type != "small-talk"
+        # ):
+        #     self.messenger.send_reaction(row_lt['whatsapp_id'], sent_msg_id, "\u2753")
+        #     if msg_type == "audio":
+        #         self.messenger.send_reaction(row_lt['whatsapp_id'], audio_msg_id, "\u2753")
+        #     query_type = row_query["query_type"]
+        #     expert_type = self.category_to_expert[query_type]
+        #     user_secondary_id = self.user_relation_db.find_user_relations(row_lt['user_id'], expert_type)['user_id_secondary']
+        #     expert_row_lt = self.user_db.get_from_user_id(user_secondary_id)
+        #     self.send_correction_poll_expert(row_lt, expert_row_lt, row_query)
         
         
         if self.config["SUGGEST_NEXT_QUESTIONS"]:
@@ -396,7 +443,7 @@ class WhatsappResponder(BaseResponder):
             
             if self.config['FAQ']:
                 next_questions = self.faq_db.find_related_qns(
-                    row_query, gpt_output, 3
+                    row_query, gpt_output, row_lt['org_id'], 3
                 )
                 print("FAQ next questions: ", next_questions)
 
@@ -558,7 +605,7 @@ class WhatsappResponder(BaseResponder):
 
         
         
-        row_bot_conv = self.bot_conv_db.find_with_transaction_id(row_query["message_id"], "query_response")
+        row_bot_conv = self.bot_conv_db.find_with_transaction_id(row_query["message_id"], "query_response_gpt")
 
 
         user_type = row_lt["user_type"]
@@ -672,7 +719,7 @@ class WhatsappResponder(BaseResponder):
             )
             return
 
-        row_response = self.bot_conv_db.find_with_transaction_id(transaction_message_id, "query_response")
+        row_response = self.bot_conv_db.find_with_transaction_id(transaction_message_id, "query_response_gpt")
         user_row_lt = self.user_db.get_from_user_id(row_query["user_id"])
         
         print(row_query)
@@ -712,30 +759,32 @@ class WhatsappResponder(BaseResponder):
             )
             
             
+            response = row_response["message_english"]
 
+            sent_msg_id, audio_msg_id, response_source = self.send_query_response(row_query['message_type'], row_query['message_id'], response, user_row_lt)
+            #send response to user
+            self.bot_conv_db.insert_row(
+                receiver_id=user_row_lt["user_id"],
+                message_type="query_response",
+                message_id=sent_msg_id,
+                audio_message_id=audio_msg_id,
+                message_source_lang=response_source,
+                message_language=user_row_lt["user_language"],
+                message_english=response,
+                reply_id=row_query["message_id"],
+                citations=row_response["citations"],
+                message_timestamp=datetime.now(),
+                transaction_message_id=row_query["message_id"],
+            )
+            
+            
+            
+            
 
-            #Send green tick to the user messages
-            self.messenger.send_reaction(
-                user_row_lt['whatsapp_id'], row_response["message_id"], "\u2705"
-            )
-            if row_response["audio_message_id"]:
-                self.messenger.send_reaction(
-                    user_row_lt['whatsapp_id'], row_response["audio_message_id"], "\u2705"
-                )
-            text = f"This response has been verified by the {expert_row_lt['user_type']}."
-            text_translated = self.azure_translate.translate_text(
-                text, "en", user_row_lt["user_language"], self.logger
-            )
-            self.messenger.send_message(
-                user_row_lt["whatsapp_id"],
-                text_translated,
-                row_query["message_id"],
-            )
-
-            #Send green tick to the responding expert    
-            self.messenger.send_reaction(
-                expert_row_lt['whatsapp_id'], poll["message_id"], "\u2705"
-            )
+            # #Send green tick to the responding expert    
+            # self.messenger.send_reaction(
+            #     expert_row_lt['whatsapp_id'], poll["message_id"], "\u2705"
+            # )
 
             #Send green tick to other expert (if any)
             if poll['message_type'] == "poll_primary":
@@ -761,22 +810,22 @@ class WhatsappResponder(BaseResponder):
             )
 
         elif answer == "No":
-            self.messenger.send_reaction(
-                user_row_lt['whatsapp_id'], row_response["message_id"], "\u274C"
-            )
-            if row_response["audio_message_id"]:
-                self.messenger.send_reaction(
-                    user_row_lt['whatsapp_id'], row_response["audio_message_id"], "\u274C"
-                )
-            text = f"This answer is invalid. Please wait for the correct response from the {expert_row_lt['user_type']}."
-            text_translated = self.azure_translate.translate_text(
-                text, "en", user_row_lt["user_language"], self.logger
-            )
-            self.messenger.send_message(
-                user_row_lt['whatsapp_id'],
-                text_translated,
-                row_response["message_id"],
-            )
+            # self.messenger.send_reaction(
+            #     user_row_lt['whatsapp_id'], row_response["message_id"], "\u274C"
+            # )
+            # if row_response["audio_message_id"]:
+            #     self.messenger.send_reaction(
+            #         user_row_lt['whatsapp_id'], row_response["audio_message_id"], "\u274C"
+            #     )
+            # text = f"This answer is invalid. Please wait for the correct response from the {expert_row_lt['user_type']}."
+            # text_translated = self.azure_translate.translate_text(
+            #     text, "en", user_row_lt["user_language"], self.logger
+            # )
+            # self.messenger.send_message(
+            #     user_row_lt['whatsapp_id'],
+            #     text_translated,
+            #     row_response["message_id"],
+            # )
             self.messenger.send_message(
                 expert_row_lt['whatsapp_id'],
                 "Please reply with a correction to the query that you are trying to fix.",
@@ -791,7 +840,6 @@ class WhatsappResponder(BaseResponder):
                 message_timestamp=datetime.now(),
                 transaction_message_id=transaction_message_id,
             )
-
 
         return
         
@@ -867,7 +915,7 @@ class WhatsappResponder(BaseResponder):
             )
             return
         
-        row_response = self.bot_conv_db.find_with_transaction_id(transaction_message_id, "query_response")
+        row_response = self.bot_conv_db.find_with_transaction_id(transaction_message_id, "query_response_gpt")
 
         poll_responses = self.expert_conv_db.get_from_transaction_message_id(transaction_message_id, "poll_response")
         print(poll_responses)
@@ -906,61 +954,10 @@ class WhatsappResponder(BaseResponder):
         gpt_output = self.knowledge_base.generate_correction(row_query, row_response, row_correction, self.logger)
         gpt_output = gpt_output.strip('"')
 
-        
+        updated_msg_id, updated_audio_msg_id, gpt_output_source = self.send_query_response(row_query['message_type'], row_query['message_id'], gpt_output, user_row_lt)
 
         
-        if row_query["message_type"] == "audio":
-            corrected_audio_loc = "corrected_audio.wav"
-            remove_extra_voice_files(
-                corrected_audio_loc, corrected_audio_loc[:-3] + ".aac"
-            )
-            gpt_output_source = self.azure_translate.text_translate_speech(
-                gpt_output, user_row_lt['user_language'] + "-IN", corrected_audio_loc, self.logger
-            )
-
-            updated_msg_id = self.messenger.send_message(
-                user_row_lt['whatsapp_id'],
-                gpt_output_source,
-                row_query["message_id"],
-            )
-
-            subprocess.run(
-                [
-                    "ffmpeg",
-                    "-i",
-                    corrected_audio_loc,
-                    "-codec:a",
-                    "aac",
-                    corrected_audio_loc[:-3] + ".aac",
-                ],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-            updated_audio_msg_id = self.messenger.send_audio(
-                corrected_audio_loc[:-3] + ".aac",
-                user_row_lt['whatsapp_id'],
-                row_query["message_id"]
-            )
-            remove_extra_voice_files(
-                corrected_audio_loc, corrected_audio_loc[:-3] + ".aac"
-            )
-
-            self.messenger.send_reaction(user_row_lt['whatsapp_id'], updated_msg_id, "\u2705")
-            self.messenger.send_reaction(
-                user_row_lt['whatsapp_id'], updated_audio_msg_id, "\u2705"
-            )
-        else:
-            gpt_output_source = self.azure_translate.translate_text(
-                gpt_output, "en", user_row_lt['user_language'], self.logger
-            )
-            updated_msg_id = self.messenger.send_message(
-                user_row_lt['whatsapp_id'],
-                gpt_output_source,
-                row_query["message_id"],
-            )
-            updated_audio_msg_id = None
-            self.messenger.send_reaction(user_row_lt['whatsapp_id'], updated_msg_id, "\u2705")
-
+        
         self.bot_conv_db.insert_row(
             receiver_id=user_row_lt['user_id'],
             message_type="query_correction",
@@ -975,10 +972,10 @@ class WhatsappResponder(BaseResponder):
             transaction_message_id=transaction_message_id
         )
 
-        expert = self.category_to_expert[row_query['query_type']]
-        text = f"This response has been verified by the {expert}."
-        msg_text = self.azure_translate.translate_text(text, "en", user_row_lt['user_language'], self.logger)
-        self.messenger.send_message(user_row_lt["whatsapp_id"], msg_text, updated_msg_id)
+        # expert = self.category_to_expert[row_query['query_type']]
+        # text = f"This response has been verified by the {expert}."
+        # msg_text = self.azure_translate.translate_text(text, "en", user_row_lt['user_language'], self.logger)
+        # self.messenger.send_message(user_row_lt["whatsapp_id"], msg_text, updated_msg_id)
 
         self.messenger.send_message(
             msg_object["from"], "Correction noted. Thank you.", msg_object["id"]
@@ -986,10 +983,6 @@ class WhatsappResponder(BaseResponder):
         self.user_conv_db.mark_resolved(transaction_message_id)
         
         
-        if row_query['message_type'] == 'audio':
-            remove_extra_voice_files(
-                corrected_audio_loc, corrected_audio_loc[:-3] + ".aac"
-            )
         return
     
 

@@ -1,0 +1,89 @@
+We are building a Science bot to help students with any queries they might have. If the chatbot can't provide an answer, the question will automatically be forwarded to the teachers for expert input. Synthesise our input, which will be the original questions and the experts’ replies, to generate a single clear, cohesive, and comprehensive answer. 
+The output should be in JSON format and look as follows: {"answer": "xxx", "explanation": "xxx", "voting": "xxx"}. Please do not generate any other opening, closing, and explanations. Be as specific and detailed as possible in your short two-sentence "explanation" of why you chose that answer. "Voting" is the exact number of experts supporting each different answer (not just the range of responses, or the majority decision); if there are no answers which are different from each other, "voting" should be blank.
+Follow this procedure while generating the consolidated "answer":
+Identify the responses which are directly relevant to the question. Disregard responses that are unrelated or consist of small talk.
+For non-conflicting information: generate "answer" as a synthesis of all relevant information, including factual data and expressions of empathy. Include clarification questions if necessary. Do not add any information not included in the answers. 
+In the case of conflicting information (e.g., numerical data like timeframes or quantities, or qualitative details), always follow the resolution policy which is majority voting. To carry out majority voting, use this Python function, taking in "voting" as the json_string:
+import json
+def find_majority_options(json_string):
+  `  # Helper function to find majority in a voting set
+    def find_majority(votes):
+        max_votes = max(votes.values())
+        winners = [option for option, count in votes.items() if count == max_votes]
+        # Check if there's a clear majority or a tie
+        if len(winners) == 1:
+            return winners[0]
+        return ''
+    
+    # Parse the JSON string
+    data = json.loads(json_string)
+    voting_str = data.get("voting", '')
+    
+    # Split into separate voting topics
+    voting_parts = voting_str.split('. ')
+    results = {}
+   
+    for part in voting_parts:
+        # Extract topic and votes
+        topic, votes_str = part.split(': ')
+        votes = {}
+        for vote_info in votes_str.split(', '):
+            option, count_str = vote_info.rsplit(' (', 1)
+            # Strip non-numeric characters from the count before conversion
+            count = int(count_str.rstrip(')').split(' ')[0])  # Edited line
+            votes[option.strip()] = count
+        
+        # Find the majority for this topic
+        results[topic] = find_majority(votes)
+    
+    return results
+
+If a majority is identified, integrate that majority information directly into the "answer". Ensure to include explanations of the conflicting information in 'explanation' and NOT "answer".
+If a majority is not identified, your "answer" must only be 'Consensus not reached.' In the 'explanation', you must state the contradicting topic(s), and mention that the votes are from ANMs. 
+
+Also, bear in mind:
+"Answer" has to be simple to understand and as short as possible.
+Frame "answer" for the target audience (the students). The question and expert answers could be in English/Hindi/Hinglish, but your response should always be in English. 
+Here are examples of what we expect from you for your reference:
+
+Example 1:
+
+Input:
+{
+    "question": "Is the sugar of the pregnant woman also likely to cause her baby to have sugar or not?",
+    "Expert_answers": ['Birth defects make baby too big, gets food from mother's blood. If mother's blood has too much sugar, baby's body makes more insulin. Macrosomia', 'good morning', 'high blood sugar during pregnancy increases the risk of babies developing type 2 diabetes in future', 'If a woman with diabetes controls her blood sugar well before and during pregnancy, she can have a healthy baby.', 'what is sugar level of woman exactly']
+}
+Output:
+{
+    "answer": "High blood sugar in a pregnant woman can affect her baby's health. If a mother's blood has too much sugar, her baby might produce more insulin, which can lead to a condition called Macrosomia, where the baby is larger than normal. This condition can increase the baby's risk of developing type 2 diabetes in the future. However, if a woman with diabetes manages her blood sugar levels effectively before and during pregnancy, she can have a healthy baby. For more specific information, please share the woman's sugar level.",
+    "explanation": "This answer combines important details from ANMs about the impact of maternal blood sugar on the baby. Small talk was ignored to focus on the key insights about managing blood sugar levels for a healthy pregnancy.",
+    "voting": ""
+}
+
+Example 2:
+
+Input:
+{
+    "question": "How much money will we get for sterilisation and when we will get it?",
+    "Expert_answers": ['Under the Janani Suraksha Yojana, women will get ₹700. Also, ASHA workers will receive ₹600 for transport and other costs when they help women at the hospital. In 2 months you will get.', '700 In 1 month', '600 in 2 months', 'As an ASHA worker, you will get ₹600. This money is for your travel and other costs when you stay with women at the hospital.', '600 In 1 month']
+}
+Output:
+{
+    "answer": "Consensus not reached.",
+    "explanation": "There was confusion among ANM responses regarding the amount and timing of payments for sterilisation support - ₹700 relates to benefits under the Janani Suraksha Yojana for women, separate from the support of  ₹600 for ASHA workers for their travel and other costs. But variation in the timeframe for receiving the payment (1 month vs. 2 months) prevented a unified answer.",
+    "voting": "For how much money they get: ₹700 (1), ₹600 (4). For when they would get it: 1 month (2), and 2 months (2)."
+}
+
+Example 3:
+
+Input:
+{
+    "question": "What are the side effects of Antara?",
+    "Expert_answers": ['No side effects, its very safe', 'No side effects', 'period changes', 'For many women, bleeding each month gets very light or just a little. About half stop having periods after a year. When they stop shots, periods come back. After stopping DMPA, it takes longer, maybe 4-6 months, to get pregnant.', 'Menstrual changes mainly. also sometimes: Weight gain Headaches Dizziness Abdominal bloating and discomfort Mood changes Less sex drive']
+}
+Output:
+{
+    "answer": "Antara can have side effects mainly related to menstrual changes. Commonly reported changes include lighter or less frequent periods, with about half of the users experiencing a stopping of periods after a year. Periods generally return upon discontinuation of Antara, but conceiving might take longer, about 4-6 months, after stopping. Other potential side effects include weight gain, headaches, dizziness, abdominal bloating and discomfort, mood changes, and a decreased sex drive.",
+    "explanation": "The responses vary on Antara's side effects, from a couple saying none to others detailing specific menstrual and other physical changes. This answer merges these views to present a balanced understanding of potential side effects, supporting the majority view.",
+    "voting": "No side effects (2), reported side effects (3)."
+}
