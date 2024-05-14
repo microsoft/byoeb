@@ -46,6 +46,7 @@ class KnowledgeBase:
         user_conv_db: UserConvDB,
         msg_id: str,
         logger: LoggingDatabase,
+        org_id,
     ) -> tuple[str, str]:
         """answer the user's query using the knowledge base and chat history
         Args:
@@ -81,7 +82,8 @@ class KnowledgeBase:
 
         relevant_chunks = collection.query(
             query_texts=[query],
-            n_results=3, 
+            n_results=3,
+            where={"org_id": org_id}
         )
         citations: str = "\n".join(
             [metadata["source"] for metadata in relevant_chunks["metadatas"][0]]
@@ -410,34 +412,39 @@ class KnowledgeBase:
             name=self.config["PROJECT_NAME"],
             embedding_function=self.embedding_fn,
         )
-        self.documents = DirectoryLoader(
-            os.path.join(
-                os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"]),
-                "raw_documents",
-            ),
-            glob=self.config["GLOB_SUFFIX"],
-        ).load()
-        self.texts = []
-        self.sources = []
-        for document in self.documents:
-            next_text = RecursiveCharacterTextSplitter(chunk_size=1000).split_text(
-                document.page_content
-            )  # list of chunks
-            self.texts.extend(next_text)
-            
-            self.sources.extend(
-                [
-                    document.metadata["source"].split("/")[-1][:-4]
-                    for _ in range(len(next_text))
-                ]
-            )
+        
+        organization_dir = os.path.join(os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"], "documents"))
+        orgs = os.listdir(organization_dir)
 
-        self.texts = [text.replace("\n\n", "\n") for text in self.texts]
-        self.collection.add(
-            ids=[str(index) for index in range(len(self.texts))],
-            metadatas=[{"source": source} for source in self.sources],
-            documents=self.texts,
-        )
+        for org in orgs:
+            self.documents = DirectoryLoader(
+                os.path.join(
+                    os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"]), "documents",
+                    org, "raw_documents",
+                ),
+                glob=self.config["GLOB_SUFFIX"],
+            ).load()
+            self.texts = []
+            self.sources = []
+            for document in self.documents:
+                next_text = RecursiveCharacterTextSplitter(chunk_size=1000).split_text(
+                    document.page_content
+                )
+                self.texts.extend(next_text)
+                
+                self.sources.extend(
+                    [
+                        document.metadata["source"].split("/")[-1][:-4]
+                        for _ in range(len(next_text))
+                    ]
+                )
+
+            self.texts = [text.replace("\n\n", "\n") for text in self.texts]
+            self.collection.add(
+                ids=[str(index) for index in range(len(self.texts))],
+                metadatas=[{"source": source, "org_id": org} for source in self.sources],
+                documents=self.texts,
+            )
 
         collection_count = self.collection.count()
         print("collection ids count: ", collection_count)

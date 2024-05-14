@@ -1,0 +1,391 @@
+SCIENCE
+TEXTBOOK  FOR CLASS VIIISCIENCE
+Rationalised-2023-24
+First Edition
+January  2008  Magha 1929
+Reprint Edition
+December 2008, January  2010,
+November 2010, January 2012,
+November 2012, October 2013,
+December 2014, December 2015,
+February 2017, December 2017,
+December 2018, August 2019,
+January  2021 and November  2021
+Revised Edition
+November  2022  Kartika 1944
+PD 950T BS
+© National Council of Educational
+Research and Training, 2008, 2022
+` 65.00ALL RIGHTS RESERVED
+qNo part of this publication may be reproduced, stored in a retrieval
+system or transmitted, in any form or by any means, electronic,
+mechanical, photocopying, recording or otherwise without the prior
+permission of the publisher .
+qThis book is sold subject to the condition that it shall not, by way of
+trade,  be lent,  re-sold, hired out or otherwise disposed of without the
+publisher’s consent, in any form of binding or cover other than that in
+which it is published.
+qThe correct price of this publication is the price printed on this page,
+Any revised price indicated by a rubber stamp or by a sticker or by any
+other means is incorrect and should be unacceptable.
+OFFICES OF THE PUBLICA TION
+DIVISION, , NCERT
+NCERT Campus
+Sri Aurobindo Marg
+New  Delhi 110 016 Phone :  011-26562708
+108, 100 Feet Road
+Hosdakere Halli Extension
+Banashankari III Stage
+Bangaluru 560 085 Phone : 080-26725740
+Navjivan Trust Building
+P.O.Navjivan
+Ahmedabad 380 014 Phone :  079-27541446
+CWC Campus
+Opp. Dhankal Bus Stop
+Panihati
+Kolkata  700 114 Phone :  033-25530454
+CWC Complex
+Maligaon
+Guwahati 781  021 Phone :  0361-2674869
+Publication Team
+Head, Publication :Anup Kumar Rajput
+Division
+Chief Production :Arun Chitkara
+Officer
+Chief Business :Vipin Dewan
+Manager
+Chief Editor (In charge) :Bijnan Sutar
+Assistant Editor :Shashi Chadha
+Assistant Production :Deepak Jaiswal
+Officer
+Cover,  Layout and Illustrations
+Ashwani TyagiPrinted on 80 GSM paper with NCER T
+watermark
+Published at the Publication Division,
+by the Secretary, National Council of
+Educational Research and Training,
+Sri Aurobindo Marg, New Delhi 110 016 and
+printed at Amit Printing Press, D-12 and 13,
+Industrial Area, Site-A, Mathura- 281 001
+(U.P.)ISBN  978-81-7450-812-60854 – SCIENCE
+Textbook for Class VIII
+Rationalised-2023-24
+The National Curriculum Framework (NCF), 2005, recommends that children’s life
+at school must be linked to their life outside the school. This principle marks a
+departure from the legacy of bookish learning which continues to shape our system
+and causes a gap between the school, home and community. The syllabi and
+textbooks developed on the basis of NCF signify an attempt to implement this basic
+idea. They also attempt to discourage rote learning and the maintenance of sharp
+boundaries between dif ferent subject ar eas. W e hope these measur es will take us
+significantly further in the direction of a child-centred system of education outlined
+in the National Policy on Education (1986).
+The success of this effort depends on the steps that school principals and
+teachers will take to encourage children to reflect on their own learning and to
+pursue imaginative activities and questions. W e must r ecognise that, given space,
+time and freedom, children generate new knowledge by engaging with the
+information passed on to them by adults. Treating the prescribed textbook as the
+sole basis of examination is one of the key reasons why other resources and sites
+of learning are ignored. Inculcating creativity and initiative is possible if we
+perceive and treat children as participants in learning, not as receivers of a fixed
+body of knowledge.
+These aims imply considerable change i n school routines and mode of
+functioning. Flexibility in the daily time-table is as necessary as rigour in
+implementing the annual calendar so that the required number of teaching days
+are actually devoted to teaching. The methods used for teaching and evaluation
+will also determine how effective this textbook proves for making children’s life at
+school a happy experience, rather than a source of stress or boredom. Syllabus
+designers have tried to address the problem of curricular burden by restructuring
+and reorienting knowledge at different stages with greater consideration for child
+psychology and the time available for teaching. The textbook attempts to enhance
+this endeavour by giving higher priority and space to opportunities for
+contemplation and wondering, discussion in small groups and activities requiring
+hands-on experience.
+The National Council of Educational Resear ch and T raining (NCER T) appr eciates
+the hard work done by the textbook development committee responsible for this
+book. W e wish to thank the Chairperson of the advisory gr oup in science and
+mathematics, Pr ofessor J.V . Narlikar and the Chief Advisor for this book,
+Professor V .B. Bhatia for guiding the work of this committee. Several teachers
+contributed to the development of this textbook. W e are grateful to their principals
+for making this possible. W e are indebted to the institutions and or ganisations
+which have generously permitted us to draw upon their resources, material and
+personnel. W e are especially grateful to the members of the National Monitoring
+Committee, appointed by the Department of Secondary and Higher Education,Foreword
+Rationalised-2023-24
+Ministry of Human Resource Development under the Chairpersonship of
+Professor Mrinal Miri and Pr ofessor G.P . Deshpande, for their valuable time
+and contribution.
+As an organisation committed to systemic reform and continuous
+improvement in the quality of its pr oducts, NCER T welcomes comments
+and suggestions which will enable us to undertake further revision and
+refinement.
+Director
+New Delhi National Council of Educational
+30 November 2007 Research and Trainingiv
+Rationalised-2023-24
+Rationalisation of Content
+in the Textbooks
+In view of the COVID-19 pandemic, it is imperative to reduce content load
+on students. The National Education Policy 2020, also emphasises reducing
+the content load and providing opportunities for experiential learning with
+creative mindset. In this backgr ound, the NCER T has undertaken the
+exercise to rationalise the textbooks across all classes. Learning Outcomes
+already developed by the NCER T acr oss classes have been taken into
+consideration in this exercise.
+Contents of the textbooks have been rationalised in view of the
+following:
+•Overlapping with similar content included in other subject areas in
+the same class
+•Similar content included in the lower or higher class in the same
+subject
+•Difficulty level
+•Content, which is easily accessible to students without much
+interventions from teachers and can be learned by children through
+self-lear ning or peer -learning
+•Content, which is irrelevant in the present context
+This present edition, is a reformatted version after carrying out the
+changes given above.
+Rationalised-2023-24
+Rationalised-2023-24
+This book is the outcome of the efforts of the textbook development committee
+appointed by the NCER T. The committee met a few times to interact with one
+another to improve the draft. Then there was a review meeting in which many
+experts and practicing school teachers were invited to review the draft and suggest
+improvements.
+By and large we have stuck to the format of the Class VII book. By now famous
+characters, Boojho and Paheli, have been used to make the text interactive. Attempt
+has been made to recall children’s own experiences and build concepts around
+them. This is designed to connect science that they study in the school with their
+everyday life.
+Many activities have been suggested to clarify concepts. Some of these activities
+are so simple that children can perform them on their own. The requirement of the
+apparatus r equir ed for the activities is minimal. W e per formed all the activities
+ourselves to ensure that there was no difficulty in performing them in the school
+situation. The activities should also help children in developing skills such as
+presentation of data in tabular and graphical forms, reasoning and drawing inference
+from the given data.
+The language of the book has been kept as simple as possible. A large number of
+photographs, illustrations, cartoons, etc. have been included to make the book
+attractive. To help teachers evaluate children effectively, a large number of exercises
+have been given at the end of each chapter . The teachers ar
+e encouraged to frame
+additional exercises to test children’s understanding. Some challenging exercises
+have also been devised for those children who would like to appear for the National
+Talent Sear ch Examination conducted by the NCER T.
+We are conscious of the fact that ther e is a paucity of additional r eading material
+for children. W e have tried to addr ess this pr oblem by pr oviding non-evaluative
+boxes . These boxes, in light orange, contain additional information, anecdotes,
+stories, strange facts and other such interesting materials.
+We all know that children ar e mischievous and playful by natur e. Ther efore, in
+order to prevent any untoward incident during the performance of the activities in
+the school or outside, necessary cautions, in magenta, have been inserted at various
+places in the book.
+To prepare children to assume their roles as responsible citizens of tomorrow,
+attempt has been made to sensitise them to the issues concer ning gender , religion,
+envir onment, health and hygiene, water scar city and ener gy conservation. W e have
+sought to weave into the text the value of cooperation and the importance of peer
+learning.
+An important feature of the book is what we call Extended Learning . These are
+totally non-evaluative , and purely voluntary activities and projects. Some of the
+projects in this section have been designed to enhance children’s interaction with
+the experts, teachers, even parents, and society at large. The children are required
+to collect information of various kinds and draw conclusions of their own.
+My request to teachers and parents is to use the book in the spirit in which it
+has been written. Encourage children to perform activities and learn by doing, rather
+than by r ote. Y ou can supplement, or even r eplace, the activities given her e. If youPreface
+Rationalised-2023-24
+feel that you have better alter natives, especially with your local/r egional flavour ,
+please write to us so that these activities could be used in the future editions of
+the book.
+We have been able to include only a small subset of childr en’s experiences. Y ou
+have a better knowledge of their experiences because you are in touch with them.
+Use them to illustrate the concepts being taught. Above all, please do not stifle
+children’s natural curiosity. Encourage them to ask questions, even if sometimes
+you feel uncomfortable. If you do not know the answer to a question on the spot, do
+not feel embarrassed. Y ou can pr omise them to find the answer and deal with it
+later. Make a genuine attempt to get the answer fr om whatever r esour ces ar e within
+your reach, such as senior school or college teachers, experts, libraries, internet
+etc. If, inspite of your efforts, you cannot get the answer to some question, you could
+write to NCER T.
+I must thank the NCER T for enabling us to talk to childr en thr ough the medium
+of this book. Every member of the NCER T has been courteous and helpful to us.
+In the end, I must express my gratitude to the members of the Editing Team,
+who worked tirelessly to help me bring the book to the present form. If you and your
+students find this book useful and enjoy teaching/learning science through this
+book, the Editing Team and I shall consider ourselves well-rewarded.
+V.B. B HATIA
+Chief Advisor
+Textbook Development Committeeviii
+Rationalised-2023-24
+CHAIRPERSON , ADVISORY  GROUP FOR TEXTBOOKS  IN SCIENCE  AND MATHEMATICS
+J.V. Narlikar , Emeritus Pr ofessor , Inter University Centr e for Astr onomy and
+Astrophysics (IUCCA), Ganeshkhind, Pune University, Pune
+CHIEF ADVISOR
+V.B. Bhatia,  Professor (Retd.) (Physics) ,  Delhi University, Delhi
+MEMBERS
+Bharati Sarkar , Reader (Retd.) (Zoology) , Maitr eyi College, Delhi University, Delhi
+C. V. Shimray, Lectur er, Department of Education in Science and Mathematics,
+(DESM), NCER T, Sri Aur obindo Mar g, New Delhi
+Gagandeep Bajaj, Lectur er, Department of Education, SPM College, Delhi
+University, Delhi
+H.C. Jain , Principal, (Retd.)  Regional Institute of Education, Ajmer
+Harsh Kumari, Headmistress,
+ CIE Experimental Basic School, Department of
+Education, Delhi University, Delhi
+J. S. Gill, Professor (Retd.), DESM, NCER T, Sri Aur obindo Marg, New Delhi
+Kanhiya Lal, Principal (Retd.) , Directorate of Education, Delhi
+Lalita S. Kumar , Reader (Chemistry),  School of Sciences, Indira Gandhi National
+Open University (IGNOU), Maidan Garhi, New Delhi
+P.C. Agarwal, Reader , Regional Institute of Education, Ajmer
+P.S. Yadava, Professor , Department of Life Sciences, Manipur University, Imphal
+Puranchand,  Professor and Joint Director (Retd.), Central Institute of Educational
+Technology (CIET), NCER T, Sri Aur obindo Marg, New Delhi
+R. Joshi, Lectur er (SG),   DESM, NCER T, Sri Aur obindo Mar g, New Delhi
+Rachna Gar g, Lectur er, Central Institute of Educational T echnology (CIET),
+NCER T, Sri Aur obindo Mar g, New Delhi
+Rashmi Shar ma, Lectur er, North-East Regional Institute of Education, Shillong
+R.K. Parashar , Reader , Regional Institute of Education, Bhubaneshwar
+Ruchi V erma, Lectur er, DESM, NCER T, Sri Aur obindo Mar g, New Delhi
+Shashi Prabha, Lectur er, DESM, NCER T, Sri Aur obindo Mar g, New Delhi
+Sunila Masih, Teacher , Mitra GHS School, Suhagpur , P.O. Hoshangabad,
+Madhya Pradesh
+MEMBER -COORDINATOR
+R. S. Sindhu, Professor , DESM, NCER T, Sri Aur obindo Mar g, New DelhiTextbook Development Committee
+Rationalised-2023-24
+The National Council of Educational Research and T raining (NCER T)
+acknowledges the valuable contribution of the individuals and
+organisations involved in the development of this book. The Council
+acknowledges the valuable contribution of the following academics for
+reviewing and refining the manuscript of this book: K.C. Sharma, Reader
+(Physics),  Regional Institute of Education, Ajmer; Charu V erma, Lectur er
+(Science), DIET , Pitampura, Delhi; Geeta Bajaj, TGT (Science), K.V. No. 3,
+Delhi Cantt., New Delhi; K.D. Shar ma, TGT (Science), R.P.V.V. Civil Lines,
+Delhi; Manohar Lal Patel, Teacher , Govt. R.N.A. Higher Secondary School,
+Pipariya, Madhya Pradesh; Reeta Sharma, Reader (Botany) , Regional
+Institute of Education, Bhopal; Kamal Deep Peter , OEI, Oracle India,
+Bangalore; Puneeta Sharma, TGT (Science), L.D. Jain Girls Senior
+Secondary School, Sadar Bazar , Delhi; M.C. Das, Teacher (Science),  Govt.
+Secondary School,  Zoom, W est Sikkim; Deepti Kohli, P .D. Public School,
+Shalimar Bagh, Delhi; Sulekha Chandra, Reader (Chemistry) , Zakir
+Husain College, Delhi University, Delhi; R.S. T omar , TGT (Science) , J.N.V .
+Mothuka, Faridabad (Haryana); Anjali Khirwadkar , Lectur er, Department
+of Education, M.S. University, Baroda (Gujrat); Suresh Chand, TGT
+(Science),  J.N.V . Ghaziabad Uttar Pradesh; Satheesh H.L., TGT (Science),
+Demonstration School, Regional Institute of Education, Mysore; Simminder
+Kaur Thukral, NIIT , Kalkaji, New Delhi; M.M. Kapoor , Professor  (Retd.)
+(Chemistry),  Delhi University, Delhi; Sarita Kumar , Reader (Zoology) ,
+Acharya Narendra Dev College, Delhi University, Delhi. The  contributions
+of Pushplata V erma, R.R. Koir eng, Pramila T anvar and Ashish K.
+Srivastava, Assistant Professors ,  are acknowledged for being a part of
+the review of this textbook.
+The Council gratefully acknowledges the valuable suggestions received
+from the  
+National Monitoring Committee in the development of the
+manuscript of this textbook.
+The dynamic leadership of Professor Hukum Singh, Head, DESM, for
+providing guidance at different stages of development of the textbook and
+extending infrastructure facilities is highly acknowledged. Special thanks
+are due to Shveta Uppal, Chief Editor  and Shashi Chadha, Assistant
+Editor for  going through the manuscript and suggesting relevant changes.
+The Council also acknowledges the ef forts of Deepak Kapoor ,
+Inchar ge Computer Station , Inder Kumar , DTP Operator ; K.T. Chitralekha,
+Copy Editor and Ritu Jha , Proof Reader .
+The contributions of APC-office, administration of DESM, Publication
+Department and Secr etariat of NCER T is also acknowledged.Acknowledgements
+Rationalised-2023-24
+To
+The Head
+Department of Education in
+Science and Mathematics,
+NCER T, Sri Aur obindo Mar g,
+New Delhi 110016The team of Paheli and Boojho will be with you as you journey through this
+textbook. They love to ask questions. All kinds of questions come to their
+minds and they collect them in their sacks. Sometimes, they may share some
+of the questions with you, as you read through the chapters.
+Paheli and Boojho are also on the lookout for answers to many
+questions — sometimes the questions seem answered after they discuss them
+with each other , sometimes thr ough discussions with other classmates, teachers
+or their parents. Answers to some questions do not seem available even after
+all these. They might need to experiment on their own, read books in the library,
+send questions to scientists. Just dig and dig and dig into all possibilities and
+see if the questions can be answered. Perhaps, they would carry some of the
+unanswered questions in their sacks to higher classes.
+What will really thrill them would be your adding questions to their sacks
+or answers to their questions. Sometimes, activities are suggested in the
+textbook, results or findings of these by different groups of students would be
+of inter est to other students and teachers. Y ou can complete the suggested
+activities and send your results or findings to Paheli and Boojho. Do keep in
+mind that activities that involve using blades, scissors or fire need to be done
+strictly under the care of your teachers. Stick to the precautions given and
+then enjoy doing all the suggested activities. Mind, the book will not be able to
+help you much, if the activities are not completed!
+We would like to advise you that you must make observations yourself
+and record whatever results you get. Keen and true observations are necessary
+for exploring any subject of study. For some reason your results may turn out
+to be dif ferent fr om those of your classmates. Do not worry. T ry to find out the
+reason for these results instead of disregarding them. Do not ever copy results
+from your classmate.
+You can send your feedback for Paheli and Boojho at:A Note for the Students
+Rationalised-2023-24
+WE, THE PEOPLE OF INDIA,
+[SOVEREIGN SOCIALIST SECULAR
+DEMOCRATIC REPUBLIC]
+JUSTICE,
+LIBERTY
+EQUALITY
+FRATERNITY
+IN OUR CONSTITUENT ASSEMBLY
+HEREBY ADOPT, ENACT AND GIVE TO
+OURSELVES THIS CONSTITUTION.having
+solemnly resolved to constitute India into a
+and to secure
+to all its citizens :
+social, economic and
+political;
+of thought, expression, belief,
+faith and worship;
+of status and of opportunity;
+and to promote among them all
+assuring the dignity of
+the individual and the [unity and
+integrity of the Nation];
+this twenty-sixth day of November, 1949 do1
+2
+1. Subs. by the Constitution (Forty-second Amendment) Act, 1976, Sec.2,
+for"Sovereign Democratic
+Republic" (w.e.f. 3.1.1977)
+2. Subs. by the Constitution (Forty-second Amendment) Act, 1976, Sec.2,
+for "Unity of the Nation" (w.e.f. 3.1.1977)THE CONSTITUTION OF
+INDIA
+PREAMBLE
+Rationalised-2023-24
+CONTENTSFOREWORD iii
+RATIONALISATION  OF CONTENT  IN THE TEXTBOOKS v
+PREFACE vii
+Chapter  1
+CROP PRODUCTION  AND MANAGEMENT 1
+Chapter  2
+MICROORGANISMS : F RIEND AND FOE 17
+Chapter  3
+COAL AND PETROLEUM 32
+Chapter  4
+COMBUSTION  AND FLAME 40
+Chapter 5
+CONSER VATION OF PLANTS AND ANIMALS 53
+Chapter 6
+REPRODUCTION  IN ANIMALS 66
+Chapter 7
+REACHING THE AGE OF ADOLESCENCE 79
+Chapter 8
+FORCE AND PRESSURE 93
+Chapter 9
+FRICTION 112
+Chapter 10
+SOUND 123CONTENTS
+Rationalised-2023-24
+xivCONTENTSCONTENTSChapter 11
+CHEMICAL  EFFECTS  OF ELECTRIC C URRENT 138
+Chapter  12
+SOME NATURAL  PHENOMENA 150
+Chapter  13
+LIGHT 165
+Rationalised-2023-24

@@ -110,7 +110,7 @@ class FAQDB(BaseDB):
         top_matches = self.find_closest_matches(question, org_id)
 
         #TODO rerank using llm
-        if top_matches['distances'][0][0] > 0.2:
+        if len(top_matches['distances'][0]) == 0 or top_matches['distances'][0][0] > 0.2:
             return None, None, None
 
         print(top_matches)
@@ -119,9 +119,11 @@ class FAQDB(BaseDB):
     def find_related_qns(self,
         row_query,
         response,
+        org_id,
         num_questions=3):
 
-        top_questions = self.find_closest_matches(row_query['message_english'], 'science-bot', k=20)
+        query = f"{row_query['message_english']} {response}"
+        top_questions = self.find_closest_matches(query, org_id, k=20)
 
         related_qns = []
 
@@ -142,7 +144,9 @@ class FAQDB(BaseDB):
             if qn['answer'] not in responses_used:
                 responses_used[qn['answer']] = True
                 final_qns.append(qn['question'])
-        
+
+        final_qns.sort(key=len)
+
         return final_qns[:num_questions]
         
         
