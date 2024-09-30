@@ -9,21 +9,35 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import time
 from openai import OpenAI, AzureOpenAI
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 
+def get_client_with_token_provider():
+    token_provider = get_bearer_token_provider(
+        DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
+    )
+    
 
-def get_llm_response(prompt):
-    openai.api_base = os.environ["OPENAI_API_ENDPOINT"].strip()
-    openai.api_type = os.environ["OPENAI_API_TYPE"].strip()
-    openai.api_key = os.environ["OPENAI_API_KEY"].strip()
-    openai.api_version = os.environ["OPENAI_API_VERSION"].strip()
+    return AzureOpenAI(
+        azure_ad_token_provider=token_provider,
+        api_version=os.environ["OPENAI_API_VERSION"].strip(),
+        azure_endpoint=os.environ["OPENAI_API_ENDPOINT"].strip(),
+    )
 
-    model_engine = "gpt-4-32k"
-
-    client = AzureOpenAI(
+def get_client_with_key():
+    return AzureOpenAI(
         api_key=os.environ["OPENAI_API_KEY"].strip(),
         api_version=os.environ["OPENAI_API_VERSION"].strip(),
         azure_endpoint=os.environ["OPENAI_API_ENDPOINT"].strip(),
     )
+
+def get_llm_response(prompt):
+    client = None
+    model_engine = "gpt-4o"
+    api_key = os.environ["OPENAI_API_KEY"].strip()
+    if api_key is not None:
+        client = get_client_with_key()
+    else:
+        client = get_client_with_token_provider()
 
     i = 1
     flag = False

@@ -14,13 +14,15 @@ from conversation_database import (
 )
 from database import UserConvDB
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.document_loaders import DirectoryLoader
+from langchain_community.document_loaders import DirectoryLoader
 from chromadb.utils import embedding_functions
 import shutil
 from typing import Any
 from chromadb.config import Settings
 from utils import get_llm_response
 from datetime import datetime
+from embeddings.chroma.llama_index_azure_openi import get_chroma_llama_index_azure_openai_embeddings_fn
+
 
 
 class KnowledgeBase:
@@ -29,12 +31,13 @@ class KnowledgeBase:
         self.persist_directory = os.path.join(
             os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"]), "vectordb"
         )
-        self.embedding_fn = embedding_functions.OpenAIEmbeddingFunction(
-            api_key=os.environ['OPENAI_API_KEY'].strip(),
-            api_type='azure',
-            api_base=os.environ['OPENAI_API_ENDPOINT'].strip(),
-            model_name="text-embedding-ada-002"
-        )
+        self.embedding_fn = get_chroma_llama_index_azure_openai_embeddings_fn()
+        # self.embedding_fn = embedding_functions.OpenAIEmbeddingFunction(
+        #     api_key=os.environ['OPENAI_API_KEY'].strip(),
+        #     api_type='azure',
+        #     api_base=os.environ['OPENAI_API_ENDPOINT'].strip(),
+        #     model_name="text-embedding-ada-002"
+        # )
         
         self.llm_prompts = json.load(open(os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"], "llm_prompt.json")))
 
