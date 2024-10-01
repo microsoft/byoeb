@@ -1,5 +1,5 @@
 # For details of the below fields, please refer CUSTOMISE.md
-PROJECT_NAME: science_bot
+PROJECT_NAME: cataract_bot_hierarchy
 CHAT_APPLICATION: whatsapp
 API_ACTIVATED: true
 USERS : ['Student']
@@ -9,7 +9,7 @@ ESCALATION:
   Teacher: 
     name: 'Senior Teacher'
     whatsapp_id: '919876543210'
-USER_PROMPT : 'You are a science bot. Your purpose is to help students with any queries that they might have.'
+USER_PROMPT : 'You are a cataract bot. Your purpose is to help patients with any queries that they might have.'
 
 RECREATE_EMBEDDINGS: false
 SHOW_CITATIONS: true
@@ -21,15 +21,15 @@ GLOB_SUFFIX: '*.txt'
 
 WELCOME_MESSAGES:
   USERS:
-    - 'Hi! I am a science bot. I can help you with any queries that you have regarding your science curriculum.'
+    - 'Hi! I am a cataract bot. I can help you with any queries that you have regarding your cataract surgeries.'
   EXPERTS:
-    - 'Hi! I am a science bot. Thank you for volunteering to help students with their science queries.'
+    - 'Hi! I am a cataract bot. Thank you for volunteering to help patients with their science queries.'
 SUGGESTION_QUESTIONS:
   - 'What topics can you help me with?'
   - 'What is photosynthesis?'
   - 'What is the difference between a plant cell and an animal cell?'
 
-COSMOS_DB_NAME: byoeb
+COSMOS_DB_NAME: cataract_hierarchy
 COSMOS_DB_COLLECTION: conversation_science_bot
 COSMOS_LONGTERM_COLLECTION: science-bot_users
 COSMOS_LOGGING_COLLECTION: logs_science_bot

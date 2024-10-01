@@ -29,7 +29,7 @@ class KnowledgeBase:
     def __init__(self, config: dict[str, Any]):
         self.config = config
         self.persist_directory = os.path.join(
-            os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"]), "vectordb"
+            os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"]), "vectordb_hierarchy"
         )
         self.embedding_fn = get_chroma_llama_index_azure_openai_embeddings_fn()
         # self.embedding_fn = embedding_functions.OpenAIEmbeddingFunction(
@@ -86,7 +86,7 @@ class KnowledgeBase:
             where={"org_id": org_id}
         )
         citations: str = "\n".join(
-            [metadata["source"] for metadata in relevant_chunks["metadatas"][0]]
+            [metadata["org_id"] + '-' + metadata["source"] for metadata in relevant_chunks["metadatas"][0]]
         )
 
         relevant_chunks_string = ""
@@ -442,6 +442,62 @@ class KnowledgeBase:
             self.texts = [text.replace("\n\n", "\n") for text in self.texts]
             self.collection.add(
                 ids=[str(index) for index in range(len(self.texts))],
+                metadatas=[{"source": source, "org_id": org} for source in self.sources],
+                documents=self.texts,
+            )
+
+        collection_count = self.collection.count()
+        print("collection ids count: ", collection_count)
+        return
+    
+    def create_embeddings_with_hierarchy(self):
+        if os.path.exists(self.persist_directory):
+            shutil.rmtree(self.persist_directory)
+        self.client = chromadb.PersistentClient(
+            path=self.persist_directory, settings=Settings(anonymized_telemetry=False)
+        )
+
+        try:
+            self.client.delete_collection(
+                name=self.config["PROJECT_NAME"],
+            )
+        except:
+            print("Creating new collection.")
+
+        self.collection = self.client.create_collection(
+            name=self.config["PROJECT_NAME"],
+            embedding_function=self.embedding_fn,
+        )
+        
+        organization_dir = os.path.join(os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"], "documents"))
+        orgs = os.listdir(organization_dir)
+        print(orgs)
+        for org in orgs:
+            self.documents = DirectoryLoader(
+                os.path.join(
+                    os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"]), "documents",
+                    org
+                ),
+                glob=self.config["GLOB_SUFFIX"],
+            ).load()
+            self.texts = []
+            self.sources = []
+            for document in self.documents:
+                next_text = RecursiveCharacterTextSplitter(chunk_size=1000).split_text(
+                    document.page_content
+                )
+                self.texts.extend(next_text)
+                
+                self.sources.extend(
+                    [
+                        document.metadata["source"].split("/")[-1][:-4]
+                        for _ in range(len(next_text))
+                    ]
+                )
+            print(org, len(self.texts))
+            self.texts = [text.replace("\n\n", "\n") for text in self.texts]
+            self.collection.add(
+                ids=[org+str(index) for index in range(len(self.texts))],
                 metadatas=[{"source": source, "org_id": org} for source in self.sources],
                 documents=self.texts,
             )

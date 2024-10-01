@@ -16,4 +16,4 @@ with open(os.path.join(local_path, "config.yaml")) as file:
 
 
 knowledge_base = KnowledgeBase(config)
-knowledge_base.create_embeddings()
+knowledge_base.create_embeddings_with_hierarchy()
