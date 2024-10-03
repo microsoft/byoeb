@@ -325,7 +325,7 @@ class WhatsappResponder(BaseResponder):
 
         if response is None:
             response_from_faq = False
-            response, citations, query_type = self.knowledge_base.hierarchal_rag_answer_query(
+            response, citations, query_type = self.knowledge_base.hierarchical_rag_answer_query(
             self.user_conv_db, msg_id, self.logger, org_id
             )
             # if query_type != "small-talk":

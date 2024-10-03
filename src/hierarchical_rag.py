@@ -19,7 +19,7 @@ llm_client = get_client_with_token_provider()
 model = "gpt-4o"
 general = "Generic"
 
-def hierarichal_rag_retrieve(query, org_id):
+def hierarchical_rag_retrieve(query, org_id):
     chroma_client = chromadb.PersistentClient(
         path=persist_directory, settings=Settings(anonymized_telemetry=False)
     )
@@ -56,7 +56,7 @@ def hierarichal_rag_retrieve(query, org_id):
             chunks.append((chunk_text, relevant_chunks["metadatas"][0][chunk]["source"].strip(), relevant_chunks["metadatas"][0][chunk]["org_id"].strip()))
     return relevant_chunks_string, relevant_update_chunks_string, citations, chunks
 
-def hierarichal_rag_augment(conversation_history, retrieved_chunks, system_prompt, query):
+def hierarchical_rag_augment(conversation_history, retrieved_chunks, system_prompt, query):
     query_prompt = f"""
         Today's date is {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\n\
         
@@ -76,7 +76,7 @@ def hierarichal_rag_augment(conversation_history, retrieved_chunks, system_promp
     prompt.append({"role": "user", "content": query_prompt})
     return prompt
 
-def hierarichal_rag_generate(prompt, schema=None):
+def hierarchical_rag_generate(prompt, schema=None):
     if schema is None:
         response = llm_client.chat.completions.create(
             model=model,
@@ -98,10 +98,10 @@ def hierarichal_rag_generate(prompt, schema=None):
 
 def rag(query, org_id):
     system_prompt = llm_prompts["answer_query"]
-    relevant_chunks_string, relevant_update_chunks_string, citations, chunks = hierarichal_rag_retrieve(query, org_id)
+    relevant_chunks_string, relevant_update_chunks_string, citations, chunks = hierarchical_rag_retrieve(query, org_id)
     print(chunks)
-    prompt = hierarichal_rag_augment("", (relevant_chunks_string, relevant_update_chunks_string), system_prompt, query)
-    response = hierarichal_rag_generate(prompt)
+    prompt = hierarchical_rag_augment("", (relevant_chunks_string, relevant_update_chunks_string), system_prompt, query)
+    response = hierarchical_rag_generate(prompt)
     return response, citations, chunks
 
 # query1 = "What are the list of Health insurance companies that hospital provides ? Share upto 3"

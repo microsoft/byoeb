@@ -23,7 +23,7 @@ from chromadb.config import Settings
 from utils import get_llm_response
 from datetime import datetime
 from embeddings.chroma.llama_index_azure_openi import get_chroma_llama_index_azure_openai_embeddings_fn
-from hierarichal_rag import hierarichal_rag_retrieve, hierarichal_rag_augment, hierarichal_rag_generate
+from hierarchical_rag import hierarchical_rag_augment, hierarchical_rag_generate, hierarchical_rag_retrieve
 
 
 
@@ -43,7 +43,7 @@ class KnowledgeBase:
         
         self.llm_prompts = json.load(open(os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"], "llm_prompt.json")))
     
-    def hierarchal_rag_answer_query(
+    def hierarchical_rag_answer_query(
         self,
         user_conv_db: UserConvDB,
         msg_id: str,
@@ -60,7 +60,7 @@ class KnowledgeBase:
         if not query.endswith("?"):
             query += "?"
         print("Query: ", query)
-        relevant_chunks_string, relevant_update_chunks_string, citations, chunks = hierarichal_rag_retrieve(query, org_id)
+        relevant_chunks_string, relevant_update_chunks_string, citations, chunks = hierarchical_rag_retrieve(query, org_id)
         logger.add_log(
             sender_id="bot",
             receiver_id="bot",
@@ -84,7 +84,7 @@ class KnowledgeBase:
         # print("Relevant chunks: ", relevant_chunks_tuple[0])
         # print("Relevant update chunks: ", relevant_chunks_tuple[1])
         # print("Citaitons: ", citations)
-        prompt = hierarichal_rag_augment(
+        prompt = hierarchical_rag_augment(
             conversation_string,
             relevant_chunks_tuple,
             system_prompt, 
@@ -119,7 +119,7 @@ class KnowledgeBase:
         }
         for _ in range(5):
             try:
-                gpt_output = hierarichal_rag_generate(prompt,schema)
+                gpt_output = hierarchical_rag_generate(prompt,schema)
                 json_output = json.loads(gpt_output.strip())
                 bot_response = json_output["response"]
                 query_type = json_output["query_type"]
@@ -428,7 +428,22 @@ class KnowledgeBase:
         if self.config["API_ACTIVATED"] is False:
             print("API not activated")
             return ["Q1", "Q2", "Q3"]
-
+        
+        schema = {
+            "name": "response_schema",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "questions": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                        }
+                    }
+                },
+                "required": ["questions"]
+            }
+        }
         system_prompt = self.llm_prompts["follow_up_questions"]
         query_prompt = f"""
             A user asked the following query:\n\
@@ -440,8 +455,10 @@ class KnowledgeBase:
         prompt = [{"role": "system", "content": system_prompt}]
         prompt.append({"role": "user", "content": query_prompt})
 
-        llm_out = get_llm_response(prompt)
-        next_questions = eval(llm_out.strip("\n"))
+        llm_out = get_llm_response(prompt, schema)
+        json_output = json.loads(llm_out.strip())
+        print(llm_out)
+        next_questions = json_output["questions"]
 
         logger.add_log(
             sender_id="bot",
