@@ -106,9 +106,20 @@ class KnowledgeBase:
         bot_response = None
         query_type = None
         print(prompt)
+        schema = {
+            "name": "response_schema",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "response": {"type": "string"},
+                    "query_type": {"type": "string"}
+                },
+                "required": ["response", "query_type"]
+            }
+        }
         for _ in range(5):
             try:
-                gpt_output = hierarichal_rag_generate(prompt)
+                gpt_output = hierarichal_rag_generate(prompt,schema)
                 json_output = json.loads(gpt_output.strip())
                 bot_response = json_output["response"]
                 query_type = json_output["query_type"]

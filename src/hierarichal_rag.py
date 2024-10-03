@@ -15,19 +15,19 @@ persist_directory = os.path.join(
     os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"]), "vectordb_hierarchy"
 )
 embedding_fn = get_chroma_llama_index_azure_openai_embeddings_fn()
-chroma_client = chromadb.PersistentClient(
-    path=persist_directory, settings=Settings(anonymized_telemetry=False)
-)
-
 llm_client = get_client_with_token_provider()
 model = "gpt-4o"
-collection = chroma_client.get_collection(
-    name=config["PROJECT_NAME"], embedding_function=embedding_fn
-)
-
 general = "Generic"
 
 def hierarichal_rag_retrieve(query, org_id):
+    chroma_client = chromadb.PersistentClient(
+        path=persist_directory, settings=Settings(anonymized_telemetry=False)
+    )
+    collection = chroma_client.get_collection(
+        name=config["PROJECT_NAME"], embedding_function=embedding_fn
+    )
+    collection_count = collection.count()
+    print('collection ids count: ', collection_count)
     relevant_chunks = collection.query(
         query_texts=[query],
         n_results=3,
@@ -76,16 +76,24 @@ def hierarichal_rag_augment(conversation_history, retrieved_chunks, system_promp
     prompt.append({"role": "user", "content": query_prompt})
     return prompt
 
-def hierarichal_rag_generate(prompt):
+def hierarichal_rag_generate(prompt, schema=None):
+    if schema is None:
+        response = llm_client.chat.completions.create(
+            model=model,
+            messages=prompt,
+            temperature=0,
+        )
+        response_text = response.choices[0].message.content.strip()
+        return response_text
+    
     response = llm_client.chat.completions.create(
         model=model,
         messages=prompt,
         temperature=0,
+        response_format= { "type": "json_schema", "json_schema": schema }
     )
     response_text = response.choices[0].message.content.strip()
     return response_text
-collection_count = collection.count()
-print('collection ids count: ', collection_count)
 
 
 def rag(query, org_id):
