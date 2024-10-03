@@ -1,3 +1,4 @@
+from embeddings.chroma.llama_index_azure_openi import get_chroma_llama_index_azure_openai_embeddings_fn
 import os
 import datetime
 import pymongo
@@ -19,12 +20,13 @@ class FAQDB(BaseDB):
         self.persist_directory = os.path.join(
             os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"]), "vectordb_faq"
         )
-        self.embedding_fn = embedding_functions.OpenAIEmbeddingFunction(
-            api_key=os.environ['OPENAI_API_KEY'].strip(),
-            api_type='azure',
-            api_base=os.environ['OPENAI_API_ENDPOINT'].strip(),
-            model_name="text-embedding-ada-002"
-        )
+        self.embedding_fn = get_chroma_llama_index_azure_openai_embeddings_fn()
+        # self.embedding_fn = embedding_functions.OpenAIEmbeddingFunction(
+        #     api_key=os.environ['OPENAI_API_KEY'].strip(),
+        #     api_type='azure',
+        #     api_base=os.environ['OPENAI_API_ENDPOINT'].strip(),
+        #     model_name="text-embedding-ada-002"
+        # )
 
     def insert_row(self,
         question,

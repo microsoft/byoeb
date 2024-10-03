@@ -32,8 +32,12 @@ def get_client_with_key():
 
 def get_llm_response(prompt):
     client = None
+    api_key = None
     model_engine = "gpt-4o"
-    api_key = os.environ["OPENAI_API_KEY"].strip()
+    try:
+        api_key = os.environ["OPENAI_API_KEY"].strip()
+    except KeyError:
+        print("API key not found in environment variables.")
     if api_key is not None:
         client = get_client_with_key()
     else:

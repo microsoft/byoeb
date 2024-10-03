@@ -1,7 +1,7 @@
 from datetime import datetime
 import json
-from src.embeddings.chroma.llama_index_azure_openi import get_chroma_llama_index_azure_openai_embeddings_fn
-from src.utils import get_client_with_token_provider
+from embeddings.chroma.llama_index_azure_openi import get_chroma_llama_index_azure_openai_embeddings_fn
+from utils import get_client_with_token_provider
 import os
 import chromadb
 from chromadb.config import Settings
@@ -25,11 +25,13 @@ collection = chroma_client.get_collection(
     name=config["PROJECT_NAME"], embedding_function=embedding_fn
 )
 
-def retrieve(query, org_id):
+general = "Generic"
+
+def hierarichal_rag_retrieve(query, org_id):
     relevant_chunks = collection.query(
         query_texts=[query],
         n_results=3,
-        where={"org_id": org_id}
+        where={"org_id": {"$in": [org_id, general]}}
     )
     citations: str = "\n".join(
         [metadata["org_id"] + '-' + metadata["source"] for metadata in relevant_chunks["metadatas"][0]]
@@ -54,9 +56,7 @@ def retrieve(query, org_id):
             chunks.append((chunk_text, relevant_chunks["metadatas"][0][chunk]["source"].strip(), relevant_chunks["metadatas"][0][chunk]["org_id"].strip()))
     return relevant_chunks_string, relevant_update_chunks_string, citations, chunks
 
-def augment(conversation_history, retrieved_chunks, query):
-    
-    system_prompt = llm_prompts["answer_query"]
+def hierarichal_rag_augment(conversation_history, retrieved_chunks, system_prompt, query):
     query_prompt = f"""
         Today's date is {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\n\
         
@@ -76,7 +76,7 @@ def augment(conversation_history, retrieved_chunks, query):
     prompt.append({"role": "user", "content": query_prompt})
     return prompt
 
-def generate(prompt):
+def hierarichal_rag_generate(prompt):
     response = llm_client.chat.completions.create(
         model=model,
         messages=prompt,
@@ -89,13 +89,14 @@ print('collection ids count: ', collection_count)
 
 
 def rag(query, org_id):
-    relevant_chunks_string, relevant_update_chunks_string, citations, chunks = retrieve(query, org_id)
+    system_prompt = llm_prompts["answer_query"]
+    relevant_chunks_string, relevant_update_chunks_string, citations, chunks = hierarichal_rag_retrieve(query, org_id)
     print(chunks)
-    prompt = augment("", (relevant_chunks_string, relevant_update_chunks_string), query)
-    response = generate(prompt)
+    prompt = hierarichal_rag_augment("", (relevant_chunks_string, relevant_update_chunks_string), system_prompt, query)
+    response = hierarichal_rag_generate(prompt)
     return response, citations, chunks
 
-query1 = "What are the list of Health insurance companies that hospital provides ? Share upto 3"
-org_id = "HYD"
-response, citations, chunks = rag(query1, org_id)
-print(response)
+# query1 = "What are the list of Health insurance companies that hospital provides ? Share upto 3"
+# org_id = "BLR"
+# response, citations, chunks = rag(query1, org_id)
+# print(response)

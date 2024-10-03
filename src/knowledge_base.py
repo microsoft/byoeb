@@ -1,3 +1,4 @@
+
 import os
 import shutil
 import sys
@@ -22,6 +23,7 @@ from chromadb.config import Settings
 from utils import get_llm_response
 from datetime import datetime
 from embeddings.chroma.llama_index_azure_openi import get_chroma_llama_index_azure_openai_embeddings_fn
+from hierarichal_rag import hierarichal_rag_retrieve, hierarichal_rag_augment, hierarichal_rag_generate
 
 
 
@@ -40,6 +42,124 @@ class KnowledgeBase:
         # )
         
         self.llm_prompts = json.load(open(os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"], "llm_prompt.json")))
+    
+    def hierarchal_rag_answer_query(
+        self,
+        user_conv_db: UserConvDB,
+        msg_id: str,
+        logger: LoggingDatabase,
+        org_id,
+    ):
+        if self.config["API_ACTIVATED"] is False:
+            gpt_output = "API not activated"
+            citations = "NA-API"
+            query_type = "small-talk"
+            return (gpt_output, citations, query_type)
+        db_row = user_conv_db.get_from_message_id(msg_id)
+        query = db_row["message_english"]
+        if not query.endswith("?"):
+            query += "?"
+        print("Query: ", query)
+        relevant_chunks_string, relevant_update_chunks_string, citations, chunks = hierarichal_rag_retrieve(query, org_id)
+        logger.add_log(
+            sender_id="bot",
+            receiver_id="bot",
+            message_id=None,
+            action_type="get_citations",
+            details={"query": query, "chunks": chunks, "transaction_id": db_row["message_id"]},
+            timestamp=datetime.now(),
+        )
+        relevant_chunks_tuple = (relevant_chunks_string, relevant_update_chunks_string)
+        # take all non empty conversations 
+        # all_conversations = user_conv_db.get_all_user_conv(db_row["user_id"])
+        conversation_string = ""
+        # "\n".join(
+        #     [
+        #         row["query"] + "\n" + row["response"]
+        #         for row in all_conversations
+        #         if row["response"]
+        #     ][-3:]
+        # )
+        system_prompt = self.llm_prompts["answer_query"]
+        # print("Relevant chunks: ", relevant_chunks_tuple[0])
+        # print("Relevant update chunks: ", relevant_chunks_tuple[1])
+        # print("Citaitons: ", citations)
+        prompt = hierarichal_rag_augment(
+            conversation_string,
+            relevant_chunks_tuple,
+            system_prompt, 
+            query
+        )
+        logger.add_log(
+            sender_id="bot",
+            receiver_id="gpt4",
+            message_id=None,
+            action_type="answer_query_request",
+            details={
+                "system_prompt": prompt[0]["content"],
+                "query_prompt": prompt[1]["content"],
+                "transaction_id": db_row["message_id"],
+            },
+            timestamp=datetime.now(),
+        )
+        gpt_output = None
+        bot_response = None
+        query_type = None
+        print(prompt)
+        for _ in range(5):
+            try:
+                gpt_output = hierarichal_rag_generate(prompt)
+                json_output = json.loads(gpt_output.strip())
+                bot_response = json_output["response"]
+                query_type = json_output["query_type"]
+                break
+            except Exception as e:
+                print("Error: ", e)
+                continue
+        print(bot_response)
+        logger.add_log(
+            sender_id="gpt4",
+            receiver_id="bot",
+            message_id=None,
+            action_type="answer_query_response",
+            details={
+                "system_prompt": prompt[0]["content"],
+                "query_prompt": prompt[1]["content"],
+                "gpt_output": gpt_output,
+                "transaction_id": db_row["message_id"],
+            },
+            timestamp=datetime.now(),
+        )
+        print('Citaitons: ', citations)
+        if len(bot_response) < 700:
+            return (bot_response, citations, query_type)
+        else:
+            sumarize_response_prompt = self.get_summarize_long_response_prompt(bot_response)
+            gpt_output = hierarichal_rag_generate(sumarize_response_prompt)
+
+        logger.add_log(
+            sender_id="gpt4",
+            receiver_id="bot",
+            message_id=None,
+            action_type="answer_summary_response",
+            details={
+                "system_prompt": sumarize_response_prompt[0]["content"],
+                "query_prompt": sumarize_response_prompt[1]["content"],
+                "gpt_output": gpt_output,
+                "transaction_id": db_row["message_id"],
+            },
+            timestamp=datetime.now(),
+        )
+        return (gpt_output, citations, query_type)
+
+    def get_summarize_long_response_prompt(self, response):
+        system_prompt = f"""Please summarise the given answer in 700 characters or less. Only return the summarized answer and nothing else.\n"""
+            
+        query_prompt = f"""You are given the following response: {response}"""
+        prompt = [{"role": "system", "content": system_prompt}]
+        prompt.append({"role": "user", "content": query_prompt})
+        return prompt
+        
 
     def answer_query(
         self,

@@ -20,6 +20,7 @@ sys.path.append("src")
 from onboard import onboard_template
 from conversation_database import LoggingDatabase
 from responder import WhatsappResponder
+from azure.identity import DefaultAzureCredential
 
 
 with open("config.yaml") as file:
@@ -41,8 +42,14 @@ pause_queue = False
 queue_lock = Lock()
 
 queue_name = os.environ["AZURE_QUEUE_NAME"].strip()
-queue_connection_string = os.environ["AZURE_STORAGE_CONNECTION_STRING"].strip()
-queue_client = QueueClient.from_connection_string(queue_connection_string, queue_name)
+account_url=os.environ["AZURE_STORAGE_ACCOUNT_URL"].strip()
+queue_name=queue_name
+credential=DefaultAzureCredential()
+queue_client = QueueClient(
+                account_url=account_url,
+                queue_name=queue_name,
+                credential=credential
+            )
 
 try:
     queue_client.create_queue()
