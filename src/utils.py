@@ -24,16 +24,25 @@ def get_client_with_token_provider():
     )
 
 def get_client_with_key():
-    return AzureOpenAI(
-        api_key=os.environ["OPENAI_API_KEY"].strip(),
-        api_version=os.environ["OPENAI_API_VERSION"].strip(),
-        azure_endpoint=os.environ["OPENAI_API_ENDPOINT"].strip(),
+    return OpenAI(
+        api_key = os.environ['OPENAI_API_KEY'].strip(),
+        organization=os.environ['OPENAI_ORG_ID'].strip(),
     )
 
-def get_llm_response(prompt):
+def get_llm_response(prompt, schema=None):
     client = None
+    api_key = None
     model_engine = "gpt-4o"
-    api_key = os.environ["OPENAI_API_KEY"].strip()
+    response_format = None
+    print(response_format)
+    if schema is not None:
+        response_format= { "type": "json_schema", "json_schema": schema }
+    
+    print("Response format: ", response_format)
+    try:
+        api_key = os.environ["OPENAI_API_KEY"].strip()
+    except KeyError:
+        print("API key not found in environment variables.")
     if api_key is not None:
         client = get_client_with_key()
     else:
@@ -47,6 +56,7 @@ def get_llm_response(prompt):
                 model=model_engine,
                 messages=prompt,
                 temperature=0,
+                response_format=response_format,
             )
             flag = True
         except Exception as e:
@@ -57,7 +67,7 @@ def get_llm_response(prompt):
                 i = i * 2
             else:
                 i = 1
-
+    print("Respnse: ", response)
     response_text = response.choices[0].message.content.strip()
     return response_text
 

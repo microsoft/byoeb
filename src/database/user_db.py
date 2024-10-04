@@ -21,6 +21,7 @@ class UserDB(BaseDB):
             'whatsapp_id': whatsapp_id,
             'user_type': user_type,
             'user_language': user_language,
+            'org_id': 'BLR',
             'timestamp' : datetime.datetime.now(),
         }
         db_id = self.collection.insert_one(user)

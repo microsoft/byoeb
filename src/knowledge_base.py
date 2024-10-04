@@ -1,3 +1,4 @@
+
 import os
 import shutil
 import sys
@@ -22,6 +23,8 @@ from chromadb.config import Settings
 from utils import get_llm_response
 from datetime import datetime
 from embeddings.chroma.llama_index_azure_openi import get_chroma_llama_index_azure_openai_embeddings_fn
+from embeddings.chroma.openai import get_chroma_openai_embedding_fn
+from hierarchical_rag import hierarchical_rag_augment, hierarchical_rag_generate, hierarchical_rag_retrieve
 
 
 
@@ -29,9 +32,9 @@ class KnowledgeBase:
     def __init__(self, config: dict[str, Any]):
         self.config = config
         self.persist_directory = os.path.join(
-            os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"]), "vectordb"
+            os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"]), "vectordb_hierarchy"
         )
-        self.embedding_fn = get_chroma_llama_index_azure_openai_embeddings_fn()
+        self.embedding_fn = get_chroma_openai_embedding_fn()
         # self.embedding_fn = embedding_functions.OpenAIEmbeddingFunction(
         #     api_key=os.environ['OPENAI_API_KEY'].strip(),
         #     api_type='azure',
@@ -40,6 +43,135 @@ class KnowledgeBase:
         # )
         
         self.llm_prompts = json.load(open(os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"], "llm_prompt.json")))
+    
+    def hierarchical_rag_answer_query(
+        self,
+        user_conv_db: UserConvDB,
+        msg_id: str,
+        logger: LoggingDatabase,
+        org_id,
+    ):
+        if self.config["API_ACTIVATED"] is False:
+            gpt_output = "API not activated"
+            citations = "NA-API"
+            query_type = "small-talk"
+            return (gpt_output, citations, query_type)
+        db_row = user_conv_db.get_from_message_id(msg_id)
+        query = db_row["message_english"]
+        if not query.endswith("?"):
+            query += "?"
+        print("Query: ", query)
+        relevant_chunks_string, relevant_update_chunks_string, citations, chunks = hierarchical_rag_retrieve(query, org_id)
+        logger.add_log(
+            sender_id="bot",
+            receiver_id="bot",
+            message_id=None,
+            action_type="get_citations",
+            details={"query": query, "chunks": chunks, "transaction_id": db_row["message_id"]},
+            timestamp=datetime.now(),
+        )
+        relevant_chunks_tuple = (relevant_chunks_string, relevant_update_chunks_string)
+        # take all non empty conversations 
+        # all_conversations = user_conv_db.get_all_user_conv(db_row["user_id"])
+        conversation_string = ""
+        # "\n".join(
+        #     [
+        #         row["query"] + "\n" + row["response"]
+        #         for row in all_conversations
+        #         if row["response"]
+        #     ][-3:]
+        # )
+        system_prompt = self.llm_prompts["answer_query"]
+        # print("Relevant chunks: ", relevant_chunks_tuple[0])
+        # print("Relevant update chunks: ", relevant_chunks_tuple[1])
+        # print("Citaitons: ", citations)
+        prompt = hierarchical_rag_augment(
+            conversation_string,
+            relevant_chunks_tuple,
+            system_prompt, 
+            query
+        )
+        logger.add_log(
+            sender_id="bot",
+            receiver_id="gpt4",
+            message_id=None,
+            action_type="answer_query_request",
+            details={
+                "system_prompt": prompt[0]["content"],
+                "query_prompt": prompt[1]["content"],
+                "transaction_id": db_row["message_id"],
+            },
+            timestamp=datetime.now(),
+        )
+        gpt_output = None
+        bot_response = None
+        query_type = None
+        print(prompt)
+        schema = {
+            "name": "response_schema",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "response": {"type": "string"},
+                    "query_type": {"type": "string"}
+                },
+                "required": ["response", "query_type"]
+            }
+        }
+        for _ in range(5):
+            try:
+                gpt_output = hierarchical_rag_generate(prompt,schema)
+                json_output = json.loads(gpt_output.strip())
+                bot_response = json_output["response"]
+                query_type = json_output["query_type"]
+                break
+            except Exception as e:
+                print("Error: ", e)
+                continue
+        print(bot_response)
+        logger.add_log(
+            sender_id="gpt4",
+            receiver_id="bot",
+            message_id=None,
+            action_type="answer_query_response",
+            details={
+                "system_prompt": prompt[0]["content"],
+                "query_prompt": prompt[1]["content"],
+                "gpt_output": gpt_output,
+                "transaction_id": db_row["message_id"],
+            },
+            timestamp=datetime.now(),
+        )
+        print('Citaitons: ', citations)
+        if len(bot_response) < 700:
+            return (bot_response, citations, query_type)
+        else:
+            sumarize_response_prompt = self.get_summarize_long_response_prompt(bot_response)
+            gpt_output = hierarchical_rag_generate(sumarize_response_prompt)
+
+        logger.add_log(
+            sender_id="gpt4",
+            receiver_id="bot",
+            message_id=None,
+            action_type="answer_summary_response",
+            details={
+                "system_prompt": sumarize_response_prompt[0]["content"],
+                "query_prompt": sumarize_response_prompt[1]["content"],
+                "gpt_output": gpt_output,
+                "transaction_id": db_row["message_id"],
+            },
+            timestamp=datetime.now(),
+        )
+        return (gpt_output, citations, query_type)
+
+    def get_summarize_long_response_prompt(self, response):
+        system_prompt = f"""Please summarise the given answer in 700 characters or less. Only return the summarized answer and nothing else.\n"""
+            
+        query_prompt = f"""You are given the following response: {response}"""
+        prompt = [{"role": "system", "content": system_prompt}]
+        prompt.append({"role": "user", "content": query_prompt})
+        return prompt
+        
 
     def answer_query(
         self,
@@ -86,7 +218,7 @@ class KnowledgeBase:
             where={"org_id": org_id}
         )
         citations: str = "\n".join(
-            [metadata["source"] for metadata in relevant_chunks["metadatas"][0]]
+            [metadata["org_id"] + '-' + metadata["source"] for metadata in relevant_chunks["metadatas"][0]]
         )
 
         relevant_chunks_string = ""
@@ -297,7 +429,22 @@ class KnowledgeBase:
         if self.config["API_ACTIVATED"] is False:
             print("API not activated")
             return ["Q1", "Q2", "Q3"]
-
+        
+        schema = {
+            "name": "response_schema",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "questions": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                        }
+                    }
+                },
+                "required": ["questions"]
+            }
+        }
         system_prompt = self.llm_prompts["follow_up_questions"]
         query_prompt = f"""
             A user asked the following query:\n\
@@ -309,8 +456,10 @@ class KnowledgeBase:
         prompt = [{"role": "system", "content": system_prompt}]
         prompt.append({"role": "user", "content": query_prompt})
 
-        llm_out = get_llm_response(prompt)
-        next_questions = eval(llm_out.strip("\n"))
+        llm_out = get_llm_response(prompt, schema)
+        json_output = json.loads(llm_out.strip())
+        print(llm_out)
+        next_questions = json_output["questions"]
 
         logger.add_log(
             sender_id="bot",
@@ -442,6 +591,62 @@ class KnowledgeBase:
             self.texts = [text.replace("\n\n", "\n") for text in self.texts]
             self.collection.add(
                 ids=[str(index) for index in range(len(self.texts))],
+                metadatas=[{"source": source, "org_id": org} for source in self.sources],
+                documents=self.texts,
+            )
+
+        collection_count = self.collection.count()
+        print("collection ids count: ", collection_count)
+        return
+    
+    def create_embeddings_with_hierarchy(self):
+        if os.path.exists(self.persist_directory):
+            shutil.rmtree(self.persist_directory)
+        self.client = chromadb.PersistentClient(
+            path=self.persist_directory, settings=Settings(anonymized_telemetry=False)
+        )
+
+        try:
+            self.client.delete_collection(
+                name=self.config["PROJECT_NAME"],
+            )
+        except:
+            print("Creating new collection.")
+
+        self.collection = self.client.create_collection(
+            name=self.config["PROJECT_NAME"],
+            embedding_function=self.embedding_fn,
+        )
+        
+        organization_dir = os.path.join(os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"], "documents"))
+        orgs = os.listdir(organization_dir)
+        print(orgs)
+        for org in orgs:
+            self.documents = DirectoryLoader(
+                os.path.join(
+                    os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"]), "documents",
+                    org
+                ),
+                glob=self.config["GLOB_SUFFIX"],
+            ).load()
+            self.texts = []
+            self.sources = []
+            for document in self.documents:
+                next_text = RecursiveCharacterTextSplitter(chunk_size=1000).split_text(
+                    document.page_content
+                )
+                self.texts.extend(next_text)
+                
+                self.sources.extend(
+                    [
+                        document.metadata["source"].split("/")[-1][:-4]
+                        for _ in range(len(next_text))
+                    ]
+                )
+            print(org, len(self.texts))
+            self.texts = [text.replace("\n\n", "\n") for text in self.texts]
+            self.collection.add(
+                ids=[org+str(index) for index in range(len(self.texts))],
                 metadatas=[{"source": source, "org_id": org} for source in self.sources],
                 documents=self.texts,
             )
