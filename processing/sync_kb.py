@@ -14,12 +14,12 @@ def kb_sync():
     from typing import Any
     from tqdm import tqdm
     from datetime import datetime
-
+    import nltk
+    nltk.download('punkt_tab')
+    nltk.download('averaged_perceptron_tagger_eng')
     with open(os.path.join(local_path,'config.yaml')) as file:    
         config = yaml.load(file, Loader=yaml.FullLoader)
-
-    
-
+  
     # os.makedirs(os.path.join(local_path, os.environ['DATA_PATH'], "kb_update_raw"), exist_ok=True)
     # open(os.path.join(local_path, os.environ['DATA_PATH'], "kb_update_raw/KB Updated.txt"), "w").close()
     # myfile = open(os.path.join(local_path, os.environ['DATA_PATH'], "kb_update_raw/KB Updated.txt"), "a")

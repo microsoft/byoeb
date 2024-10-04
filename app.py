@@ -21,9 +21,6 @@ from onboard import onboard_template
 from conversation_database import LoggingDatabase
 from responder import WhatsappResponder
 from azure.identity import DefaultAzureCredential
-import nltk
-nltk.download('punkt_tab')
-nltk.download('averaged_perceptron_tagger')
 
 with open("config.yaml") as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
