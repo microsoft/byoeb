@@ -147,7 +147,7 @@ class KnowledgeBase:
             return (bot_response, citations, query_type)
         else:
             sumarize_response_prompt = self.get_summarize_long_response_prompt(bot_response)
-            gpt_output = hierarichal_rag_generate(sumarize_response_prompt)
+            gpt_output = hierarchical_rag_generate(sumarize_response_prompt)
 
         logger.add_log(
             sender_id="gpt4",
