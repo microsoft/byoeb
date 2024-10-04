@@ -1,7 +1,8 @@
 from datetime import datetime
 import json
 from embeddings.chroma.llama_index_azure_openi import get_chroma_llama_index_azure_openai_embeddings_fn
-from utils import get_client_with_token_provider
+from embeddings.chroma.openai import get_chroma_openai_embedding_fn
+from utils import get_client_with_token_provider, get_client_with_key
 import os
 import chromadb
 from chromadb.config import Settings
@@ -14,9 +15,9 @@ llm_prompts = json.load(open(os.path.join(os.environ["APP_PATH"], os.environ["DA
 persist_directory = os.path.join(
     os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"]), "vectordb_hierarchy"
 )
-embedding_fn = get_chroma_llama_index_azure_openai_embeddings_fn()
-llm_client = get_client_with_token_provider()
-model = "gpt-4o"
+embedding_fn = get_chroma_openai_embedding_fn()
+llm_client = get_client_with_key()
+model = os.environ["OPENAI_API_MODEL"].strip()
 general = "Generic"
 
 def hierarchical_rag_retrieve(query, org_id):

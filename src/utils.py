@@ -24,10 +24,9 @@ def get_client_with_token_provider():
     )
 
 def get_client_with_key():
-    return AzureOpenAI(
-        api_key=os.environ["OPENAI_API_KEY"].strip(),
-        api_version=os.environ["OPENAI_API_VERSION"].strip(),
-        azure_endpoint=os.environ["OPENAI_API_ENDPOINT"].strip(),
+    return OpenAI(
+        api_key = os.environ['OPENAI_API_KEY'].strip(),
+        organization=os.environ['OPENAI_ORG_ID'].strip(),
     )
 
 def get_llm_response(prompt, schema=None):

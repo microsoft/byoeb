@@ -23,6 +23,7 @@ from chromadb.config import Settings
 from utils import get_llm_response
 from datetime import datetime
 from embeddings.chroma.llama_index_azure_openi import get_chroma_llama_index_azure_openai_embeddings_fn
+from embeddings.chroma.openai import get_chroma_openai_embedding_fn
 from hierarchical_rag import hierarchical_rag_augment, hierarchical_rag_generate, hierarchical_rag_retrieve
 
 
@@ -33,7 +34,7 @@ class KnowledgeBase:
         self.persist_directory = os.path.join(
             os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"]), "vectordb_hierarchy"
         )
-        self.embedding_fn = get_chroma_llama_index_azure_openai_embeddings_fn()
+        self.embedding_fn = get_chroma_openai_embedding_fn()
         # self.embedding_fn = embedding_functions.OpenAIEmbeddingFunction(
         #     api_key=os.environ['OPENAI_API_KEY'].strip(),
         #     api_type='azure',

@@ -42,7 +42,7 @@ pause_queue = False
 queue_lock = Lock()
 
 queue_name = os.environ["AZURE_QUEUE_NAME"].strip()
-account_url=os.environ["AZURE_STORAGE_ACCOUNT_URL"].strip()
+account_url=os.environ["QUEUE_ACCOUNT_URL"].strip()
 queue_name=queue_name
 credential=DefaultAzureCredential()
 queue_client = QueueClient(

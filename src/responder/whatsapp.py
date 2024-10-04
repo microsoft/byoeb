@@ -18,6 +18,7 @@ import utils
 from utils import remove_extra_voice_files
 from onboard import onboard_wa_helper
 from responder.base import BaseResponder
+from azure.identity import DefaultAzureCredential
 
 
 class WhatsappResponder(BaseResponder):
@@ -559,8 +560,10 @@ class WhatsappResponder(BaseResponder):
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
-            connect_str = os.getenv("AZURE_STORAGE_CONNECTION_STRING").strip()
-            blob_service_client = BlobServiceClient.from_connection_string(connect_str)
+            account_url = os.environ["BLOB_ACCOUNT_URL"]
+            credential = DefaultAzureCredential()
+            blob_service_client = BlobServiceClient(account_url, credential=credential)
+ 
             container_name = self.config["AZURE_BLOB_CONTAINER_NAME"].strip()
 
             blob_name = str(datetime.now()) + "_" + str(row_lt['whatsapp_id']) + ".ogg"
