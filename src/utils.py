@@ -32,7 +32,7 @@ def get_client_with_key():
 def get_llm_response(prompt, schema=None):
     client = None
     api_key = None
-    model_engine = "gpt-4o"
+    model_engine = os.environ["OPENAI_API_MODEL"].strip()
     response_format = None
     print(response_format)
     if schema is not None:
