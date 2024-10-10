@@ -14,14 +14,15 @@ class UserDB(BaseDB):
         user_id,
         whatsapp_id,
         user_type,
-        user_language):
+        user_language,
+        org_id = 'BLR'):
 
         user = {
             'user_id': user_id,
             'whatsapp_id': whatsapp_id,
             'user_type': user_type,
             'user_language': user_language,
-            'org_id': 'BLR',
+            'org_id': org_id,
             'timestamp' : datetime.datetime.now(),
         }
         db_id = self.collection.insert_one(user)
