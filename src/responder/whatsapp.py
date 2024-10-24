@@ -130,18 +130,14 @@ class WhatsappResponder(BaseResponder):
 
         if msg_object.get("context", False) and msg_object["context"].get("id", False):
             reply_id = msg_object["context"]["id"]
-            logs = self.logger.get_log_from_message_id(reply_id)
-            if len(logs) > 0: 
-                msg_log = logs[0]
-                if (
-                    msg_log["details"]["text"] == "user_onboard"
-                    or msg_log["details"]["text"] == "expert_onboard"
-                ):
+            context_row = self.bot_conv_db.get_from_message_id(reply_id)
+            if context_row is not None:
+                if context_row['message_type'] == 'onboarding_template':
                     self.onboard_response(msg_object, row_lt)
                     return
-                if msg_log["details"]["text"] == "expert_reminder":
-                    self.expert_reminder_response(msg_object, row_lt)
-                    return
+                
+                if context_row['message_type'] == 'lang_poll_onboarding':
+                    self.language_onboarding_response(msg_object, row_lt)
 
 
 
@@ -197,6 +193,37 @@ class WhatsappResponder(BaseResponder):
         )
 
         return
+    
+    def language_onboarding_response(self, msg_object, row_lt):
+        language_parser = {
+            'English': 'en',
+            'हिंदी': 'hi',
+            'ಕನ್ನಡ': 'kn',
+            'தமிழ்': 'ta',
+            'తెలుగు': 'te',
+        }
+        detected_lang = language_parser[msg_object['button']['payload']]
+
+        self.user_db.update_user_language(row_lt['user_id'], detected_lang)
+        onboarding_msg_id = self.messenger.send_template(row_lt['whatsapp_id'], 'onboard_cataractbot', detected_lang)
+        
+        self.bot_conv_db.insert_row(
+            receiver_id=row_lt['user_id'],
+            message_type='onboarding_template',
+            message_id=onboarding_msg_id,
+            audio_message_id=None,
+            message_source_lang=None,
+            message_language=detected_lang,
+            message_english=None,
+            reply_id=None,
+            citations=None,
+            message_timestamp=datetime.now(),
+            transaction_message_id=None,
+        )
+        return
+
+
+
 
     def expert_reminder_response(self, msg_object, row_lt):
         msg_id = msg_object["id"]
