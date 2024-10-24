@@ -2,7 +2,7 @@ import os
 import datetime
 import pymongo
 import certifi
-
+from uuid import uuid4
 from database.base import BaseDB
 
 class UserDB(BaseDB):
@@ -15,7 +15,8 @@ class UserDB(BaseDB):
         whatsapp_id,
         user_type,
         user_language,
-        org_id = 'BLR'):
+        org_id = 'BLR',
+        meta: dict = None):
 
         user = {
             'user_id': user_id,
@@ -25,6 +26,7 @@ class UserDB(BaseDB):
             'org_id': org_id,
             'timestamp' : datetime.datetime.now(),
         }
+        user.update(meta)
         db_id = self.collection.insert_one(user)
         return db_id
     
