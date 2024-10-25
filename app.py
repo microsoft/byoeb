@@ -41,14 +41,7 @@ pause_queue = False
 queue_lock = Lock()
 
 queue_name = os.environ["AZURE_QUEUE_NAME"].strip()
-account_url=os.environ["QUEUE_ACCOUNT_URL"].strip()
-credential=DefaultAzureCredential()
 queue_client = QueueClient.from_connection_string(os.environ["AZURE_STORAGE_CONNECTION_STRING"].strip(), queue_name)
-# queue_client = QueueClient(
-#                 account_url=account_url,
-#                 queue_name=queue_name,
-#                 credential=credential
-#             )
 
 try:
     queue_client.create_queue()
