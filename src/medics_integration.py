@@ -18,7 +18,7 @@ from database import UserDB, UserConvDB, ExpertConvDB, BotConvDB, UserRelationDB
 from messenger import WhatsappMessenger
 
 class OnboardMedics:
-    def __init__(self):
+    def __init__(self, config, logger):
         self.user_db = UserDB(config)
         self.bot_conv_db = BotConvDB(config)
         self.user_relations_db = UserRelationDB(config)

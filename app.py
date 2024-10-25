@@ -32,7 +32,7 @@ log = logging.getLogger("werkzeug")
 log.setLevel(logging.ERROR)
 
 logger = LoggingDatabase(config)
-medics_onboard = OnboardMedics()
+medics_onboard = OnboardMedics(config, logger)
 print("Loading Databases done")
 
 if config["CHAT_APPLICATION"] == "whatsapp":
