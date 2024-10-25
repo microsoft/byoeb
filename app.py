@@ -20,6 +20,7 @@ sys.path.append("src")
 from onboard import onboard_template
 from conversation_database import LoggingDatabase
 from responder import WhatsappResponder
+from medics_integration import OnboardMedics
 from azure.identity import DefaultAzureCredential
 
 with open("config.yaml") as file:
@@ -31,6 +32,7 @@ log = logging.getLogger("werkzeug")
 log.setLevel(logging.ERROR)
 
 logger = LoggingDatabase(config)
+medics_onboard = OnboardMedics()
 print("Loading Databases done")
 
 if config["CHAT_APPLICATION"] == "whatsapp":
@@ -54,6 +56,12 @@ def index():
     print("Request for index page received")
     return "Flask is running!"
 
+@app.route('/medics', methods=['POST'])
+def medics():
+    data = request.json
+    for row in data:
+        medics_onboard.onboard_medics_helper(row)
+    return 'OK', 200
 
 @app.route("/webhooks", methods=["POST"])
 def webhook():

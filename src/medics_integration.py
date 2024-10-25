@@ -138,13 +138,14 @@ class OnboardMedics:
         counsellor_row = self.user_db.collection.find_one({'user_name': data['counsellor_name']})
         counsellor_user_id = counsellor_row['user_id']
 
-        # self.user_relations_db.insert_row(
-        #     patient_user_id, doctor_user_id, 'Patient', 'Doctor'
-        # )
-        # self.user_relations_db.insert_row(
-        #     patient_user_id, counsellor_user_id, 'Patient', 'Counsellor'
-        # )
+        self.user_relations_db.insert_row(
+            patient_user_id, doctor_user_id, 'Patient', 'Doctor'
+        )
+        self.user_relations_db.insert_row(
+            patient_user_id, counsellor_user_id, 'Patient', 'Counsellor'
+        )
 
+        return
 
 
     
