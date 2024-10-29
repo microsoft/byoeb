@@ -12,7 +12,6 @@ sys.path.append(local_path + '/src')
 with open(os.path.join(local_path,'config.yaml')) as file:    
         config = yaml.load(file, Loader=yaml.FullLoader)
 from conversation_database import LoggingDatabase
-from onboard import onboard_template, onboar_medics_template
 from uuid import uuid4
 from database import UserDB, UserConvDB, ExpertConvDB, BotConvDB, UserRelationDB
 from messenger import WhatsappMessenger
@@ -100,7 +99,7 @@ class OnboardMedics:
         doctor_row = self.user_db.get_from_whatsapp_id(doctor_whatsapp_id)
         if doctor_row is None:
             doctor_row = {
-                'user_id': uuid4(),
+                'user_id': str(uuid4()),
                 'whatsapp_id': doctor_whatsapp_id,
                 'user_language': 'en',
                 'user_type': 'Doctor',

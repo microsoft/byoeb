@@ -28,6 +28,20 @@ def onboard_template(config: dict, logger: LoggingDatabase, data_row: dict) -> N
                 lang,
             )
 
+def onboar_medics_template(
+    config: dict,
+    logger: LoggingDatabase,
+    to_number: str,
+    ) -> None:
+    messenger = WhatsappMessenger(config, logger)
+    try:
+        messenger.send_template(to_number, 'onboard_cataractbot', 'en', logger)
+        messenger.send_template(to_number, 'lang_selection_blr', 'en', logger)
+        print('Template sent to user')
+    except Exception as e:
+        print(e)
+        print('Error in sending template to user')
+
 
 def onboard_wa_helper(
     config: dict,
@@ -44,12 +58,12 @@ def onboard_wa_helper(
     )
     language_prompts = json.load(
         open(
-            os.path.join(os.environ['APP_PATH'], os.environ['DATA_PATH'],"/onboarding/language_prompts.json"),
+            os.path.join(os.environ['APP_PATH'], os.environ['DATA_PATH'],"onboarding/language_prompts.json"),
         )
     )
     suggestion_questions = json.load(
         open(
-            os.path.join(os.environ['APP_PATH'], os.environ['DATA_PATH'],"/onboarding/suggestion_questions.json"),
+            os.path.join(os.environ['APP_PATH'], os.environ['DATA_PATH'],"onboarding/suggestion_questions.json"),
         )
     )
 
