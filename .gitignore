@@ -20,8 +20,8 @@ scratch/
 .env
 
 # the .env file in any subdirectory
-**/.env
-**/**/.env
+**/*.env
+**/**/*.env
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
