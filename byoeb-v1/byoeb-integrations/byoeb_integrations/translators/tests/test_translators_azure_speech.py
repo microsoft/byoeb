@@ -1,17 +1,21 @@
 import asyncio
+import os
 import pytest
 import azure.cognitiveservices.speech as speechsdk
 from byoeb_integrations.translators.speech.azure.async_azure_speech_translator import AsyncAzureSpeechTranslator
 from azure.identity import get_bearer_token_provider, DefaultAzureCredential
-from azure.identity import  InteractiveBrowserCredential
+from byoeb_integrations import test_environment_path
+from dotenv import load_dotenv
+
+load_dotenv(test_environment_path)
 # ibc = InteractiveBrowserCredential()
 # aadToken = ibc.get_token("https://cognitiveservices.azure.com/.default").token
 token_provider = get_bearer_token_provider(
     DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
 )
 # print(aadToken)
-resource_id = ""
-region=""
+SPEECH_TRANSLATOR_RESOURCE_ID = os.getenv('SPEECH_TRANSLATOR_RESOURCE_ID')
+SPEECH_TRANSLATOR_REGION = os.getenv('SPEECH_TRANSLATOR_REGION')
 
 
 # TODO - Add tests for the AsyncAzureSpeechTranslator class using token provider
@@ -26,9 +30,9 @@ def event_loop():
 async def aazure_bytes_speech_translate_en():
     text = "Hello World !!"
     async_azure_speech_translator = AsyncAzureSpeechTranslator(
-        region=region,
+        region=SPEECH_TRANSLATOR_REGION,
         token_provider=token_provider,
-        resource_id=resource_id,
+        resource_id=SPEECH_TRANSLATOR_RESOURCE_ID,
     )
     result = await async_azure_speech_translator.atext_to_speech(
         input_text=text,
@@ -46,9 +50,9 @@ async def aazure_bytes_speech_translate_en():
 async def aazure_bytes_speech_translate_hi():
     text = "नमस्कार क्या हालचाल हैं?"
     async_azure_speech_translator = AsyncAzureSpeechTranslator(
-        region=region,
+        region=SPEECH_TRANSLATOR_REGION,
         token_provider=token_provider,
-        resource_id=resource_id,
+        resource_id=SPEECH_TRANSLATOR_RESOURCE_ID,
     )
     result = await async_azure_speech_translator.atext_to_speech(
         input_text=text,

@@ -8,6 +8,13 @@ from byoeb_integrations.media_storage.azure.async_azure_blob_storage import Asyn
 from byoeb_core.media_storage.base import BaseMediaStorage
 from byoeb_core.models.media_storage.file_data import FileMetadata, FileData
 from azure.identity import DefaultAzureCredential
+from byoeb_integrations import test_environment_path
+from dotenv import load_dotenv
+
+load_dotenv(test_environment_path)
+
+MEDIA_STORAGE_ACCOUNT_URL=os.getenv("MEDIA_STORAGE_ACCOUNT_URL")
+MEDIA_STORAGE_CONTAINER_NAME=os.getenv("MEDIA_STORAGE_CONTAINER_NAME")
 
 @pytest.fixture
 def event_loop():
@@ -40,8 +47,8 @@ def create_audio_sample(file_name: str, duration_ms: int = 1000, frequency: int 
 
 async def aazure_blob_storage_audio_ops():
     default_credential = DefaultAzureCredential()
-    account_url = ""
-    container_name = "testcontainerbyoeb"
+    account_url = MEDIA_STORAGE_ACCOUNT_URL
+    container_name = MEDIA_STORAGE_CONTAINER_NAME
     async_azure_blob_storage = AsyncAzureBlobStorage(
         container_name=container_name,
         account_url=account_url,
@@ -65,8 +72,8 @@ async def aazure_blob_storage_audio_ops():
 
 async def aazure_blob_storage_text_ops():
     default_credential = DefaultAzureCredential()
-    account_url = ""
-    container_name = "testcontainerbyoeb"
+    account_url = MEDIA_STORAGE_ACCOUNT_URL
+    container_name = MEDIA_STORAGE_CONTAINER_NAME
     async_azure_blob_storage = AsyncAzureBlobStorage(
         container_name=container_name,
         account_url=account_url,

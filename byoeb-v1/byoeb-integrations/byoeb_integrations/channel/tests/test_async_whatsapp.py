@@ -1,7 +1,6 @@
 import os
 import asyncio
 import uuid
-from typing import List
 import pytest
 import byoeb_core.convertor.audio_convertor as ac
 from byoeb_core.models.whatsapp.requests import message_request as wa_message
@@ -10,11 +9,12 @@ from byoeb_core.models.whatsapp.requests import template_message_request as wa_t
 from byoeb_core.models.whatsapp.requests import media_request as wa_media
 from byoeb_core.models.whatsapp.message_context import WhatsappMessageReplyContext
 from byoeb_integrations.channel.whatsapp.meta.async_whatsapp_client import AsyncWhatsAppClient, WhatsAppMessageTypes
+from byoeb_integrations import test_environment_path
+from dotenv import load_dotenv
 
-os.environ["WHATSAPP_TOKEN"] = ""
-os.environ["PHONE_NUMBER"] = ""
-WHATSAPP_TOKEN = os.getenv('WHATSAPP_TOKEN')
-PHONE_NUMBER_ID = os.getenv('PHONE_NUMBER')
+load_dotenv(test_environment_path)
+WHATSAPP_AUTH_TOKEN = os.getenv('WHATSAPP_AUTH_TOKEN')
+WHATSAPP_PHONE_NUMBER_ID = os.getenv('WHATSAPP_PHONE_NUMBER_ID')
 
 @pytest.fixture(scope="session")
 def event_loop():
@@ -22,32 +22,27 @@ def event_loop():
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
 
-number1 = ""
-number2 = ""
+test_numbers = ["918837701828", "918904954952"]
 
 async def atest_meta_batch_text_message():
     whatsapp_client = AsyncWhatsAppClient(
-        phone_number_id=PHONE_NUMBER_ID,
-        bearer_token=WHATSAPP_TOKEN,
+        phone_number_id=WHATSAPP_PHONE_NUMBER_ID,
+        bearer_token=WHATSAPP_AUTH_TOKEN,
         reuse_client=True
     )
     message_type = WhatsAppMessageTypes.TEXT.value
     text_message = "Hello how are you"
     text = wa_message.Text(body=text_message)
-    whatsapp_text_message_1 = wa_message.WhatsAppMessage(
-        messaging_product=whatsapp_client.get_product_name(),
-        to=number1,
-        type=message_type,
-        text=text
-    )
-    whatsapp_text_message_2 = wa_message.WhatsAppMessage(
-        messaging_product=whatsapp_client.get_product_name(),
-        to=number2,
-        type=message_type,
-        text=text
-    )
-    batch = [whatsapp_text_message_1.model_dump(), whatsapp_text_message_2.model_dump()]
-    batch_reponses = await whatsapp_client.asend_batch_messages(batch, message_type)
+    batch_request = []
+    for number in test_numbers:
+        whatsapp_text_message = wa_message.WhatsAppMessage(
+            messaging_product=whatsapp_client.get_product_name(),
+            to=number,
+            type=message_type,
+            text=text
+        )
+        batch_request.append(whatsapp_text_message.model_dump())
+    batch_reponses = await whatsapp_client.asend_batch_messages(batch_request, message_type)
     
     batch_reaction_request = []
     for response in batch_reponses:
@@ -103,38 +98,26 @@ async def atest_meta_batch_send_interactive_reply_message():
             )
         )
     whatsapp_client = AsyncWhatsAppClient(
-        phone_number_id=PHONE_NUMBER_ID,
-        bearer_token=WHATSAPP_TOKEN,
+        phone_number_id=WHATSAPP_PHONE_NUMBER_ID,
+        bearer_token=WHATSAPP_AUTH_TOKEN,
         reuse_client=True
     )
     message_type = WhatsAppMessageTypes.INTERACTIVE.value
-    whatsapp_text_message_1 = wa_interactive.WhatsAppInteractiveMessage(
-        messaging_product=whatsapp_client.get_product_name(),
-        to=number1,
-        type=message_type,
-        interactive=wa_interactive.Interactive(
-            body=wa_interactive.InteractiveBody(
-                text="Do you like this product?"
-            ),
-            action=wa_interactive.InteractiveAction(
-                buttons=[get_button("Yes"), get_button("No")]
+    batch_request = []
+    for number in test_numbers:
+        whatsapp_text_message = wa_interactive.WhatsAppInteractiveMessage(
+            messaging_product=whatsapp_client.get_product_name(),
+            to=number,
+            type=message_type,
+            interactive=wa_interactive.Interactive(
+                body=wa_interactive.InteractiveBody(
+                    text="Do you like this product?"
+                ),
+                action=wa_interactive.InteractiveAction(
+                    buttons=[get_button("Yes"), get_button("No")]
+                )
             )
         )
-    )
-    whatsapp_text_message_2 = wa_interactive.WhatsAppInteractiveMessage(
-        messaging_product=whatsapp_client.get_product_name(),
-        to=number2,
-        type=message_type,
-        interactive=wa_interactive.Interactive(
-            body=wa_interactive.InteractiveBody(
-                text="Do you like this product?"
-            ),
-            action=wa_interactive.InteractiveAction(
-                buttons=[get_button("Yes"), get_button("No")]
-            )
-        )
-    )
-    batch_request = [whatsapp_text_message_1.model_dump(), whatsapp_text_message_2.model_dump()]
     whatsapp_text_response = await whatsapp_client.asend_batch_messages(batch_request, message_type)
     await whatsapp_client._close()
 
@@ -156,13 +139,12 @@ async def atest_meta_batch_send_interactive_list_message():
             description=description
         )
     whatsapp_client = AsyncWhatsAppClient(
-        phone_number_id=PHONE_NUMBER_ID,
-        bearer_token=WHATSAPP_TOKEN,
+        phone_number_id=WHATSAPP_PHONE_NUMBER_ID,
+        bearer_token=WHATSAPP_AUTH_TOKEN,
         reuse_client=True
     )
-    numbers = [number1, number2]
     batch_request = []
-    for number in numbers:
+    for number in test_numbers:
         message_type = WhatsAppMessageTypes.INTERACTIVE.value
         interactive_type = wa_interactive.InteractiveMessageTypes.LIST.value
         whatsapp_text_message = wa_interactive.WhatsAppInteractiveMessage(
@@ -189,8 +171,8 @@ async def atest_meta_batch_send_interactive_list_message():
 
 async def atest_meta_batch_send_template_message():
     whatsapp_client = AsyncWhatsAppClient(
-        phone_number_id=PHONE_NUMBER_ID,
-        bearer_token=WHATSAPP_TOKEN,
+        phone_number_id=WHATSAPP_PHONE_NUMBER_ID,
+        bearer_token=WHATSAPP_AUTH_TOKEN,
         reuse_client=True
     )
     template_name = "hello_world"
@@ -211,26 +193,21 @@ async def atest_meta_batch_send_template_message():
             code="en_US",
         )
     )
-    whatsapp_text_message_1 = wa_template.WhatsAppTemplateMessage(
-        messaging_product=whatsapp_client.get_product_name(),
-        to=number1,
-        type=message_type,
-        template=template
-    )
-    whatsapp_text_message_2 = wa_template.WhatsAppTemplateMessage(
-        messaging_product=whatsapp_client.get_product_name(),
-        to=number2,
-        type=message_type,
-        template=template
-    )
-    batch_request = [whatsapp_text_message_1.model_dump(), whatsapp_text_message_2.model_dump()]
+    batch_request = []
+    for number in test_numbers:
+        whatsapp_text_message = wa_template.WhatsAppTemplateMessage(
+            messaging_product=whatsapp_client.get_product_name(),
+            to=number,
+            type=message_type,
+            template=template
+        )
     whatsapp_text_response = await whatsapp_client.asend_batch_messages(batch_request, message_type)
     await whatsapp_client._close()
 
 async def atest_audio_download():
     whatsapp_client = AsyncWhatsAppClient(
-        phone_number_id=PHONE_NUMBER_ID,
-        bearer_token=WHATSAPP_TOKEN,
+        phone_number_id=WHATSAPP_PHONE_NUMBER_ID,
+        bearer_token=WHATSAPP_AUTH_TOKEN,
         reuse_client=True
     )
     message_type = wa_media.WhatsAppMediaTypes.AUDIO.value
@@ -247,16 +224,13 @@ async def atest_audio_download():
 
 async def atest_mark_as_read():
     whatsapp_client = AsyncWhatsAppClient(
-        phone_number_id=PHONE_NUMBER_ID,
-        bearer_token=WHATSAPP_TOKEN,
+        phone_number_id=WHATSAPP_PHONE_NUMBER_ID,
+        bearer_token=WHATSAPP_AUTH_TOKEN,
         reuse_client=True
     )
     id = "wamid.HBgMOTE4ODM3NzAxODI4FQIAEhggODdBQjNFNTFBQzRCNEY1MjU1QTcwMEI4RTRBNkNGQUEA"
-    status, response, err = await whatsapp_client.amark_as_read(id)
-    print(status)
-    print(response)
-    print(err)
-
+    ack = await whatsapp_client.amark_as_read(id)
+    assert ack.success is True
     await whatsapp_client._close()
 
 async def atest_batch_send_audio_message():
@@ -267,30 +241,22 @@ async def atest_batch_send_audio_message():
     audio_bytes = ac.wav_to_ogg_opus_bytes(audio_wav)
     media_type=wa_media.FileMediaType.AUDIO_OGG.value
     whatsapp_client = AsyncWhatsAppClient(
-        phone_number_id=PHONE_NUMBER_ID,
-        bearer_token=WHATSAPP_TOKEN,
+        phone_number_id=WHATSAPP_PHONE_NUMBER_ID,
+        bearer_token=WHATSAPP_AUTH_TOKEN,
         reuse_client=True
     )
-
-    whatspp_media_message_1 = wa_media.WhatsAppMediaMessage(
-        messaging_product=whatsapp_client.get_product_name(),
-        to=number1,
-        type=message_type,
-        media=wa_media.MediaData(
-            data=audio_bytes,
-            mime_type=media_type
+    batch_request = []
+    for number in test_numbers:
+        whatsapp_media_message = wa_media.WhatsAppMediaMessage(
+            messaging_product=whatsapp_client.get_product_name(),
+            to=number,
+            type=message_type,
+            media=wa_media.MediaData(
+                data=audio_bytes,
+                mime_type=media_type
+            )
         )
-    )
-    whatspp_media_message_2 = wa_media.WhatsAppMediaMessage(
-        messaging_product=whatsapp_client.get_product_name(),
-        to=number2,
-        type=message_type,
-        media=wa_media.MediaData(
-            data=audio_bytes,
-            mime_type=media_type
-        )
-    )
-    batch_request = [whatspp_media_message_1.model_dump(), whatspp_media_message_2.model_dump()]
+        batch_request.append(whatsapp_media_message.model_dump())
     whatsapp_responses = await whatsapp_client.asend_batch_messages(batch_request, message_type)
     media_id = whatsapp_responses[0].media_message.id
     ack = await whatsapp_client.adelete_media(media_id)

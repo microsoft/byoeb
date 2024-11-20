@@ -6,21 +6,24 @@ import time
 import pytest
 from azure.identity import get_bearer_token_provider, AzureCliCredential
 from byoeb_integrations.llms.azure_openai.async_azure_openai import AsyncAzureOpenAILLM
+from byoeb_integrations import test_environment_path
+from dotenv import load_dotenv
 
-os.environ["AZURE_ENDPOINT"] = ""
-AZURE_ENDPOINT = os.getenv('AZURE_ENDPOINT')
+load_dotenv(test_environment_path)
 
-model="gpt-4o"
-api_version="2023-03-15-preview"
+AZURE_COGNITIVE_ENDPOINT = os.getenv('AZURE_COGNITIVE_ENDPOINT')
+LLM_MODEL = os.getenv('LLM_MODEL')
+LLM_ENDPOINT = os.getenv('LLM_ENDPOINT')
+LLM_API_VERSION = os.getenv('LLM_API_VERSION')
 token_provider = get_bearer_token_provider(
-    AzureCliCredential(), ""
+    AzureCliCredential(), AZURE_COGNITIVE_ENDPOINT
 )
 
 async_azure_openai_llm = AsyncAzureOpenAILLM(
-        model=model,
-        azure_endpoint=AZURE_ENDPOINT,
+        model=LLM_MODEL,
+        azure_endpoint=LLM_ENDPOINT,
         token_provider=token_provider,
-        api_version=api_version
+        api_version=LLM_API_VERSION
     )
 async def atest_agenerate_response(msg):
     start = time.time()

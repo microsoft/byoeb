@@ -1,9 +1,13 @@
 import asyncio
 import json
+import os
 import pytest
 from byoeb_integrations.databases.mongo_db.azure.async_azure_cosmos_mongo_db import AsyncAzureCosmosMongoDB, AsyncAzureCosmosMongoDBCollection
+from byoeb_integrations import test_environment_path
+from dotenv import load_dotenv
 
-connection_string = ""
+load_dotenv(test_environment_path)
+connection_string = os.getenv("MONGO_DB_CONNECTION_STRING")
 db_name = "test_new_frame"
 
 c1 = "c1"

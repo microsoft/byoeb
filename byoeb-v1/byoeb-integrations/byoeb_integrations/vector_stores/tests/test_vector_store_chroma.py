@@ -6,21 +6,30 @@ from byoeb_integrations.vector_stores.chroma.base import ChromaDBVectorStore
 from byoeb_integrations.embeddings.chroma.llama_index_azure_openai import AzureOpenAIEmbeddingFunction
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider, AzureCliCredential
 from byoeb_integrations.vector_stores.llama_index.llama_index_chroma_store import LlamaIndexChromaDBStore
+from byoeb_integrations import test_environment_path
+from dotenv import load_dotenv
 
-os.environ["AZURE_ENDPOINT"] = ""
+load_dotenv(test_environment_path)
+
+os.environ["AZURE_ENDPOINT"] = "https://swasthyabot-oai-vision.openai.azure.com/"
 AZURE_ENDPOINT = os.getenv('AZURE_ENDPOINT')
+AZURE_COGNITIVE_ENDPOINT = os.getenv('AZURE_COGNITIVE_ENDPOINT')
+EMBEDDINGS_MODEL=os.getenv('EMBEDDINGS_MODEL')
+EMBEDDINGS_ENDPOINT=os.getenv('EMBEDDINGS_ENDPOINT')
+EMBEDDINGS_DEPLOYMENT_NAME=os.getenv('EMBEDDINGS_DEPLOYMENT_NAME')
+EMBEDDINGS_API_VERSION=os.getenv('EMBEDDINGS_API_VERSION')
 
 def test_chroma_vector_store_ops():
     token_provider = get_bearer_token_provider(
-        AzureCliCredential(), "https://cognitiveservices.azure.com/.default"
+        AzureCliCredential(), AZURE_COGNITIVE_ENDPOINT
     )
 
     embedding_fn = AzureOpenAIEmbeddingFunction(
-        model="text-embedding-3-large",
-        deployment_name="text-embedding-3-large",
-        azure_endpoint=AZURE_ENDPOINT,
+        model=EMBEDDINGS_MODEL,
+        deployment_name=EMBEDDINGS_DEPLOYMENT_NAME,
+        azure_endpoint=EMBEDDINGS_ENDPOINT,
         token_provider=token_provider,
-        api_version="2023-03-15-preview"
+        api_version=EMBEDDINGS_API_VERSION
     )
 
     chromavs = ChromaDBVectorStore("./vdb", "test",embedding_function=embedding_fn)
@@ -34,15 +43,15 @@ def test_chroma_vector_store_ops():
 
 def test_llama_index_chroma_vector_store_ops():
     token_provider = get_bearer_token_provider(
-        AzureCliCredential(), "https://cognitiveservices.azure.com/.default"
+        AzureCliCredential(), AZURE_COGNITIVE_ENDPOINT
     )
 
     azure_openai_embed = AzureOpenAIEmbed(
-        model="text-embedding-3-large",
-        deployment_name="text-embedding-3-large",
-        azure_endpoint=AZURE_ENDPOINT,
+        model=EMBEDDINGS_MODEL,
+        deployment_name=EMBEDDINGS_DEPLOYMENT_NAME,
+        azure_endpoint=EMBEDDINGS_ENDPOINT,
         token_provider=token_provider,
-        api_version="2023-03-15-preview"
+        api_version=EMBEDDINGS_API_VERSION
     )
     embedding_fn = azure_openai_embed.get_embedding_function()
 
