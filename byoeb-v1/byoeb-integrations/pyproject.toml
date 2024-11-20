@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "byoeb-integrations"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+exclude = ["**/tests/**", "**/tests"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+openai = "^1.45.1"
+chromadb = "^0.5.5"
+llama-index-embeddings-azure-openai = "^0.2.5"
+azure-storage-queue = "^12.11.0"
+azure-storage-blob = "^12.22.0"
+azure-cognitiveservices-speech = "^1.40.0"
+azure-ai-translation-text = "^1.0.1"
+motor = "^3.6.0"
+llama-index-vector-stores-chroma = "^0.3.0"
+byoeb-core = {path = "../byoeb-core/dist/byoeb_core-0.1.0-py3-none-any.whl"}
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.3"
+coverage = "^7.6.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
