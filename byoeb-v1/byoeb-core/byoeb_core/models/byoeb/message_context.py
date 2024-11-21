@@ -33,8 +33,8 @@ class ByoebMessageConext(BaseModel):
         from_ (str): The WhatsApp ID of the original sender.
         id (str): The ID of the original message.
     """
-    context_id: str
     channel_type: str
+    message_category: str
     user_info: Optional[UserInfo]
     message_info: Optional[MessageInfo]
     reply_info: Optional[ReplyInfo]

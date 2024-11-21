@@ -60,6 +60,6 @@ class Entry(BaseModel):
     changes: Optional[List[Change]]
 
 
-class WhatsappMessageStatus(BaseModel):
+class WhatsAppStatusMessageBody(BaseModel):
     object: Optional[str]
     entry: Optional[List[Entry]]

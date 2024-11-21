@@ -3,6 +3,9 @@ import asyncio
 import uuid
 import pytest
 import byoeb_core.convertor.audio_convertor as ac
+import json
+import byoeb_integrations.channel.whatsapp.validate_message as wa_validate
+import byoeb_integrations.channel.whatsapp.convert_message as wa_convert
 from byoeb_core.models.whatsapp.requests import message_request as wa_message
 from byoeb_core.models.whatsapp.requests import interactive_message_request as wa_interactive
 from byoeb_core.models.whatsapp.requests import template_message_request as wa_template
@@ -89,6 +92,7 @@ async def atest_meta_batch_text_message():
     await whatsapp_client._close()
     
 async def atest_meta_batch_send_interactive_reply_message():
+    
     def get_button(title):
         poll_id = str(uuid.uuid4())
         return wa_interactive.InteractiveActionButton(
@@ -118,7 +122,9 @@ async def atest_meta_batch_send_interactive_reply_message():
                 )
             )
         )
-    whatsapp_text_response = await whatsapp_client.asend_batch_messages(batch_request, message_type)
+        print(json.dumps(whatsapp_text_message.model_dump(exclude_none=True)))
+        batch_request.append(whatsapp_text_message.model_dump())
+    # whatsapp_text_response = await whatsapp_client.asend_batch_messages(batch_request, message_type)
     await whatsapp_client._close()
 
 async def atest_meta_batch_send_interactive_list_message():
@@ -175,7 +181,7 @@ async def atest_meta_batch_send_template_message():
         bearer_token=WHATSAPP_AUTH_TOKEN,
         reuse_client=True
     )
-    template_name = "hello_world"
+    template_name = "question_of_the_week"
     text = "नवजात शिशु के शरीर में 300 हड्डियाँ होती हैं।"
     message_type = WhatsAppMessageTypes.TEMPLATE.value
     component = wa_template.TemplateComponent(
@@ -190,8 +196,9 @@ async def atest_meta_batch_send_template_message():
     template = wa_template.Template(
         name =template_name,
         language=wa_template.TemplateLanguage(
-            code="en_US",
-        )
+            code="hi",
+        ),
+        components=[component]
     )
     batch_request = []
     for number in test_numbers:
@@ -201,7 +208,11 @@ async def atest_meta_batch_send_template_message():
             type=message_type,
             template=template
         )
+        batch_request.append(whatsapp_text_message.model_dump())
+        print(json.dumps(whatsapp_text_message.model_dump(exclude_none=True)))
     whatsapp_text_response = await whatsapp_client.asend_batch_messages(batch_request, message_type)
+    assert whatsapp_text_response is not None
+    assert whatsapp_text_response[0].response_status.status == "200"
     await whatsapp_client._close()
 
 async def atest_audio_download():
@@ -263,6 +274,32 @@ async def atest_batch_send_audio_message():
     assert ack.success is True
     await whatsapp_client._close()
 
+def test_template_message():
+    message = '{"object": "whatsapp_business_account", "entry": [{"id": "423299570870294", "changes": [{"value": {"messaging_product": "whatsapp", "metadata": {"display_phone_number": "15551355272", "phone_number_id": "421395191063010"}, "contacts": [{"profile": {"name": "rahul5982439"}, "wa_id": "918837701828"}], "messages": [{"context": {"from": "15551355272", "id": "wamid.HBgMOTE4ODM3NzAxODI4FQIAERgSRjZCQThENDNGREY0MjdEMTczAA=="}, "from": "918837701828", "id": "wamid.HBgMOTE4ODM3NzAxODI4FQIAEhggQTNDMDU5QzQwMUNBOUQyMDM4OTAxQTZGQUFFNUE1RDEA", "timestamp": "1732167477", "type": "button", "button": {"payload": "\u0909\u0924\u094d\u0924\u0930 \u0926\u093f\u0916\u093e\u0907\u090f", "text": "\u0909\u0924\u094d\u0924\u0930 \u0926\u093f\u0916\u093e\u0907\u090f"}}]}, "field": "messages"}]}]}'
+    is_wa, message_type = wa_validate.validate_whatsapp_message(message)
+    assert is_wa is True
+    assert message_type == "template"
+
+def test_regular_message():
+    message_1 = '{"object": "whatsapp_business_account", "entry": [{"id": "423299570870294", "changes": [{"value": {"messaging_product": "whatsapp", "metadata": {"display_phone_number": "15551355272", "phone_number_id": "421395191063010"}, "contacts": [{"profile": {"name": "rahul5982439"}, "wa_id": "918837701828"}], "messages": [{"from": "918837701828", "id": "wamid.HBgMOTE4ODM3NzAxODI4FQIAEhggMTU1NEI5QjRBNTlCNUZCQTk0QzlBNDY2NDRDNEYyMzkA", "timestamp": "1732167417", "text": {"body": "Hello"}, "type": "text"}]}, "field": "messages"}]}]}'
+    is_wa, message_type = wa_validate.validate_whatsapp_message(message_1)
+    assert is_wa is True
+    assert message_type == "regular"
+    message_2 = '{"object": "whatsapp_business_account", "entry": [{"id": "423299570870294", "changes": [{"value": {"messaging_product": "whatsapp", "metadata": {"display_phone_number": "15551355272", "phone_number_id": "421395191063010"}, "contacts": [{"profile": {"name": "rahul5982439"}, "wa_id": "918837701828"}], "messages": [{"from": "918837701828", "id": "wamid.HBgMOTE4ODM3NzAxODI4FQIAEhggNEJFQzc1OEFBNTlDQTQxOTI2MDQ3RTNGM0E4OTQxRDEA", "timestamp": "1732167457", "type": "audio", "audio": {"mime_type": "audio/ogg; codecs=opus", "sha256": "w26HXHrAYkyu19h0AStMV+9ojTl5mQwAQmBHPedekX0=", "id": "543799451804859", "voice": true}}]}, "field": "messages"}]}]}'
+    is_wa, message_type = wa_validate.validate_whatsapp_message(message_2)
+    assert is_wa is True
+    assert message_type == "regular"
+
+def test_interactive_message():
+    message_1 = '{"object": "whatsapp_business_account", "entry": [{"id": "423299570870294", "changes": [{"value": {"messaging_product": "whatsapp", "metadata": {"display_phone_number": "15551355272", "phone_number_id": "421395191063010"}, "contacts": [{"profile": {"name": "rahul5982439"}, "wa_id": "918837701828"}], "messages": [{"context": {"from": "15551355272", "id": "wamid.HBgMOTE4ODM3NzAxODI4FQIAERgSNkY1QUIwQTMzNjc2MkU1OUZGAA=="}, "from": "918837701828", "id": "wamid.HBgMOTE4ODM3NzAxODI4FQIAEhggODg4REFBQUI4NzM1NUI1MDc2NjA2ODMwQjFFQkU3QzUA", "timestamp": "1732167674", "type": "interactive", "interactive": {"type": "button_reply", "button_reply": {"id": "804dcad1-def3-4e37-b391-9aa51fe7f5c3", "title": "Yes"}}}]}, "field": "messages"}]}]}'
+    is_wa, message_type = wa_validate.validate_whatsapp_message(message_1)
+    assert is_wa is True
+    assert message_type == "interactive"
+    message_2 = '{"object": "whatsapp_business_account", "entry": [{"id": "423299570870294", "changes": [{"value": {"messaging_product": "whatsapp", "metadata": {"display_phone_number": "15551355272", "phone_number_id": "421395191063010"}, "contacts": [{"profile": {"name": "rahul5982439"}, "wa_id": "918837701828"}], "messages": [{"context": {"from": "15551355272", "id": "wamid.HBgMOTE4ODM3NzAxODI4FQIAERgSMzU5QTYwNzNBQUUzNjdDNjAwAA=="}, "from": "918837701828", "id": "wamid.HBgMOTE4ODM3NzAxODI4FQIAEhggNURBMjI2MUI1REREOUU1RTk0OTRDNzY4NkJEMjQxM0UA", "timestamp": "1732167786", "type": "interactive", "interactive": {"type": "list_reply", "list_reply": {"id": "f79a74e4-3d50-4cc3-ae50-86efff88f3f3", "title": " ", "description": "O1"}}}]}, "field": "messages"}]}]}'
+    is_wa, message_type = wa_validate.validate_whatsapp_message(message_2)
+    assert is_wa is True
+    assert message_type == "interactive"
+
 def test_meta_batch_text_message(event_loop):
     event_loop.run_until_complete(atest_meta_batch_text_message())
 
@@ -282,7 +319,12 @@ def test_audio_download(event_loop):
     event_loop.run_until_complete(atest_audio_download())
 
 if __name__ == "__main__":
-    event_loop = asyncio.get_event_loop()
-    event_loop.run_until_complete(atest_batch_send_audio_message())
+    # event_loop = asyncio.get_event_loop()
+    # # event_loop.run_until_complete(atest_meta_batch_send_interactive_reply_message())
     # event_loop.run_until_complete(atest_meta_batch_send_template_message())
-    event_loop.close()
+    # event_loop.close()
+    test_template_message()
+    test_regular_message()
+    test_interactive_message()
+
+

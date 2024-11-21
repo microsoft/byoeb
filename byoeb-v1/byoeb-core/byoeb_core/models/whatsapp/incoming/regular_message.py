@@ -48,7 +48,7 @@ class Entry(BaseModel):
     changes: Optional[List[Change]] = Field(None, description="List of changes in this entry")
     id: Optional[str] = Field(None, description="ID of the entry")
 
-class WhatsAppMessageBody(BaseModel):
+class WhatsAppRegularMessageBody(BaseModel):
     entry: Optional[List[Entry]] = Field(None, description="List of entries in the webhook payload")
     object: Optional[str] = Field(None, description="Type of object that generated the webhook (e.g., whatsapp_business_account)")
 
