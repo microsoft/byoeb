@@ -29,12 +29,14 @@ async def aazure_cosmos_mongo_db_batch():
     await db_client.adelete_collection(c1)
     collection1 = db_client.get_collection(c1)
     c1_client = AsyncAzureCosmosMongoDBCollection(collection1)
-    await c1_client.ainsert(documents)
+    results = await c1_client.ainsert(documents)
     data = await c1_client.afetch_all({"age": {"$gte": 26}})
-    # print(len(data))
-    # print(json.dumps(data))
+    c1_client.aupdate({"age": 25}, {"$set": {"age": 26}})
+    ids = await c1_client.afetch_ids()
+    assert len(ids) == len(documents)
     data_id = await c1_client.afetch({"_id": "102"})
-    # print(json.dumps(data_id))
+    assert data_id is not None
+    assert data_id["name"] == "Bob"
     await c1_client.adelete_collection()
     await db_client.adelete_database()
 
@@ -56,14 +58,22 @@ async def aazure_cosmos_mongo_db():
     assert data is not None
     assert data[0]["name"] == "John"
     update_data = {"$set":{"name": "Jane"}}
-    await c1_client.aupdate({"name": "John"}, update_data)
+    result, modified = await c1_client.aupdate(bulk_queries=[({"name": "John"}, update_data)])
+    print(modified)
     data = await c1_client.afetch_all({"name": "Jane"})
+    result, delete_count = await c1_client.adelete(bulk_queries=[{"name": "Jane"}])
+    print(delete_count)
     assert data is not None
     assert data[0]["name"] == "Jane"
     data = await c2_client.afetch_all({"name": "Jane"})
     assert len(data) == 0
     await c1_client.adelete_collection()
     await c2_client.adelete_collection()
+    await db_client.adelete_database()
+
+async def aazure_byoeb_delete():
+    db_name = "byoebv1"
+    db_client = AsyncAzureCosmosMongoDB(connection_string, db_name)
     await db_client.adelete_database()
 
 # asyncio.run(aazure_cosmos_mongo_db())
@@ -75,5 +85,5 @@ def test_aazure_cosmos_mongo_db(event_loop):
 
 if __name__ == "__main__":
     event_loop = asyncio.get_event_loop()
-    event_loop.run_until_complete(aazure_cosmos_mongo_db_batch())
+    event_loop.run_until_complete(aazure_byoeb_delete())
     event_loop.close()

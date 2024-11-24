@@ -4,7 +4,6 @@ from datetime import datetime
 from byoeb_core.message_queue.base import BaseQueue
 from byoeb_integrations.message_queue.azure.async_azure_storage_queue import AsyncAzureStorageQueue
 
-
 class QueueConsumer:
 
     queue: BaseQueue = None
@@ -36,8 +35,8 @@ class QueueConsumer:
         messages = []
         if isinstance(self.queue, AsyncAzureStorageQueue):
             msgs = await self.queue.areceive_message(
-                visibility_timeout=self._config["azure"]["storage_account"]["visibility_timeout"],
-                messages_per_page=self._config["azure"]["storage_account"]["messages_per_page"]
+                visibility_timeout=self._config["message_queue"]["azure"]["visibility_timeout"],
+                messages_per_page=self._config["message_queue"]["azure"]["messages_per_page"]
             )
             async for msg in msgs:
                 messages.append(msg)
@@ -62,8 +61,8 @@ class QueueConsumer:
         default_credential = DefaultAzureCredential()
         if not self.queue:
             return await AsyncAzureStorageQueue.aget_or_create(
-                account_url=self._config["azure"]["storage_account"]["account_url"],
-                queue_name=self._config["azure"]["storage_account"]["queue_bot"],
+                account_url=self._config["message_queue"]["azure"]["account_url"],
+                queue_name=self._config["message_queue"]["azure"]["queue_bot"],
                 credentials=default_credential
             )
         return self.queue

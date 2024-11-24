@@ -2,7 +2,8 @@ import logging
 from typing import Any, Dict, List
 import certifi
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection,AsyncIOMotorDatabase
-from byoeb_core.databases.document_db.base import BaseDocumentDatabase, BaseDocumentCollection
+from byoeb_core.databases.mongo_db.base import BaseDocumentDatabase, BaseDocumentCollection
+from pymongo import DeleteOne, UpdateOne
 
 class AsyncAzureCosmosMongoDB(BaseDocumentDatabase):
     _client = None
@@ -95,6 +96,7 @@ class AsyncAzureCosmosMongoDBCollection(BaseDocumentCollection):
         if collection is not None:
             self.__collection_name = collection.name
             self.__collection = collection
+            self.__logger = logging.getLogger(self.__class__.__name__)
         elif collection_name is not None and db_client is not None:
             self.__collection_name = collection_name
             self.__collection = db_client.get_collection(collection_name)
@@ -113,12 +115,20 @@ class AsyncAzureCosmosMongoDBCollection(BaseDocumentCollection):
 
     async def ainsert(
         self,
-        data: List[Dict[str, Any]],
+        documents: List[Dict[str, Any]],
         **kwargs
     ) -> Any:
+        result = None
         if self.__collection is None:
             raise ValueError("Collection is not present or deleted. Please create a new collection")
-        return await self.__collection.insert_many(data)
+        try:
+             result = await self.__collection.insert_many(documents, ordered=False)
+        except Exception as e:
+            self.__logger.error(f"Error inserting data: {e}")
+        if result is None:
+            return []
+        return result.inserted_ids
+        
     
     def fetch(
         self,
@@ -147,7 +157,7 @@ class AsyncAzureCosmosMongoDBCollection(BaseDocumentCollection):
         self,
         query: Dict[str, Any] = None,
         **kwargs
-    ) -> Any:
+    ) -> list:
         if self.__collection is None:
             raise ValueError("Collection is not present or deleted. Please create a new collection")
         cursor = None
@@ -156,7 +166,22 @@ class AsyncAzureCosmosMongoDBCollection(BaseDocumentCollection):
         cursor = self.__collection.find(query)
         documents = await cursor.to_list(length=None)
         return documents
-                  
+    
+    async def afetch_ids(
+        self,
+        query: Dict[str, Any] = None,
+        **kwargs
+    ) -> list:
+        if self.__collection is None:
+            raise ValueError("Collection is not present or deleted. Please create a new collection")
+        cursor = None
+        if query is None:
+            cursor = self.__collection.find({}, {"_id": 1})
+        cursor = self.__collection.find(query, {"_id": 1})
+        ids = await cursor.to_list(length=None)
+        ids = [str(id["_id"]) for id in ids]
+        return ids
+    
     def update(
         self,
         query: Dict[str, Any], 
@@ -167,13 +192,22 @@ class AsyncAzureCosmosMongoDBCollection(BaseDocumentCollection):
     
     async def aupdate(
         self,
-        query: Dict[str, Any], 
-        update_data: Dict[str, Any],
+        query: Dict[str, Any] = None, 
+        update_data: Dict[str, Any] = None,
         **kwargs
     ) -> Any:
         if self.__collection is None:
             raise ValueError("Collection is not present or deleted. Please create a new collection")
-        return await self.__collection.update_many(query, update_data)
+        if "bulk_queries" in kwargs and isinstance(kwargs["bulk_queries"],list):
+            fomrat_bulk_update = []
+            for data in kwargs["bulk_queries"]:
+                fomrat_bulk_update.append(UpdateOne(filter=data[0], update=data[1]))
+            if len(fomrat_bulk_update) == 0:
+                return None, 0
+            result = await self.__collection.bulk_write(fomrat_bulk_update)
+            return result, result.modified_count
+        result = await self.__collection.update_many(query, update_data)
+        return result, result.modified_count
     
     def delete(
         self, 
@@ -184,12 +218,21 @@ class AsyncAzureCosmosMongoDBCollection(BaseDocumentCollection):
     
     async def adelete(
         self, 
-        query: Dict[str, Any], 
+        query: Dict[str, Any] = None, 
         **kwargs
     ) -> Any:
         if self.__collection is None:
             raise ValueError("Collection is not present or deleted. Please create a new collection")
-        return await self.__collection.delete_many(query)
+        if "bulk_queries" in kwargs and isinstance(kwargs["bulk_queries"],list):
+            fomrat_bulk_delete = []
+            for data in kwargs["bulk_queries"]:
+                fomrat_bulk_delete.append(DeleteOne(data))
+            if len(fomrat_bulk_delete) == 0:
+                return None, 0
+            result = await self.__collection.bulk_write(fomrat_bulk_delete)
+            return result, result.deleted_count
+        result = await self.__collection.delete_many(query)
+        return result, result.deleted_count
     
     def delete_collection(self) -> Any:
         raise NotImplementedError

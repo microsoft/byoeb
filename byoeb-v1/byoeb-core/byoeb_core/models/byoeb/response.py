@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from enum import Enum
+from typing import Any
 
 class ByoebStatusCodes(Enum):
     """
@@ -28,5 +29,5 @@ class ByoebResponseModel(BaseModel):
         message (str): The message of the response.
         status_code (int): The HTTP status code of the response.
     """
-    message: str
+    message: Any
     status_code: int

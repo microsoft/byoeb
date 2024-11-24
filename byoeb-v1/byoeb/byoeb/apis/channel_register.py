@@ -17,5 +17,5 @@ async def register(request: Request):
     _logger.debug(msg=f"Received the request: \n{request.query_params._dict}")
     response = await channel_register_handler.handle(request)
     print("Response: ", response.message)
-    return int(response.message)
+    return JSONResponse(content=int(response.message), status_code=200)
     # return JSONResponse(content={"message": "received"}, status_code=200)

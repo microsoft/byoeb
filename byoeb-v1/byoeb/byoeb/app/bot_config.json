@@ -1,0 +1,9 @@
+{
+    "regular": {
+        "user_type": "byoebuser"
+    },
+    "expert": {
+        "user_type": "byoebexpert",
+        "question_category": "Verify"
+    }
+}

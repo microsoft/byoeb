@@ -1,7 +1,11 @@
 import os
 import logging
+from enum import Enum
 from byoeb_integrations.channel.whatsapp.register import RegisterWhatsapp
-from byoeb.app.configuration.configuration import env_whatsapp_token
+from byoeb.app.configuration.config import env_whatsapp_token
+
+class ChannelRegisterType(Enum):
+    WHATSAPP = 'whatsapp'
 
 class ChannelRegisterAppFactory:
     def __init__(self):
@@ -11,7 +15,7 @@ class ChannelRegisterAppFactory:
         self,
         channel_type: str
     ):
-        if channel_type == 'whatsapp':
+        if channel_type == ChannelRegisterType.WHATSAPP.value:
             return RegisterWhatsapp(env_whatsapp_token)
         else:
             self._logger.error(f"Invalid channel type: {channel_type}")

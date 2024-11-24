@@ -1,17 +1,25 @@
 import logging
-from byoeb.factory.message_producer import QueueProducerFactory
+from byoeb.factory import QueueProducerFactory
+
 class QueueProducerHandler:
     def __init__(
         self,
-        message_producer: QueueProducerFactory
+        queue_provider: str,
+        queue_producer_factory: QueueProducerFactory
     ):
         self._logger = logging.getLogger(self.__class__.__name__)
-        self.message_producer = message_producer
+        self._queue_provider = queue_provider
+        self.queue_producer_factory = queue_producer_factory
 
     async def handle(
         self,
         message
     ):
-        producer_type = "azure_storage_queue"
-        queue_producer = await self.message_producer.get(producer_type)
+        queue_producer = None
+        try:
+            queue_producer = await self.queue_producer_factory.get(self._queue_provider)
+        except:
+            raise Exception("Invalid producer type")
         response = await queue_producer.asend_message(message)
+        
+        

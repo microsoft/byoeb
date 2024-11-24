@@ -1,6 +1,6 @@
 import logging
 from fastapi import Request
-from byoeb.factory.channel_register import ChannelRegisterAppFactory
+from byoeb.factory import ChannelRegisterAppFactory
 
 class ChannelRegisterHandler:
     def __init__(

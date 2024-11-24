@@ -81,6 +81,14 @@ class BaseDocumentCollection(ABC):
         pass
 
     @abstractmethod
+    async def afetch_ids(
+        self,
+        query,
+        **kwargs
+    ) -> Any:
+        pass
+    
+    @abstractmethod
     def update(
         self,
         query: Dict[str, Any],
