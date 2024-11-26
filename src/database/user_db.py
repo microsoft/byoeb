@@ -26,7 +26,8 @@ class UserDB(BaseDB):
             'org_id': org_id,
             'timestamp' : datetime.datetime.now(),
         }
-        user.update(meta)
+        if meta:
+            user.update(meta)
         db_id = self.collection.insert_one(user)
         return db_id
     
