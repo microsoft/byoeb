@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 from byoeb_core.models.byoeb.user import User
 
@@ -11,7 +11,7 @@ class MediaContext(BaseModel):
 class MessageContext(BaseModel):
     message_id: str = Field(..., description="Unique identifier for the message", example="msg12345")
     message_type: str = Field(..., description="Type of the message (e.g., text, template, media)", example="text")
-    message_source_text: str = Field(..., description="Original text of the message", example="Hello, how can I help?")
+    message_source_text: Optional[str] = Field(None, description="Original text of the message", example="Hello, how can I help?")
     message_english_text: Optional[str] = Field(None, description="Translated English version of the message", example="Hello, how can I help?")
     media_info: Optional[MediaContext] = Field(None, description="Information about media attached to the message")
     additional_info: Optional[Dict[str, str]] = Field(None, description="Any additional information related to the message")
@@ -31,5 +31,6 @@ class ByoebMessageContext(BaseModel):
     message_context: Optional[MessageContext] = Field(None, description="Context of the incoming message")
     reply_context: Optional[ReplyContext] = Field(None, description="Context of the reply to the message")
     cross_conversation_id: Optional[str] = Field(None, description="Cross-conversation ID for multi-platform communication", example="conversation12345")
+    cross_conversation_context: Optional[Dict[str, Any]] = Field(None, description="Context of the cross-conversation message")
     incoming_timestamp: Optional[int] = Field(None, description="Timestamp when the message was received", example=1633028300)
     outgoing_timestamp: Optional[int] = Field(None, description="Timestamp when the message was sent", example=1633028301)

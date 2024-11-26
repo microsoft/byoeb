@@ -40,12 +40,13 @@ async def aazure_queue_ops():
     i = 0
     while i < 3:
         message = "Hello World"
-        await async_storage_queue.asend_message(message)
+        results = await async_storage_queue.asend_message(message)
+        print(results)
         rmessage = await async_storage_queue.areceive_message(
             messages_per_page=MESSAGE_QUEUE_MESSAGES_PER_PAGE,
         )
         async for msg in rmessage:
-            print(msg)
+            # print(msg)
             await async_storage_queue.adelete_message(msg)
             assert msg is not None
             assert msg.content == message
@@ -56,3 +57,6 @@ async def aazure_queue_ops():
         
 def test_async_azure_queue(event_loop):
     event_loop.run_until_complete(aazure_queue_ops())
+
+if __name__ == "__main__":
+    asyncio.run(aazure_queue_ops())

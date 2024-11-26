@@ -101,7 +101,6 @@ class AsyncAzureStorageQueue(BaseQueue):
         )
         return messages
         
-    
     async def adelete_message(
         self,
         message,

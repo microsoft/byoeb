@@ -62,7 +62,7 @@ class AsyncAzureOpenAILLM(BaseLLM):
             messages=prompts,
             temperature=temperature,
         )
-        return response
+        return response, response.choices[0].message.content.strip()
 
     def get_llm_client(self):
         return self.__client

@@ -6,7 +6,7 @@ from byoeb_integrations.message_queue.azure.async_azure_storage_queue import Asy
 
 class QueueConsumer:
 
-    queue: BaseQueue = None
+    _az_storage_queue: BaseQueue = None
     def __init__(
         self,
         config: dict,
@@ -16,16 +16,29 @@ class QueueConsumer:
         self._consumer_type = consuemr_type
         self._config = config
     
+    async def __get_or_create_az_storage_queue_client(
+        self,
+    ) -> BaseQueue:
+        from azure.identity import DefaultAzureCredential
+        default_credential = DefaultAzureCredential()
+        if not self._az_storage_queue:
+            self._az_storage_queue = await AsyncAzureStorageQueue.aget_or_create(
+                account_url=self._config["message_queue"]["azure"]["account_url"],
+                queue_name=self._config["message_queue"]["azure"]["queue_bot"],
+                credentials=default_credential
+            )
+        return self._az_storage_queue
+    
     async def initialize(
         self
     ):
-        if self.queue:
+        if self._az_storage_queue:
             self._logger.info("Queue already initialized")
             return
         if self._consumer_type == "azure_storage_queue":
-            self.queue = await self.__get_or_create_az_storag_queue_client()
-            if isinstance(self.queue, AsyncAzureStorageQueue):
-                self._logger.info(f"Azure storage queue client created: {self.queue}")
+            self._az_storage_queue = await self.__get_or_create_az_storage_queue_client()
+            if isinstance(self._az_storage_queue, AsyncAzureStorageQueue):
+                self._logger.info(f"Azure storage queue client created: {self._az_storage_queue}")
         else:
             self._logger.error(f"Error initializing")
 
@@ -33,8 +46,8 @@ class QueueConsumer:
         self
     ) -> list:
         messages = []
-        if isinstance(self.queue, AsyncAzureStorageQueue):
-            msgs = await self.queue.areceive_message(
+        if isinstance(self._az_storage_queue, AsyncAzureStorageQueue):
+            msgs = await self._az_storage_queue.areceive_message(
                 visibility_timeout=self._config["message_queue"]["azure"]["visibility_timeout"],
                 messages_per_page=self._config["message_queue"]["azure"]["messages_per_page"]
             )
@@ -47,35 +60,24 @@ class QueueConsumer:
         self,
         messages: list,
     ):
-        if isinstance(self.queue, AsyncAzureStorageQueue):
+        if isinstance(self._az_storage_queue, AsyncAzureStorageQueue):
             tasks = []
             for message in messages:
-                task  = self.queue.adelete_message(message)
+                task  = self._az_storage_queue.adelete_message(message)
                 tasks.append(task)
             await asyncio.gather(*tasks)
-
-    async def __get_or_create_az_storag_queue_client(
-        self,
-    ) -> BaseQueue:
-        from azure.identity import DefaultAzureCredential
-        default_credential = DefaultAzureCredential()
-        if not self.queue:
-            return await AsyncAzureStorageQueue.aget_or_create(
-                account_url=self._config["message_queue"]["azure"]["account_url"],
-                queue_name=self._config["message_queue"]["azure"]["queue_bot"],
-                credentials=default_credential
-            )
-        return self.queue
 
     async def listen(
         self
     ):
         await self.initialize()
-        self._logger.info(f"Queue info: {self.queue}")
+        self._logger.info(f"Queue info: {self._az_storage_queue}")
         while True:
             time_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self._logger.info(f"Listening for messages at: {time_now}")
             messages = await self.__areceive()
+            for message in messages:
+                print("Message: ", message.content)
             # handle messages
             self._logger.info(f"Received {len(messages)} messages")
             await self.__delete_message(messages)
@@ -85,12 +87,10 @@ class QueueConsumer:
     async def close(
         self
     ):
-        self._logger.info(self.queue)
-        if isinstance(self.queue, AsyncAzureStorageQueue):
-            await self.queue._close()
+        self._logger.info(self._az_storage_queue)
+        if isinstance(self._az_storage_queue, AsyncAzureStorageQueue):
+            await self._az_storage_queue._close()
             self._logger.info("Closed the Azure storage queue client")
         else:
             self._logger.info("No queue client to close")
-
-    
     

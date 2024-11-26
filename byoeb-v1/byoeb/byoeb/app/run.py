@@ -1,4 +1,5 @@
 import logging
+import os
 import asyncio
 import uvicorn
 from uvicorn.config import LOGGING_CONFIG
@@ -26,6 +27,8 @@ def create_app():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    pid = os.getpid()
+    print(f"FastAPI app is running with PID: {pid}")
     from byoeb.app.configuration.singletons import (
         whatsapp_client, 
         queue_consumer,

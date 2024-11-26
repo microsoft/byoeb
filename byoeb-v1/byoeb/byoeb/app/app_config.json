@@ -52,7 +52,8 @@
             "queue_bot": "botmessages",
             "queue_channel": "channelmessages",
             "messages_per_page": 5,
-            "visibility_timeout": 120
+            "visibility_timeout": 120,
+            "time_to_live": 604800
         }
     },
     "translators": {

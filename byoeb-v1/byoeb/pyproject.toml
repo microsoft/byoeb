@@ -7,10 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-flask = "^3.1.0"
-gunicorn = "^23.0.0"
 fastapi = "^0.115.5"
-quart = "^0.19.9"
 byoeb-integrations = {path = "../byoeb-integrations/dist/byoeb_integrations-0.1.0-py3-none-any.whl"}
 
 

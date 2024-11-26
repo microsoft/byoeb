@@ -14,7 +14,7 @@ from byoeb.app.configuration.config import (
     app_config
 )
 from byoeb_integrations.channel.whatsapp.meta.async_whatsapp_client import AsyncWhatsAppClient
-from byoeb.messaging.consumer import QueueConsumer
+from byoeb.listener.message_consumer import QueueConsumer 
 
 SINGLETON = "singleton"
 
@@ -31,8 +31,8 @@ queue_producer_factory = QueueProducerFactory(
     config=app_config,
     scope = SINGLETON
 )
-queue_producer_handler = QueueProducerHandler(
-    queue_provider=app_config["app"]["queue_provider"],
+message_producer_handler = QueueProducerHandler(
+    config=app_config,
     queue_producer_factory=queue_producer_factory
 )
 queue_consumer = QueueConsumer(
