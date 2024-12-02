@@ -72,11 +72,11 @@ def onboard_wa_helper(
             messenger.send_message(to_number, message)
         audio_file = os.path.join(os.environ['APP_PATH'], os.environ['DATA_PATH'],f"onboarding/welcome_messages_users_{lang}.aac")
         messenger.send_audio(audio_file, to_number)
-        messenger.send_language_poll(
-            to_number,
-            language_prompts[lang],
-            language_prompts[lang + "_title"],
-        )
+        # messenger.send_language_poll(
+        #     to_number,
+        #     language_prompts[lang],
+        #     language_prompts[lang + "_title"],
+        # )
         title, questions, list_title = (
             suggestion_questions[lang]["title"],
             suggestion_questions[lang]["questions"],

@@ -222,7 +222,6 @@ class WhatsappMessenger(BaseMessenger):
         )
 
         msg_output = requests.post(url, json=payload, headers=headers)
-        print(msg_output.json())
         msg_id = msg_output.json()["messages"][0]["id"]
         self.logger.add_log(
             sender_id="bot",
@@ -284,7 +283,6 @@ class WhatsappMessenger(BaseMessenger):
         )
 
         msg_output = requests.post(url, json=payload, headers=headers)
-        print(msg_output.json())
         msg_id = msg_output.json()["messages"][0]["id"]
 
         self.logger.add_log(

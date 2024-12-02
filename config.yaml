@@ -27,9 +27,9 @@ WELCOME_MESSAGES:
   EXPERTS:
     - 'Hi! I am a cataract bot. Thank you for volunteering to help patients with their science queries.'
 SUGGESTION_QUESTIONS:
-  - 'What topics can you help me with?'
-  - 'What is photosynthesis?'
-  - 'What is the difference between a plant cell and an animal cell?'
+  - 'How can I prepare myself for Cataract Surgery?'
+  - 'How safe is Cataract Surgery?'
+  - 'How long does it take to recover from surgery?'
 
 COSMOS_DB_NAME: cataract-bot-test
 AZURE_BLOB_CONTAINER_NAME: swaasthya-bot-audio-storage
