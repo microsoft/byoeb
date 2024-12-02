@@ -7,6 +7,9 @@ anyio==3.7.1
 asttokens==2.2.1
 async-timeout==4.0.3
 attrs==23.1.0
+azure-monitor-events-extension==0.1.0
+azure-monitor-opentelemetry==1.6.4
+azure-monitor-opentelemetry-exporter==1.0.0b32
 azure-cognitiveservices-speech==1.30.0
 azure-core==1.31.0
 azure-identity==1.18.0
