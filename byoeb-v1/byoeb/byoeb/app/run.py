@@ -29,16 +29,16 @@ def create_app():
 async def lifespan(app: FastAPI):
     pid = os.getpid()
     print(f"FastAPI app is running with PID: {pid}")
-    from byoeb.app.configuration.singletons import (
-        whatsapp_client, 
-        queue_consumer,
+    from byoeb.app.configuration.dependency_setup import (
+        channel_client_factory, 
+        message_consumer,
         queue_producer_factory
     )
-    await queue_consumer.initialize()
-    asyncio.create_task(queue_consumer.listen())
+    await message_consumer.initialize()
+    asyncio.create_task(message_consumer.listen())
     yield
-    await whatsapp_client._close()
-    await queue_consumer.close()
+    await channel_client_factory.close()
+    await message_consumer.close()
     await queue_producer_factory.close()
     print("Closed all clients.")
 

@@ -2,6 +2,8 @@ import logging
 import asyncio
 from datetime import datetime
 from byoeb_core.message_queue.base import BaseQueue
+from byoeb.factory import MongoDBFactory, ChannelClientFactory
+from byoeb.services.chat.message_consumer import MessageConsmerService
 from byoeb_integrations.message_queue.azure.async_azure_storage_queue import AsyncAzureStorageQueue
 
 class QueueConsumer:
@@ -9,12 +11,20 @@ class QueueConsumer:
     _az_storage_queue: BaseQueue = None
     def __init__(
         self,
+        account_url: str,
+        queue_name: str,
         config: dict,
-        consuemr_type: str = None
+        mongo_db_facory: MongoDBFactory,
+        channel_client_factory: ChannelClientFactory,
+        consuemr_type: str = None,
     ):
         self._logger = logging.getLogger(__name__)
         self._consumer_type = consuemr_type
+        self._account_url = account_url
+        self._queue_name = queue_name
         self._config = config
+        self._mongo_db_facory = mongo_db_facory
+        self._channel_client_factory = channel_client_factory
     
     async def __get_or_create_az_storage_queue_client(
         self,
@@ -23,8 +33,8 @@ class QueueConsumer:
         default_credential = DefaultAzureCredential()
         if not self._az_storage_queue:
             self._az_storage_queue = await AsyncAzureStorageQueue.aget_or_create(
-                account_url=self._config["message_queue"]["azure"]["account_url"],
-                queue_name=self._config["message_queue"]["azure"]["queue_bot"],
+                account_url=self._account_url,
+                queue_name=self._queue_name,
                 credentials=default_credential
             )
         return self._az_storage_queue
@@ -71,13 +81,24 @@ class QueueConsumer:
         self
     ):
         await self.initialize()
+        message_consumer_svc = MessageConsmerService(
+            config=self._config,
+            mongo_db_facory=self._mongo_db_facory,
+            channel_client_factory=self._channel_client_factory
+        )
         self._logger.info(f"Queue info: {self._az_storage_queue}")
         while True:
             time_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self._logger.info(f"Listening for messages at: {time_now}")
             messages = await self.__areceive()
+            message_content = []
             for message in messages:
-                print("Message: ", message.content)
+                message_content.append(message.content)
+            if len(messages) == 0:
+                self._logger.info("No messages received")
+                await asyncio.sleep(2)
+                continue
+            await message_consumer_svc.consume(message_content)
             # handle messages
             self._logger.info(f"Received {len(messages)} messages")
             await self.__delete_message(messages)

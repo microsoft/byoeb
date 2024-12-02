@@ -1,11 +1,14 @@
 import json
+import uuid
 import byoeb_core.models.whatsapp.incoming as incoming_message
+from typing import List
 from byoeb_core.models.byoeb.message_context import (
     ByoebMessageContext,
     MessageContext,
     ReplyContext,
     MediaContext
 )
+from byoeb_core.models.byoeb.message_status import ByoebMessageStatus
 from byoeb_core.models.byoeb.user import User
 
 def convert_regular_message(original_message) -> ByoebMessageContext:
@@ -118,6 +121,22 @@ def convert_interactive_message(original_message) -> ByoebMessageContext:
         incoming_timestamp=timestamp
     )
 
+def convert_status_message(original_message) -> ByoebMessageStatus:
+    if isinstance(original_message, str):
+        original_message = json.loads(original_message)
+    status_message = incoming_message.WhatsAppStatusMessageBody.model_validate(original_message)
+    timestamp = status_message.entry[0].changes[0].value.statuses[0].timestamp
+    phone_number_id = status_message.entry[0].changes[0].value.statuses[0].recipient_id
+    message_id = status_message.entry[0].changes[0].value.statuses[0].id
+    message_status = status_message.entry[0].changes[0].value.statuses[0].status
+    return ByoebMessageStatus(
+        channel_type="whatsapp",
+        message_id=message_id,
+        status=message_status,
+        recipient_id=phone_number_id,
+        timestamp=timestamp
+    )
+
 def convert_whatsapp_to_byoeb_message(original_message, type):
     if type == "regular":
         return convert_regular_message(original_message)
@@ -125,4 +144,6 @@ def convert_whatsapp_to_byoeb_message(original_message, type):
         return convert_template_message(original_message)
     if type == "interactive":
         return convert_interactive_message(original_message)
+    if type == "status":
+        return convert_status_message(original_message)
     return False

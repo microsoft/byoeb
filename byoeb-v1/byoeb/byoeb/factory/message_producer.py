@@ -9,7 +9,7 @@ class QueueProviderType(Enum):
     AZURE_STORAGE_QUEUE = "azure_storage_queue"
 
 class QueueProducerFactory:
-    _az_storage_queue = None
+    _az_storage_queues = {}
 
     def __init__(
         self,
@@ -21,34 +21,49 @@ class QueueProducerFactory:
         self._scope = scope
         
     async def __get_or_create_az_storage_queue_client(
-        self
+        self,
+        message_type
     ) -> BaseQueue:
         from byoeb_integrations.message_queue.azure.async_azure_storage_queue import AsyncAzureStorageQueue
         from azure.identity import DefaultAzureCredential
         default_credential = DefaultAzureCredential()
-        if self._az_storage_queue and self._scope == Scope.SINGLETON.value:
-            return self._az_storage_queue
-        self._az_storage_queue = await AsyncAzureStorageQueue.aget_or_create(
-            account_url=self._config["message_queue"]["azure"]["account_url"],
-            queue_name=self._config["message_queue"]["azure"]["queue_bot"],
-            credentials=default_credential
-        )
-        return self._az_storage_queue
+        if self._az_storage_queues.get(message_type) and self._scope == Scope.SINGLETON.value:
+            return self._az_storage_queues[message_type]
+        if message_type == "status":
+            self._az_storage_queues[message_type] = await AsyncAzureStorageQueue.aget_or_create(
+                account_url=self._config["message_queue"]["azure"]["account_url"],
+                queue_name=self._config["message_queue"]["azure"]["queue_status"],
+                credentials=default_credential
+            )
+        else:
+            self._az_storage_queues[message_type] = await AsyncAzureStorageQueue.aget_or_create(
+                account_url=self._config["message_queue"]["azure"]["account_url"],
+                queue_name=self._config["message_queue"]["azure"]["queue_bot"],
+                credentials=default_credential
+            )
+        return self._az_storage_queues[message_type]
+
+    async def __close_az_storage_queue_client(
+        self,
+    ):
+        from byoeb_integrations.message_queue.azure.async_azure_storage_queue import AsyncAzureStorageQueue
+        for key, value in self._az_storage_queues.items():
+            if isinstance(value, AsyncAzureStorageQueue):
+                await value._close()
+                self._logger.info(f"Producer Azure storage queue client closed: {key}")
+            else:
+                self._logger.info(f"Producer Azure storage queue client not initialized: {key}")
 
     async def get(
         self,
-        queue_provider
+        queue_provider,
+        message_type,
     ) -> BaseQueue:
         if queue_provider == QueueProviderType.AZURE_STORAGE_QUEUE.value:
-            self._az_storage_queue = await self.__get_or_create_az_storage_queue_client()
-            return self._az_storage_queue
+            self._az_storage_queues[message_type] = await self.__get_or_create_az_storage_queue_client(message_type)
+            return self._az_storage_queues[message_type]
         else:
             raise Exception("Invalid producer type")
         
     async def close(self):
-        from byoeb_integrations.message_queue.azure.async_azure_storage_queue import AsyncAzureStorageQueue
-        if isinstance(self._az_storage_queue, AsyncAzureStorageQueue):
-            await self._az_storage_queue._close()
-            self._logger.info("Producer Azure storage queue client closed")
-        else:
-            self._logger.info("Producer Azure storage queue client not initialized")
+        await self.__close_az_storage_queue_client()

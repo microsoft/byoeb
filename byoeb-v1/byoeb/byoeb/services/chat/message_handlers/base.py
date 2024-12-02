@@ -8,6 +8,6 @@ class Handler(ABC):
         self._successor = successor  # Next handler in the chain
     
     @abstractmethod
-    def handle(self, request):
-        """Handle the request or pass it to the successor."""
+    def handle(self, messages: list):
+        """Handle the message or pass it to the successor."""
         pass

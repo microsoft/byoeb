@@ -1,7 +1,7 @@
 import logging
 import json
 import asyncio
-import byoeb.app.configuration.singletons as singletons
+import byoeb.app.configuration.dependency_setup as dependency_setup
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
@@ -17,7 +17,7 @@ async def receive(request: Request):
     body = await request.json()
     print("Received the request: ", json.dumps(body))
     _logger.info(f"Received the request: {json.dumps(body)}")
-    response = await singletons.message_producer_handler.handle(body)
+    response = await dependency_setup.message_producer_handler.handle(body)
     _logger.info(f"Response: {response}")
     return JSONResponse(
         content=response.message,

@@ -5,5 +5,20 @@
     "expert": {
         "user_type": "byoebexpert",
         "question_category": "Verify"
+    },
+    "llm_response": {
+        "answer_prompts": {
+            "system_prompt": "You are a friendly assistant.",
+            "user_prompt": "The following knowledge base chunks have been provided to you as reference:\n<CHUNKS>\nYou are asked the following question:\n<QUESTION>"
+        },
+        "correction_prompts": {
+            "system_prompt": "You are a friendly assistant.",
+            "user_prompt": "Following are the question, answer, and correction to the answer:\n Question: <QUESTION> \n Answer: <ANSWER> \n Correction: <CORRECTION>"
+        }
+    },
+    "static_response": {
+        "expert_verification": {
+            "footer": "Is the answer correct?"
+        }
     }
 }

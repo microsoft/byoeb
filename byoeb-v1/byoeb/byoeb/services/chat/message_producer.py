@@ -20,6 +20,8 @@ class MessageProducerService:
         import byoeb_integrations.channel.whatsapp.validate_message as wa_validator
         import byoeb_integrations.channel.whatsapp.convert_message as wa_converter
         _, message_type = wa_validator.validate_whatsapp_message(message)
+        if message_type == "status":
+            return message
         byoeb_message = wa_converter.convert_whatsapp_to_byoeb_message(message, message_type)
         return byoeb_message
 
@@ -39,6 +41,6 @@ class MessageProducerService:
                 time_to_live=self._config["message_queue"]["azure"]["time_to_live"])
             self._logger.info(f"Message sent: {result}")
             print(f"Message sent: {result}")
-            return result, None
+            return f"Published successfully {result.id}", None
         except Exception as e:
             return None, e

@@ -3,8 +3,7 @@
         "batch_size": 5,
         "azure_cognitive_endpoint": "https://cognitiveservices.azure.com/.default",
         "queue_provider": "azure_storage_queue",
-        "db_provider": "azure_cosmos_mongo_db",
-        "channel_type": "whatsapp"
+        "db_provider": "azure_cosmos_mongo_db"
     },
     "channel": {
         "whatsapp": {
@@ -12,7 +11,6 @@
                 "audio",
                 "text"
             ],
-            "batch_size": 5,
             "reuse_client": true
         }
     },
@@ -37,6 +35,7 @@
         "azure": {
             "model": "gpt-4o",
             "endpoint": "https://swasthyabot-oai-vision.openai.azure.com/",
+            "deployment_name": "gpt-4o",
             "api_version": "2023-03-15-preview"
         }
     },
@@ -49,6 +48,7 @@
     "message_queue": {
         "azure": {
             "account_url": "https://kgretrieval.queue.core.windows.net",
+            "queue_status": "statusmessages",
             "queue_bot": "botmessages",
             "queue_channel": "channelmessages",
             "messages_per_page": 5,

@@ -1,11 +1,11 @@
 import logging
 from fastapi import Request
-from byoeb.factory import ChannelRegisterAppFactory
+from byoeb.factory import ChannelRegisterFactory
 
 class ChannelRegisterHandler:
     def __init__(
         self,
-        registrer_factory: ChannelRegisterAppFactory
+        registrer_factory: ChannelRegisterFactory
     ) -> None:
         self.__registrer_factory = registrer_factory
         self.__logger = logging.getLogger(self.__class__.__name__)

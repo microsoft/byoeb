@@ -220,7 +220,7 @@ class AsyncWhatsAppClient(ABC):
         
     async def __get__(
         self,
-        url,
+        url
     ):
         session = await self.__get_session()
         headers = self.__get_headers__()

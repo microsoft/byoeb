@@ -1,7 +1,7 @@
 import logging
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
-from byoeb.app.configuration.singletons import channel_register_handler
+from byoeb.app.configuration.dependency_setup import channel_register_handler
 
 REGISTER_API_NAME = 'register_api'
 

@@ -40,3 +40,21 @@ def wav_to_ogg_opus_bytes(wav_bytes: bytes) -> bytes:
     ogg_buffer.seek(0)  # Reset buffer to the beginning
 
     return ogg_buffer.read()
+
+def ogg_opus_to_wav_bytes(ogg_bytes: bytes) -> bytes:
+    """
+    Convert OGG audio bytes with OPUS codec to WAV format.
+
+    :param ogg_bytes: Input audio data in OGG OPUS format as bytes.
+    :return: Converted audio data in WAV format as bytes.
+    """
+    # Load OGG bytes into an AudioSegment
+    ogg_buffer = io.BytesIO(ogg_bytes)
+    audio = AudioSegment.from_file(ogg_buffer, format="ogg")
+    
+    # Convert to WAV in-memory
+    wav_buffer = io.BytesIO()
+    audio.export(wav_buffer, format="wav")
+    wav_buffer.seek(0)  # Reset buffer to the beginning
+
+    return wav_buffer.read()

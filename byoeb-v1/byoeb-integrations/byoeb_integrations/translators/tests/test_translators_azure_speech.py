@@ -3,9 +3,13 @@ import os
 import pytest
 import azure.cognitiveservices.speech as speechsdk
 from byoeb_integrations.translators.speech.azure.async_azure_speech_translator import AsyncAzureSpeechTranslator
+from byoeb_integrations.translators.speech.azure.async_azure_openai_whisper import AsyncAzureOpenAIWhisper
 from azure.identity import get_bearer_token_provider, DefaultAzureCredential
 from byoeb_integrations import test_environment_path
 from dotenv import load_dotenv
+from pydub import AudioSegment
+from pydub.silence import detect_leading_silence
+import io
 
 load_dotenv(test_environment_path)
 # ibc = InteractiveBrowserCredential()
@@ -16,6 +20,9 @@ token_provider = get_bearer_token_provider(
 # print(aadToken)
 SPEECH_TRANSLATOR_RESOURCE_ID = os.getenv('SPEECH_TRANSLATOR_RESOURCE_ID')
 SPEECH_TRANSLATOR_REGION = os.getenv('SPEECH_TRANSLATOR_REGION')
+WHISPER_ENDPOINT = os.getenv('WHISPER_ENDPOINT')
+WHISPER_MODEL = os.getenv('WHISPER_MODEL')
+WHISPER_API_VERSION = os.getenv('WHISPER_API_VERSION')
 
 
 # TODO - Add tests for the AsyncAzureSpeechTranslator class using token provider
@@ -27,8 +34,23 @@ def event_loop():
     yield loop
     loop.close()
 
+async def aazure_openai_whisper_translate_en():
+    async_azure_openai_whisper = AsyncAzureOpenAIWhisper(
+        token_provider=token_provider,
+        model=WHISPER_MODEL,
+        azure_endpoint=WHISPER_ENDPOINT,
+        api_version=WHISPER_API_VERSION
+    )
+    with open("trimmed_example.wav", "rb") as f:
+        audio_data = f.read()
+    result = await async_azure_openai_whisper.aspeech_to_text(
+        audio_data=audio_data,
+    )
+    print(result)
+
 async def aazure_bytes_speech_translate_en():
-    text = "Hello World !!"
+    
+    text = "Hello how are you?"
     async_azure_speech_translator = AsyncAzureSpeechTranslator(
         region=SPEECH_TRANSLATOR_REGION,
         token_provider=token_provider,
@@ -38,12 +60,12 @@ async def aazure_bytes_speech_translate_en():
         input_text=text,
         source_language="en",
     )
-    with open("audio.wav", "wb") as f:
-        f.write(result)
+   
     new_text = await async_azure_speech_translator.aspeech_to_text(
         audio_data=result,
         source_language="en",
     )
+    print(new_text)
     assert new_text is not None
     assert new_text.lower().__contains__("hello")
 
@@ -75,6 +97,6 @@ def test_aazure_speech_translate_hi(event_loop):
 
 if __name__ == "__main__":
     event_loop = asyncio.get_event_loop()
-    event_loop.run_until_complete(aazure_bytes_speech_translate_hi())
-    # event_loop.run_until_complete(atest_meta_batch_send_template_message())
+    event_loop.run_until_complete(aazure_openai_whisper_translate_en())
+    event_loop.run_until_complete(aazure_bytes_speech_translate_en())
     event_loop.close()

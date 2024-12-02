@@ -1,6 +1,6 @@
 import logging
 import json
-import byoeb.app.configuration.singletons as singletons
+import byoeb.app.configuration.dependency_setup as dependency_setup
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
@@ -12,7 +12,7 @@ _logger = logging.getLogger(USER_API_NAME)
 @user_apis_router.post("/register_users")
 async def register_users(request: Request):
     body = await request.json()
-    response = await singletons.users_handler.aregister(body)
+    response = await dependency_setup.users_handler.aregister(body)
     print("Response: ", response.message)
     return JSONResponse(
         content=response.message,
@@ -26,7 +26,7 @@ async def update_users():
 @user_apis_router.delete("/delete_users")
 async def delete_users(request: Request):
     body = await request.json()
-    response = await singletons.users_handler.adelete(body)
+    response = await dependency_setup.users_handler.adelete(body)
     return JSONResponse(
         content=response.message,
         status_code=response.status_code
@@ -35,7 +35,7 @@ async def delete_users(request: Request):
 @user_apis_router.get("/get_users")
 async def get_users(request: Request):
     body = await request.json()
-    response = await singletons.users_handler.aget(body)
+    response = await dependency_setup.users_handler.aget(body)
     return JSONResponse(
         content=response.message,
         status_code=response.status_code

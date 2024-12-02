@@ -56,7 +56,7 @@ class AsyncAzureSpeechTranslator(BaseSpeechTranslator):
         **kwargs
     ) -> str:
         speech_config = self.__get_speech_config()
-        speech_config.speech_recognition_language = source_language + self.__country_code
+        speech_config.speech_recognition_language =  "en-IN"
         # Create a push stream
         push_stream = speechsdk.audio.PushAudioInputStream()
         audio_config = speechsdk.audio.AudioConfig(stream=push_stream)
@@ -80,7 +80,6 @@ class AsyncAzureSpeechTranslator(BaseSpeechTranslator):
         self,
         input_text: str,
         source_language: str,
-        output_file_path: str, 
         **kwargs
     ) -> Any:
         raise NotImplementedError

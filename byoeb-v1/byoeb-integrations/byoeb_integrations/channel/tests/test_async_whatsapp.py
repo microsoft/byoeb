@@ -226,7 +226,7 @@ async def atest_audio_download():
     audio_bytes = ac.wav_to_ogg_opus_bytes(audio_bytes)
     media_type=wa_media.FileMediaType.AUDIO_OGG.value
     status, response, err = await whatsapp_client._upload_media(audio_bytes, media_type)
-    audio_id = response.get("id")
+    audio_id = '1593203484905159'
     status, audio_data, err = await whatsapp_client.adownload_media(audio_id)
     assert audio_data.data is not None
     ack = await whatsapp_client.adelete_media(audio_id)
@@ -306,6 +306,22 @@ def test_interactive_message():
     assert is_wa is True
     assert message_type == "interactive"
 
+def test_status_message():
+    message = '{"object": "whatsapp_business_account", "entry": [{"id": "423299570870294", "changes": [{"value": {"messaging_product": "whatsapp", "metadata": {"display_phone_number": "15551355272", "phone_number_id": "421395191063010"}, "statuses": [{"id": "wamid.HBgMOTE4OTA0OTU0OTUyFQIAERgSMzI4MzQ1OEZFNTZFOTEyRTg0AA==", "status": "delivered", "timestamp": "1732772842", "recipient_id": "918904954952"}]}, "field": "messages"}]}]}'
+    is_wa, message_type = wa_validate.validate_whatsapp_message(message)
+    byoeb_message = wa_convert.convert_status_message(message)
+    assert is_wa is True
+    assert byoeb_message.message_id == "wamid.HBgMOTE4OTA0OTU0OTUyFQIAERgSMzI4MzQ1OEZFNTZFOTEyRTg0AA=="
+    assert message_type == "status"
+
+import byoeb_integrations.channel.whatsapp.request_payload as wa_request_payload
+from byoeb_core.models.byoeb.message_context import ByoebMessageContext
+def test_text_request_payload():
+    byoeb_message = '{"channel_type": "whatsapp", "message_category": "Bot_to_user_response", "user": {"user_id": "6dfd0676f602bdf2cd545160efd99e01", "user_name": null, "user_region": null, "user_language": "en", "user_type": "byoebuser", "phone_number_id": "918837701828", "test_user": false, "experts": ["918904954952"], "audience": [], "created_timestamp": 1732451468, "activity_timestamp": 1732451468}, "message_context": {"message_id": null, "message_type": "regular_text", "message_source_text": "Hello! How can I assist you today?", "message_english_text": "Hello! How can I assist you today?", "media_info": null, "additional_info": null}, "reply_context": {"reply_id": "wamid.HBgMOTE4ODM3NzAxODI4FQIAEhggNzc0MUZCRkREOTEzNEY4NkRENURCRDMzOTQ1MEYyNzQA", "reply_type": "regular_text", "reply_source_text": "Hi", "reply_english_text": "Hi", "media_info": null, "additional_info": null}, "cross_conversation_id": null, "cross_conversation_context": null, "incoming_timestamp": null, "outgoing_timestamp": null}'
+    byoeb_message = ByoebMessageContext.model_validate(json.loads(byoeb_message))
+    payload = wa_request_payload.get_whatsapp_text_request_from_byoeb_message(byoeb_message)
+    print(json.dumps(payload))
+
 def test_meta_batch_text_message(event_loop):
     event_loop.run_until_complete(atest_meta_batch_text_message())
 
@@ -329,8 +345,9 @@ if __name__ == "__main__":
     # # event_loop.run_until_complete(atest_meta_batch_send_interactive_reply_message())
     # event_loop.run_until_complete(atest_meta_batch_send_template_message())
     # event_loop.close()
-    test_template_message()
-    test_regular_message()
-    test_interactive_message()
-
+    # test_template_message()
+    # test_regular_message()
+    # test_interactive_message()
+    # test_status_message()
+    asyncio.run(atest_audio_download())
 
