@@ -340,7 +340,7 @@ class WhatsappResponder(BaseResponder):
                 response, "en", row_lt['user_language'], self.logger
             )
             
-            response_source = response_source + "\n\n" + title
+            # response_source = response_source + "\n\n" + title
             sent_msg_id = self.messenger.send_suggestions(
                 row_lt['whatsapp_id'], response_source, list_title, questions_source
             )
