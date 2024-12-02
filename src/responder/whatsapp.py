@@ -712,9 +712,16 @@ class WhatsappResponder(BaseResponder):
 
         poll_text = f'*Query*: "{row_query["message_english"]}" \n*Bot\'s Response*: {row_bot_conv["message_english"].strip()} \n\n*User*: {user_type} \n*Citations*: {final_citations.strip()}. \n\n{poll_string}'
         print("Poll text: ", poll_text)
-        message_id = self.messenger.send_poll(
-            receiver, poll_text, poll_id="POLL_PRIMARY"
-        )
+        message_id = self.messenger.send_template(
+                receiver,
+                "verification",
+                expert_row_lt["user_language"],
+                poll_text,
+            )
+        if "error" in message_id:
+            message_id = self.messenger.send_poll(
+                receiver, poll_text, poll_id="POLL_PRIMARY"
+            )
   
         self.bot_conv_db.insert_row(
             receiver_id=expert_row_lt["user_id"],

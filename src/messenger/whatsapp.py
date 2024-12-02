@@ -1,6 +1,9 @@
-from abc import ABC, abstractmethod
 import sys
 import os
+import json
+from dataclasses import asdict, dataclass
+from abc import ABC, abstractmethod
+from typing import List
 
 sys.path.append(os.path.dirname(__file__))
 src_path = os.path.join(os.environ["APP_PATH"], "src")
@@ -20,6 +23,10 @@ from utils import remove_extra_voice_files
 import subprocess
 from messenger.base import BaseMessenger
 
+@dataclass
+class TemplateParameters():   
+    text: str
+    type: str = "text"
 
 class WhatsappMessenger(BaseMessenger):
     def __init__(self, config, logger):
@@ -301,8 +308,16 @@ class WhatsappMessenger(BaseMessenger):
         to_number: str,
         template_name: str,
         language: str,
+        text_parameters: List[str] = [],
         reply_to_msg_id: str = None,
     ):
+        parameters_list = []
+        for text_param in text_parameters:
+            parameters_list.append(
+                TemplateParameters(
+                    text=text_param
+                )
+            )
         payload = {
             "messaging_product": "whatsapp",
             "to": to_number,
@@ -317,6 +332,14 @@ class WhatsappMessenger(BaseMessenger):
 
         if reply_to_msg_id is not None:
             payload["context"] = {"message_id": reply_to_msg_id}
+            
+        if len(parameters_list) != 0:
+            print("Has parameters")
+            payload["template"]["components"] = [{
+                "type": "body"
+            }]
+            json_object = json.dumps([asdict(obj) for obj in parameters_list])
+            payload["template"]["components"][0]["parameters"] = json.loads(json_object)
 
         headers = {
             "Authorization": "Bearer " + os.environ["WHATSAPP_TOKEN"].strip(),
