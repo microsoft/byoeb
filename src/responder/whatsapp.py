@@ -346,7 +346,7 @@ class WhatsappResponder(BaseResponder):
             
             # response_source = response_source + "\n\n" + title
             sent_msg_id = self.messenger.send_suggestions(
-                row_lt['whatsapp_id'], response_source, list_title, questions_source
+                row_lt['whatsapp_id'], response_source, list_title, questions_source, msg_id
             )
             # sent_msg_id = self.messenger.send_message(
             #     row_lt['whatsapp_id'], response_source, msg_id
@@ -373,7 +373,7 @@ class WhatsappResponder(BaseResponder):
                 stderr=subprocess.DEVNULL,
             )
             sent_msg_id = self.messenger.send_suggestions(
-                row_lt['whatsapp_id'], response_source, list_title, questions_source
+                row_lt['whatsapp_id'], response_source, list_title, questions_source, msg_id
             )
             audio_msg_id = self.messenger.send_audio(
                 audio_output_file, row_lt['whatsapp_id'], msg_id
