@@ -1,0 +1,8 @@
+{
+    "verification" : {
+        "en": "This answer has been verified by your <expert>."
+    },
+    "invalid_response" : {
+        "en": "This answer is invalid. Please wait for a correct answer from your <expert>.\nYou can ask me any other cataract surgery related questions in the meantime."
+    }
+}
