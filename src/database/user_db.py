@@ -54,3 +54,18 @@ class UserDB(BaseDB):
         ]
         experts = list(self.collection.aggregate(pipeline))
         return experts
+
+    def add_or_update_related_qns(self, user_id, related_qns):
+        self.collection.update_one(
+            {'user_id': user_id},
+            {'$set': {
+            'related_qns': related_qns
+            }},
+            upsert=True
+        )
+
+    def get_related_qns(self, user_id):
+        user = self.collection.find_one({'user_id': user_id})
+        return user.get('related_qns', [])
+
+    

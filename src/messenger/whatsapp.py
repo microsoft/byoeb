@@ -71,7 +71,11 @@ class WhatsappMessenger(BaseMessenger):
         msg_output = requests.post(url, json=payload, headers=headers)
 
         print("Message output: ", msg_output.json())
-        msg_id = msg_output.json()["messages"][0]["id"]
+        try:
+            msg_id = msg_output.json()["messages"][0]["id"]
+        except KeyError:
+            print(msg_output.json())
+            raise Exception("Error in sending message")
 
         self.logger.add_log(
             sender_id="bot",
@@ -108,8 +112,11 @@ class WhatsappMessenger(BaseMessenger):
         )
 
         msg_output = requests.post(url, json=payload, headers=headers)
-        msg_id = msg_output.json()["messages"][0]["id"]
-
+        try:
+            msg_id = msg_output.json()["messages"][0]["id"]
+        except KeyError:
+            print(msg_output.json())
+            raise Exception("Error in sending reaction")
         self.logger.add_log(
             sender_id="bot",
             receiver_id=to_number,
@@ -169,7 +176,8 @@ class WhatsappMessenger(BaseMessenger):
             msg_id = msg_output.json()["messages"][0]["id"]
         except KeyError:
             print(msg_output.json())
-            return None
+            raise Exception("Error in sending poll")
+        
         self.logger.add_log(
             sender_id="bot",
             receiver_id=to_number,
@@ -288,9 +296,12 @@ class WhatsappMessenger(BaseMessenger):
             + os.environ["PHONE_NUMBER_ID"]
             + "/messages"
         )
-
         msg_output = requests.post(url, json=payload, headers=headers)
-        msg_id = msg_output.json()["messages"][0]["id"]
+        try:    
+            msg_id = msg_output.json()["messages"][0]["id"]
+        except KeyError:
+            print(msg_output.json())
+            raise Exception("Error in sending suggestions")
 
         self.logger.add_log(
             sender_id="bot",

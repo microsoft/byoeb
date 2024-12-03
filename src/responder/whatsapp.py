@@ -25,8 +25,6 @@ class WhatsappResponder(BaseResponder):
     def __init__(self, config):
         self.config = config
         self.knowledge_base = KnowledgeBase(config)
-        # self.database = ConversationDatabase(config)
-        # self.long_term_db = LongTermDatabase(config)
         self.logger = LoggingDatabase(config)
         self.messenger = WhatsappMessenger(config, self.logger)
         self.azure_translate = translator()
@@ -62,8 +60,6 @@ class WhatsappResponder(BaseResponder):
         self.category_to_expert = {}
 
         for expert in self.config["EXPERTS"]:
-            # self.experts_types.append(self.config["EXPERTS"])
-            # self.categories.append(self.config["EXPERTS"][expert])
             self.category_to_expert[self.config["EXPERTS"][expert]] = expert
 
     def check_user_type(self, from_number):
@@ -99,12 +95,6 @@ class WhatsappResponder(BaseResponder):
 
         print("Message object: ", msg_object)
 
-
-        
-
-        # if msg_id in self.database.get_all_message_ids():
-        #     print("Message already processed", datetime.now())
-        #     return
 
         if self.user_conv_db.get_from_message_id(msg_id) or self.bot_conv_db.get_from_message_id(msg_id) or self.expert_conv_db.get_from_message_id(msg_id):
             print("Message already processed", datetime.now())
@@ -149,7 +139,6 @@ class WhatsappResponder(BaseResponder):
         return
 
     def handle_unsupported_msg_types(self, msg_object, row_lt):
-        # data is a dictionary that contains from_number, msg_id, msg_object
         print("Handling unsupported message types")
         msg_id = msg_object["id"]
         self.logger.add_log(
@@ -176,7 +165,7 @@ class WhatsappResponder(BaseResponder):
         reply_id = msg_object["context"]["id"]
 
         if msg_object["button"]["payload"] in self.yes_responses:
-            onboard_wa_helper(self.config, self.logger, row_lt['whatsapp_id'], user_type, row_lt['user_language'])
+            onboard_wa_helper(self.config, self.logger, row_lt['whatsapp_id'], user_type, row_lt['user_language'], row_lt['user_id'], self.user_db)
         else:
             text_message = "Thank you for your response."
             text = self.azure_translate.translate_text(
@@ -328,11 +317,17 @@ class WhatsappResponder(BaseResponder):
             utils.remove_extra_voice_files(audio_input_file, audio_output_file)
 
         return sent_msg_id, audio_msg_id, response_source
+
+    def handle_audio_idk_flow(self, row_lt, row_query):
+        pass
     
     def send_query_response_and_follow_up(self, msg_type, msg_id, response, row_lt, row_query):
         
 
         title, list_title, questions_source, next_questions = self.get_suggested_questions(row_lt, row_query, response)
+
+        if len(next_questions) == 0:
+            return self.send_query_response(msg_type, msg_id, response, row_lt)
 
         if msg_type == "text" or msg_type == "interactive":
             audio_msg_id = None
@@ -533,13 +528,10 @@ class WhatsappResponder(BaseResponder):
                 self.onboarding_questions[source_lang]["title"],
                 self.onboarding_questions[source_lang]["list_title"],
             )
+            self.user_db.add_or_update_related_qns(row_lt['user_id'], next_questions)
 
         else:
-            prev_rows = self.bot_conv_db.find_with_receiver_id(row_query["user_id"], "suggested_questions")
-            if len(prev_rows) == 0:
-                return
-            prev_row = prev_rows[-1]
-            next_questions = list(prev_row["message_english"])
+            next_questions = list(self.user_db.get_related_qns(row_lt['user_id']))
             questions_source = []
             for question in next_questions:
                 question_source = self.azure_translate.translate_text(

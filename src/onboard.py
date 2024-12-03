@@ -2,7 +2,8 @@ from conversation_database import LoggingDatabase
 import json
 import os
 from azure_language_tools import translator
-from messenger.whatsapp import WhatsappMessenger
+from messenger import WhatsappMessenger
+from database import UserDB
 
 
 def onboard_template(config: dict, logger: LoggingDatabase, data_row: dict) -> None:
@@ -49,6 +50,8 @@ def onboard_wa_helper(
     to_number: str,
     role: str,
     lang: str,
+    user_id: str,
+    user_db: UserDB,
 ) -> None:
     messenger = WhatsappMessenger(config, logger)
     welcome_messages = json.load(
@@ -72,11 +75,7 @@ def onboard_wa_helper(
             messenger.send_message(to_number, message)
         audio_file = os.path.join(os.environ['APP_PATH'], os.environ['DATA_PATH'],f"onboarding/welcome_messages_users_{lang}.aac")
         messenger.send_audio(audio_file, to_number)
-        # messenger.send_language_poll(
-        #     to_number,
-        #     language_prompts[lang],
-        #     language_prompts[lang + "_title"],
-        # )
+        user_db.add_or_update_related_qns(user_id, suggestion_questions["en"]["questions"])
         title, questions, list_title = (
             suggestion_questions[lang]["title"],
             suggestion_questions[lang]["questions"],
