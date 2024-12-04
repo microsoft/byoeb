@@ -485,6 +485,11 @@ class WhatsappResponder(BaseResponder):
         citations = "".join(citations)
         citations_str = citations
         row_query['query_type'] = query_type
+
+        self.user_conv_db.add_query_type(
+            message_id=msg_id,
+            query_type=query_type
+        )
         
         if response.strip().startswith(IDK):
             if query_type == "small-talk":
@@ -497,7 +502,6 @@ class WhatsappResponder(BaseResponder):
                         query_type=query_type
                     )
                     self.send_audio_idk_response(row_lt, row_query)
-                    return
                 else:
                     sent_msg_id, audio_msg_id = self.send_idk_raise(row_lt, row_query, msg_type)
                     raise_message = self.template_messages['idk_response']["user"][f"{row_lt['user_language']}_raise"]
@@ -515,24 +519,19 @@ class WhatsappResponder(BaseResponder):
                         message_timestamp=datetime.now(),
                         transaction_message_id=msg_id,
                     )
-                    
                     query_type = row_query["query_type"]
                     expert_type = self.category_to_expert[query_type]
                     user_secondary_id = self.user_relation_db.find_user_relations(row_lt['user_id'], expert_type)['user_id_secondary']
                     expert_row_lt = self.user_db.get_from_user_id(user_secondary_id)
                     self.send_correction_poll_expert(row_lt, expert_row_lt, row_query)
 
+                return
         
         print("Response: ", response)
         if self.config['SUGGEST_NEXT_QUESTIONS']:
             sent_msg_id, audio_msg_id, response_source = self.send_query_response_and_follow_up(msg_type, msg_id, response, row_lt, row_query)
         else:
             sent_msg_id, audio_msg_id, response_source = self.send_query_response(msg_type, msg_id, response, row_lt)
-        
-        self.user_conv_db.add_query_type(
-            message_id=msg_id,
-            query_type=query_type
-        )
 
         self.bot_conv_db.insert_row(
             receiver_id=row_lt['user_id'],
