@@ -87,6 +87,59 @@ class WhatsappMessenger(BaseMessenger):
         )
 
         return msg_id
+    
+    def send_message_with_options(
+        self,
+        to_number: str,
+        msg_body: str,
+        options_ids: list,
+        options_title: list,
+        reply_to_msg_id: str = None,
+    ):
+        payload = {
+            "messaging_product": "whatsapp",
+            "to": to_number,
+            "type": "interactive",
+            "interactive": {
+                "type": "button",
+                "body": {"text": msg_body},
+                "action": {
+                    "buttons": [
+                        {"type": "reply", "reply": {"id": option_id, "title": option}}
+                        for option_id, option in zip(options_ids, options_title)
+                    ]
+                },
+            },
+        }
+
+        if reply_to_msg_id is not None:
+            payload["context"] = {"message_id": reply_to_msg_id}
+
+        headers = {
+            "Authorization": "Bearer " + os.environ["WHATSAPP_TOKEN"].strip(),
+            "Content-Type": "application/json",
+        }
+
+        url = (
+            "https://graph.facebook.com/v17.0/"
+            + os.environ["PHONE_NUMBER_ID"]
+            + "/messages"
+        )
+
+        msg_output = requests.post(url, json=payload, headers=headers)
+        print(msg_output.json())
+        msg_id = msg_output.json()["messages"][0]["id"]
+
+        self.logger.add_log(
+            sender_id="bot",
+            receiver_id=to_number,
+            message_id=msg_id,
+            action_type="send_message",
+            details={"text": msg_body, "options": options_title, "reply_to": reply_to_msg_id},
+            timestamp=datetime.now(),
+        )
+
+        return msg_id
 
     def send_reaction(
         self,

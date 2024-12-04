@@ -20,6 +20,7 @@ from onboard import onboard_wa_helper
 from responder.base import BaseResponder
 from azure.identity import DefaultAzureCredential
 
+IDK = "I do not know the answer to your question"
 
 class WhatsappResponder(BaseResponder):
     def __init__(self, config):
@@ -321,9 +322,57 @@ class WhatsappResponder(BaseResponder):
 
         return sent_msg_id, audio_msg_id, response_source
 
-    def handle_audio_idk_flow(self, row_lt, row_query):
-        pass
+    def send_audio_idk_response(self, row_lt, row_query):
+        msg_id = row_query['message_id']
+        idk_message_template = self.template_messages['idk_response_audio']["user"][row_lt['user_language']]
+        idk_message = idk_message_template.replace("<query>", row_query['message_source_lang'])
+        options = self.template_messages['idk_response_audio']["user"][f"{row_lt['user_language']}_options"]
+        sent_msg_id = self.messenger.send_message_with_options(
+            row_lt['whatsapp_id'], idk_message, ["Audio_idk_raise", "Audio_idk_reask"], options, msg_id
+        )
+        print("Sent msg id: ", sent_msg_id)
+        self.bot_conv_db.insert_row(
+            receiver_id=row_lt['user_id'],
+            message_type="query_response",
+            message_category="IDK",
+            message_id=sent_msg_id,
+            audio_message_id=None,
+            message_source_lang=idk_message,
+            message_language=row_lt['user_language'],
+            message_english=IDK,
+            reply_id=msg_id,
+            citations=None,
+            message_timestamp=datetime.now(),
+            transaction_message_id=msg_id,
+        )
 
+    def handle_audio_idk_flow(self, msg_obj, row_lt):
+        idk_options = self.template_messages['idk_response_audio']["user"][f"{row_lt['user_language']}_options"]
+        msg = msg_obj["interactive"]["button_reply"]["title"]
+        if msg in idk_options[0]:
+            print("Reply id: ", msg_obj["context"]["id"])
+            bot_conv = self.bot_conv_db.get_from_message_id(msg_obj["context"]["id"])
+            row_query = self.user_conv_db.get_from_message_id(bot_conv["reply_id"])
+            print("Row query: ", row_query)
+            raise_message = self.template_messages['idk_response_audio']["user"][f"{row_lt['user_language']}_raise"]
+            _, list_title, questions_source, _ = self.get_suggested_questions(
+                row_lt,
+                row_query,
+                "I do not know the answer to your question"
+            )
+            sent_msg_id = self.messenger.send_suggestions(
+                row_lt['whatsapp_id'], raise_message, list_title, questions_source, msg_obj["context"]["id"]
+            )
+            # self.send_query_response_and_follow_up("text", msg_obj["id"], IDK, row_lt, row_query)
+            query_type = row_query["query_type"]
+            expert_type = self.category_to_expert[query_type]
+            user_secondary_id = self.user_relation_db.find_user_relations(row_lt['user_id'], expert_type)['user_id_secondary']
+            expert_row_lt = self.user_db.get_from_user_id(user_secondary_id)
+            self.send_correction_poll_expert(row_lt, expert_row_lt, row_query)
+        elif msg in idk_options[1]:
+            msg = self.template_messages['idk_response_audio']["user"][f"{row_lt['user_language']}_reask"]
+            self.messenger.send_message(row_lt['whatsapp_id'], msg)
+        
     def handle_small_talk_idk_flow(self, row_lt, row_query):
         pass
 
@@ -420,7 +469,14 @@ class WhatsappResponder(BaseResponder):
             response, citations, query_type = self.knowledge_base.hierarchical_rag_answer_query(
             self.user_conv_db, msg_id, self.logger, org_id
             )
-        
+        if "I do not know the answer" in response:
+            if msg_type == "audio" and query_type != "small-talk":
+                self.user_conv_db.add_query_type(
+                    message_id=msg_id,
+                    query_type=query_type
+                )
+                self.send_audio_idk_response(row_lt, row_query)
+                return
         citations = "".join(citations)
         citations_str = citations
         print("Citations str: ", citations_str)
@@ -548,6 +604,13 @@ class WhatsappResponder(BaseResponder):
         ):
             self.handle_language_poll_response(msg_object, row_lt)
             return
+        if (
+            msg_object["type"] == "interactive"
+            and msg_object["interactive"]["type"] == "button_reply"
+            and "Audio_idk" in msg_object["interactive"]["button_reply"]["id"]
+        ):
+            self.handle_audio_idk_flow(msg_object, row_lt)
+            return
 
         if msg_object.get("text") or (
             msg_object["type"] == "interactive"
@@ -635,11 +698,8 @@ class WhatsappResponder(BaseResponder):
 
 
     def send_correction_poll_expert(self, row_lt, expert_row_lt, row_query, escalation=False, expert_row_lt_notif=None):
-
-        
-        
+  
         row_bot_conv = self.bot_conv_db.find_with_transaction_id(row_query["message_id"], "query_response")
-
 
         user_type = row_lt["user_type"]
         
@@ -723,8 +783,6 @@ class WhatsappResponder(BaseResponder):
         
         print(poll)
 
-
-
         if poll is None:
             self.messenger.send_message(
                 msg_object["from"],
@@ -791,8 +849,6 @@ class WhatsappResponder(BaseResponder):
                 "Noted, thank you for the response.",
                 context_id,
             )
-            
-            
 
 
             #Send green tick to the user messages
@@ -803,16 +859,28 @@ class WhatsappResponder(BaseResponder):
                 self.messenger.send_reaction(
                     user_row_lt['whatsapp_id'], row_response["audio_message_id"], "\u2705"
                 )
-            text = self.template_messages["verification"]["en"]
-            text = text.replace("<expert>", expert_row_lt["user_type"].lower())
-            text_translated = self.azure_translate.translate_text(
-                text, "en", user_row_lt["user_language"], self.logger
-            )
-            self.messenger.send_message(
-                user_row_lt["whatsapp_id"],
-                text_translated,
-                row_query["message_id"],
-            )
+            if row_response["message_category"] == "IDK":
+                text = self.template_messages["idk_response_audio"]["user"]["en_final"]
+                final_message = self.template_messages['idk_response_audio']["user"][f"{user_row_lt['user_language']}_final"]
+                _, list_title, questions_source, _ = self.get_suggested_questions(
+                    user_row_lt,
+                    row_query,
+                    "I do not know the answer to your question"
+                )
+                sent_msg_id = self.messenger.send_suggestions(
+                    user_row_lt['whatsapp_id'], final_message, list_title, questions_source, row_response["message_id"]
+                )
+            else:
+                text = self.template_messages["verification"]["en"]
+                text = text.replace("<expert>", expert_row_lt["user_type"].lower())
+                text_translated = self.azure_translate.translate_text(
+                    text, "en", user_row_lt["user_language"], self.logger
+                )
+                self.messenger.send_message(
+                    user_row_lt["whatsapp_id"],
+                    text_translated,
+                    row_response["message_id"],
+                )
 
             #Send green tick to the responding expert    
             self.messenger.send_reaction(

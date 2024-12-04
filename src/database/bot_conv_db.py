@@ -21,11 +21,13 @@ class BotConvDB(BaseDB):
         reply_id,
         citations,
         message_timestamp,
-        transaction_message_id):
+        transaction_message_id,
+        message_category=None):
 
         bot_conv = {
             'receiver_id': receiver_id,
             'message_type': message_type,
+            'message_category': message_category,
             'message_id': message_id,
             'audio_message_id': audio_message_id,
             'message_source_lang': message_source_lang,
