@@ -13,5 +13,11 @@
             "en_raise": "This question is outside the scope of my current knowledge. Please wait, you will receive an answer from your doctor/counsellor. You can ask me any other cataract surgery related questions in the meantime",
             "en_final": "I am sorry, this question is outside the scope of my knowledge. Please contact Sankara Eye Hospital to resolve your question. You can ask me any other cataract surgery related questions."
         }
+    },
+    "idk_response": {
+        "user": {
+            "en_raise": "This question is outside the scope of my current knowledge. Please wait, you will receive an answer from your doctor/counsellor. You can ask me any other cataract surgery related questions in the meantime",
+            "en_final": "I am sorry, this question is outside the scope of my knowledge. Please contact Sankara Eye Hospital to resolve your question. You can ask me any other cataract surgery related questions."
+        }
     }
 }
