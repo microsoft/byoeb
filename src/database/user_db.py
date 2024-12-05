@@ -3,7 +3,11 @@ import datetime
 import pymongo
 import certifi
 from uuid import uuid4
+from cachetools import cached, TTLCache
 from database.base import BaseDB
+
+eight_hours = 8 * 60 * 60
+cache = TTLCache(maxsize=100, ttl=eight_hours)
 
 class UserDB(BaseDB):
     def __init__(self, config):
@@ -31,10 +35,12 @@ class UserDB(BaseDB):
         db_id = self.collection.insert_one(user)
         return db_id
     
+    @cached(cache)
     def get_from_user_id(self, user_id):
         user = self.collection.find_one({'user_id': user_id})
         return user
     
+    @cached(cache)
     def get_from_whatsapp_id(self, whatsapp_id):
         user = self.collection.find_one({'whatsapp_id': whatsapp_id})
         return user
