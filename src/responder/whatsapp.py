@@ -393,12 +393,32 @@ class WhatsappResponder(BaseResponder):
 
         return sent_msg_id, audio_msg_id
         
-    def handle_small_talk_idk_flow(self, row_lt, row_query):
-        pass
+    def handle_small_talk_idk(self, row_lt, row_query):
+        text = self.template_messages["idk_response"]["user"]["en_final"]
+        final_message = self.template_messages['idk_response']["user"][f"{row_lt['user_language']}_final"]
+        _, list_title, questions_source, _ = self.get_suggested_questions(
+            row_lt,
+            row_query,
+            IDK
+        )
+        sent_msg_id = self.messenger.send_message(
+            row_lt['whatsapp_id'], final_message, row_query["message_id"]
+        )
+        self.bot_conv_db.insert_row(
+            receiver_id=row_lt['user_id'],
+            message_type="query_response",
+            message_id=sent_msg_id,
+            audio_message_id=None,
+            message_source_lang=final_message,
+            message_language=row_lt['user_language'],
+            message_english=text,
+            reply_id=row_query["message_id"],
+            citations=None,
+            message_timestamp=datetime.now(),
+            transaction_message_id=row_query["message_id"],
+        )
+        self.user_conv_db.mark_resolved(row_query["_id"])
 
-    def handle_query_idk_flow(self, row_lt, row_query):
-        pass
-    
     def send_query_response_and_follow_up(self, msg_type, msg_id, response, row_lt, row_query):
         
 
@@ -493,8 +513,8 @@ class WhatsappResponder(BaseResponder):
         
         if response.strip().startswith(IDK):
             if query_type == "small-talk":
-                # self.handle_small_talk_idk_flow()
-                pass
+                self.handle_small_talk_idk(row_lt, row_query)
+                return
             else:
                 if msg_type == "audio":
                     self.user_conv_db.add_query_type(
@@ -889,14 +909,7 @@ class WhatsappResponder(BaseResponder):
             )
 
 
-            #Send green tick to the user messages
-            self.messenger.send_reaction(
-                user_row_lt['whatsapp_id'], row_response["message_id"], "\u2705"
-            )
-            if row_response["audio_message_id"]:
-                self.messenger.send_reaction(
-                    user_row_lt['whatsapp_id'], row_response["audio_message_id"], "\u2705"
-                )
+            
             if row_response["message_category"] == "IDK":
                 text = self.template_messages["idk_response_audio"]["user"]["en_final"]
                 final_message = self.template_messages['idk_response_audio']["user"][f"{user_row_lt['user_language']}_final"]
@@ -905,16 +918,23 @@ class WhatsappResponder(BaseResponder):
                     row_query,
                     IDK
                 )
-                sent_msg_id = self.messenger.send_suggestions(
-                    user_row_lt['whatsapp_id'], final_message, list_title, questions_source, row_response["message_id"]
+                sent_msg_id = self.messenger.send_message(
+                    user_row_lt['whatsapp_id'], final_message, row_response["message_id"]
                 )
             else:
+                self.messenger.send_reaction(
+                    user_row_lt['whatsapp_id'], row_response["message_id"], "\u2705"
+                )
+                if row_response["audio_message_id"]:
+                    self.messenger.send_reaction(
+                        user_row_lt['whatsapp_id'], row_response["audio_message_id"], "\u2705"
+                    )
                 text = self.template_messages["verification"]["en"]
                 text = text.replace("<expert>", expert_row_lt["user_type"].lower())
                 text_translated = self.azure_translate.translate_text(
                     text, "en", user_row_lt["user_language"], self.logger
                 )
-                self.messenger.send_message(
+                sent_msg_id = self.messenger.send_message(
                     user_row_lt["whatsapp_id"],
                     text_translated,
                     row_response["message_id"],
