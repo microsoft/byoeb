@@ -14,8 +14,6 @@ from flask import Flask, request
 from time import sleep
 import traceback
 
-from utils import is_older_than_n_minutes
-
 __import__("pysqlite3")
 sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
 sys.path.append("src")
@@ -24,6 +22,7 @@ from conversation_database import LoggingDatabase
 from responder import WhatsappResponder
 from medics_integration import OnboardMedics
 from azure.identity import DefaultAzureCredential
+from utils import is_older_than_n_minutes
 
 with open("config.yaml") as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
