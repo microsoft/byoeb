@@ -4,6 +4,7 @@
 *.ogg
 *.exe
 *.wav
+*.aac
 *.ipynb
 **/*.ipynb
 # anything in scratch
