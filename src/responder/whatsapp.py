@@ -109,7 +109,7 @@ class WhatsappResponder(BaseResponder):
         if user_type is None:
             self.messenger.send_message(
                 from_number,
-                "Unknown User, Kindly fill the onboarding form",
+                "Unknown user. Kindly ask a Sankara Eye Hospital staff member to onboard you.",
                 reply_to_msg_id=msg_id,
             )
             return
