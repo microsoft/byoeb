@@ -924,7 +924,7 @@ class WhatsappResponder(BaseResponder):
                     IDK
                 )
                 sent_msg_id = self.messenger.send_message(
-                    user_row_lt['whatsapp_id'], final_message, row_response["message_id"]
+                    user_row_lt['whatsapp_id'], final_message, row_query["message_id"],
                 )
             else:
                 self.messenger.send_reaction(
