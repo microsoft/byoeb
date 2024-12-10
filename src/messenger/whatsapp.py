@@ -7,7 +7,6 @@ from typing import List
 
 sys.path.append(os.path.dirname(__file__))
 src_path = os.path.join(os.environ["APP_PATH"], "src")
-print(src_path)
 
 import requests
 from conversation_database import (

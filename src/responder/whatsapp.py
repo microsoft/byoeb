@@ -784,8 +784,13 @@ class WhatsappResponder(BaseResponder):
         
         receiver = expert_row_lt["whatsapp_id"]
         forward_to = expert
+        try:
+            gender = row_lt['patient_gender'][0].upper()
+            patient_details = f"\n*Patient*: {row_lt['patient_name']} {row_lt['patient_age']}/{gender}\n"
+        except:
+            patient_details= ""
 
-        poll_text = f'*Query*: "{row_query["message_english"]}" \n*Bot\'s Response*: {row_bot_conv["message_english"].strip()} \n\n*User*: {user_type} \n*Citations*: {final_citations.strip()}. \n\n{poll_string}'
+        poll_text = f'*Query*: "{row_query["message_english"]}" \n*Bot\'s Response*: {row_bot_conv["message_english"].strip()} \n{patient_details}*Citations*: {final_citations.strip()}. \n\n{poll_string}'
         message_id = self.messenger.send_poll(
                 receiver, poll_text, poll_id="POLL_PRIMARY"
             )
