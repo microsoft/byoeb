@@ -22,6 +22,7 @@ from conversation_database import LoggingDatabase
 from responder import WhatsappResponder
 from medics_integration import OnboardMedics
 from azure.identity import DefaultAzureCredential
+from utils import is_older_than_n_minutes
 
 with open("config.yaml") as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
@@ -66,6 +67,23 @@ def medics():
 @app.route("/webhooks", methods=["POST"])
 def webhook():
     body = request.json
+    if (
+        body.get("object")
+        and body.get("entry")
+        and body["entry"][0].get("changes")
+        and body["entry"][0]["changes"][0].get("value")
+        and body["entry"][0]["changes"][0]["value"].get("messages")
+        and body["entry"][0]["changes"][0]["value"]["messages"][0]
+    ):
+        timestamp = body["entry"][0]["changes"][0]["value"]["messages"][0]["timestamp"]
+        n = 2
+        if is_older_than_n_minutes(int(timestamp), n=n):
+            logger.add_log(
+                action_type="Old message",
+                details={"message": f"Message older than {n} minutes"},
+                timestamp=datetime.now(),
+            )
+            return "OK", 200
     # adding request to queue
     print("Adding message to queue, ", body)
     queue_client.send_message(json.dumps(body))
@@ -168,6 +186,13 @@ def process_queue():
             messages = queue_client.receive_messages(messages_per_page=1, visibility_timeout=5)
             for message in messages:
                 try:
+                    if message.dequeue_count > 1:
+                        logger.add_log(
+                            event_name="app_error",
+                            details={"message": message.content, "error": "Dequeue count exceeded"},
+                        )
+                        queue_client.delete_message(message)
+                        continue
                     print("Message received", message.content)
                     body = json.loads(message.content)
                     print("Processing new message")

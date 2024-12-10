@@ -227,3 +227,14 @@ def clean_txt_from_pdf(text: str):
     _text = re.sub(r"[^a-zA-Z0-9•\n]", " ", _text)
     # save the cleaned text
     return _text
+
+def is_older_than_n_minutes(unix_timestamp, n):
+    # Get the current time in Unix timestamp format
+    diff_seconds = n*60
+    current_time = int(time.time())
+    
+    # Calculate the difference
+    time_difference = current_time - unix_timestamp
+    
+    # Check if the difference is greater than 120 seconds (2 minutes)
+    return time_difference > diff_seconds
