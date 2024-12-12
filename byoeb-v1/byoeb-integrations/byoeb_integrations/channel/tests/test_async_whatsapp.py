@@ -307,11 +307,12 @@ def test_interactive_message():
     assert message_type == "interactive"
 
 def test_status_message():
-    message = '{"object": "whatsapp_business_account", "entry": [{"id": "423299570870294", "changes": [{"value": {"messaging_product": "whatsapp", "metadata": {"display_phone_number": "15551355272", "phone_number_id": "421395191063010"}, "statuses": [{"id": "wamid.HBgMOTE4OTA0OTU0OTUyFQIAERgSMzI4MzQ1OEZFNTZFOTEyRTg0AA==", "status": "delivered", "timestamp": "1732772842", "recipient_id": "918904954952"}]}, "field": "messages"}]}]}'
+    message = '{"object": "whatsapp_business_account", "entry": [{"id": "423299570870294", "changes": [{"value": {"messaging_product": "whatsapp", "metadata": {"display_phone_number": "15551355272", "phone_number_id": "421395191063010"}, "statuses": [{"id": "wamid.HBgMOTE4ODM3NzAxODI4FQIAERgSQjM1RjY0M0QyMkU4OUU3OTc3AA==", "status": "delivered", "timestamp": "1733170072", "recipient_id": "918837701828", "conversation": {"id": "bbc3027b762dec0714d75f270a6e9e9e", "origin": {"type": "service"}}, "pricing": {"billable": true, "pricing_model": "CBP", "category": "service"}}]}, "field": "messages"}]}]}'
     is_wa, message_type = wa_validate.validate_whatsapp_message(message)
     byoeb_message = wa_convert.convert_status_message(message)
+    json_data = byoeb_message.model_dump_json()
     assert is_wa is True
-    assert byoeb_message.message_id == "wamid.HBgMOTE4OTA0OTU0OTUyFQIAERgSMzI4MzQ1OEZFNTZFOTEyRTg0AA=="
+    assert byoeb_message.message_id == "wamid.HBgMOTE4ODM3NzAxODI4FQIAERgSQjM1RjY0M0QyMkU4OUU3OTc3AA=="
     assert message_type == "status"
 
 import byoeb_integrations.channel.whatsapp.request_payload as wa_request_payload
@@ -348,6 +349,6 @@ if __name__ == "__main__":
     # test_template_message()
     # test_regular_message()
     # test_interactive_message()
-    # test_status_message()
-    asyncio.run(atest_audio_download())
+    test_status_message()
+    # asyncio.run(atest_audio_download())
 

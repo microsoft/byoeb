@@ -15,7 +15,7 @@ async def receive(request: Request):
     Handle incoming WhatsApp messages.
     """
     body = await request.json()
-    print("Received the request: ", json.dumps(body))
+    # print("Received the request: ", json.dumps(body))
     _logger.info(f"Received the request: {json.dumps(body)}")
     response = await dependency_setup.message_producer_handler.handle(body)
     _logger.info(f"Response: {response}")

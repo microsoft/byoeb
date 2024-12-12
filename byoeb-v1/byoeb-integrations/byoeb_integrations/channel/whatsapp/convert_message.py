@@ -134,7 +134,7 @@ def convert_status_message(original_message) -> ByoebMessageStatus:
         message_id=message_id,
         status=message_status,
         recipient_id=phone_number_id,
-        timestamp=timestamp
+        incoming_timestamp=timestamp
     )
 
 def convert_whatsapp_to_byoeb_message(original_message, type):

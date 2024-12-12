@@ -110,8 +110,18 @@ llm_client = AsyncLLamaIndexAzureOpenAILLM(
 from byoeb.services.chat.message_handlers import (
     ByoebUserProcess,
     ByoebUserGenerateResponse, 
-    ByoebUserPrepareResponse
+    ByoebUserSendResponse
 )
-byoeb_user_prepare_response = ByoebUserPrepareResponse()
+byoeb_user_prepare_response = ByoebUserSendResponse()
 byoeb_user_generate_response = ByoebUserGenerateResponse(successor=byoeb_user_prepare_response)
 byoeb_user_process = ByoebUserProcess(successor=byoeb_user_generate_response)
+
+# Process expert message Chain of Responsibility
+from byoeb.services.chat.message_handlers import (
+    ByoebExpertProcess,
+    ByoebExpertGenerateResponse, 
+    ByoebExpertSendResponse
+)
+byoeb_expert_prepare_response = ByoebExpertSendResponse()
+byoeb_expert_generate_response = ByoebExpertGenerateResponse(successor=byoeb_user_prepare_response)
+byoeb_expert_process = ByoebExpertProcess(successor=byoeb_user_generate_response)

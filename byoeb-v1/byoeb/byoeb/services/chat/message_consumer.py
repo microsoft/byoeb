@@ -2,7 +2,8 @@ import logging
 import asyncio
 import json
 import hashlib
-from pydantic import BaseModel, Field
+from datetime import datetime
+from pydantic import BaseModel
 from typing import Optional, List
 from byoeb.factory import MongoDBFactory, ChannelClientFactory
 from byoeb.app.configuration.config import bot_config
@@ -60,7 +61,6 @@ class MessageConsmerService:
         for user_obj in users_obj:
             user = user_obj['User']
             byoeb_user = User(**user)
-            print("byoeb user", byoeb_user)
             byoeb_users.append(byoeb_user)
         return byoeb_users
     
@@ -124,13 +124,25 @@ class MessageConsmerService:
                 continue
             conversation.reply_context.reply_id = bot_message.message_context.message_id
             conversation.reply_context.reply_type = bot_message.message_context.message_type
-            conversation.reply_context.reply_english_text = bot_message.message_context.message_english_text
-            conversation.reply_context.reply_source_text = bot_message.message_context.message_source_text
             conversation.cross_conversation_id = bot_message.cross_conversation_id
             conversation.cross_conversation_context = bot_message.cross_conversation_context
             conversations.append(conversation)
         return conversations
-
+    
+    async def __write_to_db(
+        self,
+        db_entries: List[ByoebMessageContext]
+    ):
+        message_collection_client = await self.__get_message_collection_client()
+        json_message_data = []
+        for db_entry in db_entries:
+            json_message_data.append({
+                "_id": db_entry.message_context.message_id,
+                "message_data": db_entry.model_dump(),
+                "timestamp": str(int(datetime.now().timestamp()))
+            })
+        await message_collection_client.ainsert(json_message_data)
+        
     async def consume(
         self,
         messages: list
@@ -147,16 +159,18 @@ class MessageConsmerService:
                 task.append(self.__process_byoebuser_conversation(conversation))
             elif conversation.user.user_type == self._expert_user_type:
                 task.append(self.__process_byoebexpert_conversation(conversation))
-        await asyncio.gather(*task)
+        results = await asyncio.gather(*task)
+        db_entries = [entry for result in results for entry in result]
+        await self.__write_to_db(db_entries)
 
     async def __process_byoebuser_conversation(
         self,
         byoeb_message: ByoebMessageContext
     ):
         from byoeb.app.configuration.dependency_setup import byoeb_user_process
-        print("Process user message ", byoeb_message)
+        # print("Process user message ", byoeb_message)
         self._logger.info(f"Process user message: {byoeb_message}")
-        await byoeb_user_process.handle([byoeb_message])
+        return await byoeb_user_process.handle([byoeb_message])
 
     async def __process_byoebexpert_conversation(
         self,

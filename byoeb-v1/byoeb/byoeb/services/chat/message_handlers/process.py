@@ -7,7 +7,7 @@ class ByoebUserProcess(Handler):
     async def handle(
         self,
         messages: List[ByoebMessageContext]
-    ):
+    ) -> List[ByoebMessageContext]:
         # dependency injection
         from byoeb.app.configuration.dependency_setup import text_translator
         from byoeb.app.configuration.dependency_setup import channel_client_factory
@@ -34,6 +34,7 @@ class ByoebUserProcess(Handler):
             with open("audio_message.wav", "wb") as audio_file:
                 audio_file.write(audio_message_wav)
             audio_to_text = await speech_translator.aspeech_to_text(audio_message_wav, source_language)
+            print("audio_to_text", audio_to_text)
             translated_en_text = await text_translator.atranslate_text(
                 input_text=audio_to_text,
                 source_language=source_language,
@@ -42,8 +43,7 @@ class ByoebUserProcess(Handler):
             message.message_context.media_info.media_type = audio_message.mime_type
 
         message.message_context.message_english_text = translated_en_text
-
-        # populate byoeb message context with user information
+        
         if self._successor:
             return await self._successor.handle([message])
 

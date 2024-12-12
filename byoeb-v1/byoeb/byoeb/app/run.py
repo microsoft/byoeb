@@ -10,6 +10,7 @@ from byoeb.apis.channel_register import register_apis_router
 from byoeb.apis.chat import chat_apis_router
 from byoeb.apis.user import user_apis_router
 
+asyncio.get_event_loop().set_debug(True)
 def create_app():
     """
     Creates and configures a FastAPI application.

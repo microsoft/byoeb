@@ -12,6 +12,18 @@
                 "text"
             ],
             "reuse_client": true
+        },
+        "reaction": {
+            "user": {
+                "verified": "✅",
+                "rejected": "❌",
+                "pending": "⏳"
+            },
+            "expert": {
+                "resolved": "✅",
+                "pending": "⏳",
+                "pencil": "✏️"
+            }
         }
     },
     "databases": {

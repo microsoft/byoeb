@@ -76,6 +76,16 @@ async def aazure_byoeb_delete():
     db_client = AsyncAzureCosmosMongoDB(connection_string, db_name)
     await db_client.adelete_database()
 
+async def inspect():
+    db_name = "byoebv1"
+    db_client = AsyncAzureCosmosMongoDB(connection_string, db_name)
+    collection1 = db_client.get_collection("byoebmessages")
+    c1_client = AsyncAzureCosmosMongoDBCollection(collection1)
+    # await c1_client.adelete_collection()
+    results = await c1_client.afetch_all()
+    for result in results:
+        print(json.dumps(result))
+
 # asyncio.run(aazure_cosmos_mongo_db())
 def test_aazure_cosmos_mongo_db_batch(event_loop):
     event_loop.run_until_complete(aazure_cosmos_mongo_db_batch())
@@ -85,5 +95,5 @@ def test_aazure_cosmos_mongo_db(event_loop):
 
 if __name__ == "__main__":
     event_loop = asyncio.get_event_loop()
-    event_loop.run_until_complete(aazure_byoeb_delete())
+    event_loop.run_until_complete(inspect())
     event_loop.close()

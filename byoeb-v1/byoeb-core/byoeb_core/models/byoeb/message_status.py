@@ -7,7 +7,6 @@ class ByoebMessageStatus(BaseModel):
     message_category: Optional[str] = Field(None, description="The category of the message", example="notification")
     message_id: Optional[str] = Field(None, description="Unique identifier for the message", example="msg12345")
     status: Optional[str] = Field(None, description="The current status of the message", example="delivered")
-    timestamp: Optional[int] = Field(None, description="Timestamp when the message was sent or received", example=1633028300)
+    incoming_timestamp: Optional[int] = Field(None, description="Timestamp when the message was sent or received", example=1633028300)
     recipient_id: Optional[str] = Field(None, description="Unique identifier for the recipient", example="user123")
     phone_number_id: Optional[str] = Field(None, description="Phone number ID of the sender or receiver", example="918837701828")
-    timestamp_str: Optional[str] = Field(None, description="Timestamp as a string", example="2024-11-23T12:34:56")

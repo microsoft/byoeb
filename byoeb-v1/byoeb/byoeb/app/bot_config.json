@@ -16,9 +16,18 @@
             "user_prompt": "Following are the question, answer, and correction to the answer:\n Question: <QUESTION> \n Answer: <ANSWER> \n Correction: <CORRECTION>"
         }
     },
-    "static_response": {
-        "expert_verification": {
-            "footer": "Is the answer correct?"
+    "template_messages": {
+        "expert": {
+            "verification": {
+                "Question": "*Question*: <QUESTION>",
+                "Bot_Answer": "*Bot_Answer*: <ANSWER>",
+                "footer":"Is the answer correct?"
+            }
+        }
+    },
+    "channel_templates": { 
+        "expert": {
+            "verification": "verification"
         }
     }
 }
