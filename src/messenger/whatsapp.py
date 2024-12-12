@@ -228,7 +228,7 @@ class WhatsappMessenger(BaseMessenger):
             msg_id = msg_output.json()["messages"][0]["id"]
         except KeyError:
             print(msg_output.json())
-            raise Exception("Error in sending poll")
+            return "Error in sending poll"
         
         self.logger.add_log(
             sender_id="bot",
@@ -243,7 +243,7 @@ class WhatsappMessenger(BaseMessenger):
             timestamp=datetime.now(),
         )
 
-        self.send_reaction(to_number, msg_id, "📝")
+        self.send_reaction(to_number, msg_id, "\u2753")
 
         return msg_id
 

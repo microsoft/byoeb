@@ -751,6 +751,8 @@ class WhatsappResponder(BaseResponder):
             msg_type == "interactive"
             and msg_object["interactive"]["type"] == "button_reply"
             and msg_object["interactive"]["button_reply"]["id"][:12] == "POLL_PRIMARY"
+        ) or (
+            msg_type == "button"
         ):
             self.get_correction_poll_expert(msg_object, row_lt)
         elif msg_type == "text":
@@ -785,21 +787,26 @@ class WhatsappResponder(BaseResponder):
         receiver = expert_row_lt["whatsapp_id"]
         forward_to = expert
         try:
-            gender = row_lt['patient_gender'][0].upper()
-            patient_details = f"\n*Patient*: {row_lt['patient_name']} {row_lt['patient_age']}/{gender}\n"
+            gender = row_lt.get('patient_gender', None)
+            gender = gender[0].upper() if gender is not None else "NA"
+            surgery_date = row_lt.get("patient_surgery_date", None)
+            surgery_date_str = f" *Surgery Date*: {surgery_date}*" if surgery_date is not None else ""
+            patient_details = f"*Patient*: {row_lt['patient_name']} {row_lt['patient_age']}/{gender}{surgery_date_str}"
         except:
             patient_details= ""
 
-        poll_text = f'*Query*: "{row_query["message_english"]}" \n*Bot\'s Response*: {row_bot_conv["message_english"].strip()} \n{patient_details}*Citations*: {final_citations.strip()}. \n\n{poll_string}'
+        # citation_str = f"*Citations*: {final_citations.strip()}. \n"
+
+        poll_text = f'*Query*: "{row_query["message_english"]}" \n*Bot\'s Response*: {row_bot_conv["message_english"].strip()} \n{patient_details}\n{poll_string}'
         message_id = self.messenger.send_poll(
                 receiver, poll_text, poll_id="POLL_PRIMARY"
             )
-        if "error" in message_id:
+        if message_id == "Error in sending poll":
             message_id = self.messenger.send_template(
                 receiver,
-                "verification",
+                "correction_poll",
                 expert_row_lt["user_language"],
-                poll_text,
+                [row_query["message_english"], row_bot_conv["message_english"].strip(), patient_details]
             )
   
         self.bot_conv_db.insert_row(
@@ -832,7 +839,7 @@ class WhatsappResponder(BaseResponder):
 
 
     def get_correction_poll_expert(self, msg_object, expert_row_lt):
-        answer = msg_object["interactive"]["button_reply"]["title"]
+        answer = msg_object["interactive"]["button_reply"]["title"] if msg_object["type"] == "interactive" else msg_object["button"]["payload"]
         context_id = msg_object["context"]["id"]
 
         self.logger.add_log(
@@ -999,6 +1006,8 @@ class WhatsappResponder(BaseResponder):
                 "Please reply with a correction to the query that you are trying to fix.",
                 context_id,
             )
+
+
             self.expert_conv_db.insert_row(
                 user_id=expert_row_lt["user_id"],
                 message_type="poll_response",

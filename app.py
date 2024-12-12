@@ -79,6 +79,9 @@ def webhook():
         n = 2
         if is_older_than_n_minutes(int(timestamp), n=n):
             logger.add_log(
+                sender_id="whatsapp_api",
+                receiver_id="Bot",
+                message_id=None,
                 action_type="Old message",
                 details={"message": f"Message older than {n} minutes"},
                 timestamp=datetime.now(),
