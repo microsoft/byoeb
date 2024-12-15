@@ -53,24 +53,13 @@ class ByoebExpertProcess(Handler):
         self,
         messages: List[ByoebMessageContext]
     ):
-        message = messages[0]
-        # dependency injection
         from byoeb.app.configuration.dependency_setup import text_translator
-        from byoeb.app.configuration.dependency_setup import channel_client_factory
-        from byoeb.app.configuration.dependency_setup import speech_translator
-
-        channel_type = message.channel_type
-        source_language = message.user.user_language
-        translated_en_text = None
-        source_text = message.message_context.message_source_text
+        message = messages[0]
         translated_en_text = await text_translator.atranslate_text(
-            input_text=source_text,
-            source_language=source_language,
+            input_text=message.message_context.message_source_text,
+            source_language=message.user.user_language,
             target_language="en"
         )
-        message.message_context.message_english_text = translated_en_text
-
-        # populate byoeb message context with user information
         if self._successor:
-            return await self._successor.handle(message)
+            return await self._successor.handle([message])
             

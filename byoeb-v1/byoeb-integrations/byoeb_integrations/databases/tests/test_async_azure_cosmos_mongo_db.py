@@ -81,10 +81,10 @@ async def inspect():
     db_client = AsyncAzureCosmosMongoDB(connection_string, db_name)
     collection1 = db_client.get_collection("byoebmessages")
     c1_client = AsyncAzureCosmosMongoDBCollection(collection1)
-    # await c1_client.adelete_collection()
-    results = await c1_client.afetch_all()
-    for result in results:
-        print(json.dumps(result))
+    await c1_client.adelete_collection()
+    # results = await c1_client.afetch_all()
+    # for result in results:
+    #     print(json.dumps(result))
 
 # asyncio.run(aazure_cosmos_mongo_db())
 def test_aazure_cosmos_mongo_db_batch(event_loop):

@@ -5,6 +5,7 @@ import hashlib
 from datetime import datetime
 from pydantic import BaseModel
 from typing import Optional, List
+from byoeb.models.message_category import MessageCategory
 from byoeb.factory import MongoDBFactory, ChannelClientFactory
 from byoeb.app.configuration.config import bot_config
 from byoeb_core.models.byoeb.user import User
@@ -70,16 +71,17 @@ class MessageConsmerService:
     ) -> List[ByoebMessageContext]:
         message_collection_client = await self.__get_message_collection_client()
         query = {"_id": {"$in": bot_message_ids}}
-        messages = await message_collection_client.afetch_all(query)
+        messages_obj = await message_collection_client.afetch_all(query)
         byoeb_messages = []
-        for message in messages:
+        for message_obj in messages_obj:
+            message = message_obj['message_data']
             byoeb_message = ByoebMessageContext(**message)
             byoeb_messages.append(byoeb_message)
 
         return byoeb_messages
 
     # TODO: Hash can be used or better way to get user by phone number
-    async def __get_user(
+    def __get_user(
         self,
         users: List[User],
         phone_number_id,
@@ -87,7 +89,7 @@ class MessageConsmerService:
     ) -> User:
         return next((user for user in users if user.phone_number_id == phone_number_id), None)
     
-    async def __get_bot_message(
+    def __get_bot_message(
         self,
         messages: List[ByoebMessageContext],
         reply_id
@@ -95,8 +97,8 @@ class MessageConsmerService:
         return next(
             (
                 message for message in messages
-                if message.reply_context is not None
-                and message.reply_context.reply_id == reply_id
+                if reply_id is not None
+                and message.message_context.message_id == reply_id
             ),
             None
         )
@@ -109,21 +111,28 @@ class MessageConsmerService:
         user_ids = list(set([hashlib.md5(number.encode()).hexdigest() for number in phone_numbers]))
         byoeb_users = await self.__get_users(user_ids)
         bot_message_ids = list(
-            set(message.reply_context.reply_id for message in messages if not message.reply_context.reply_id)
+            set(message.reply_context.reply_id for message in messages if message.reply_context.reply_id is not None)
         )
         bot_messages = await self.__get_bot_messages(bot_message_ids)
         conversations = []
         for message in messages:
-            user_task = self.__get_user(byoeb_users,message.user.phone_number_id)
-            bot_message_task = self.__get_bot_message(bot_messages, message.reply_context.reply_id)
-            user, bot_message = await asyncio.gather(user_task, bot_message_task)
+            user = self.__get_user(byoeb_users,message.user.phone_number_id)
+            bot_message = self.__get_bot_message(bot_messages, message.reply_context.reply_id)
             conversation = ByoebMessageContext.model_validate(message)
+            if user.user_type == self._regular_user_type:
+                conversation.message_category = MessageCategory.USER_TO_BOT.value
+            elif user.user_type == self._expert_user_type:
+                conversation.message_category = MessageCategory.EXPERT_TO_BOT.value
             conversation.user = user
             if bot_message is None:
                 conversations.append(conversation)
                 continue
+            conversation.reply_context.message_category = bot_message.message_category
             conversation.reply_context.reply_id = bot_message.message_context.message_id
             conversation.reply_context.reply_type = bot_message.message_context.message_type
+            conversation.reply_context.reply_source_text = bot_message.message_context.message_source_text
+            conversation.reply_context.reply_english_text = bot_message.message_context.message_english_text
+            conversation.reply_context.additional_info = bot_message.message_context.additional_info
             conversation.cross_conversation_id = bot_message.cross_conversation_id
             conversation.cross_conversation_context = bot_message.cross_conversation_context
             conversations.append(conversation)
@@ -133,6 +142,8 @@ class MessageConsmerService:
         self,
         db_entries: List[ByoebMessageContext]
     ):
+        if len(db_entries) == 0:
+            return
         message_collection_client = await self.__get_message_collection_client()
         json_message_data = []
         for db_entry in db_entries:
@@ -160,7 +171,9 @@ class MessageConsmerService:
             elif conversation.user.user_type == self._expert_user_type:
                 task.append(self.__process_byoebexpert_conversation(conversation))
         results = await asyncio.gather(*task)
-        db_entries = [entry for result in results for entry in result]
+        db_entries = []
+        if results is not None and len(results) > 0:
+            db_entries = [entry for result in results if result is not None for entry in result]
         await self.__write_to_db(db_entries)
 
     async def __process_byoebuser_conversation(
@@ -176,6 +189,7 @@ class MessageConsmerService:
         self,
         byoeb_message: ByoebMessageContext
     ):
-        print("Process expert message ", byoeb_message)
+        from byoeb.app.configuration.dependency_setup import byoeb_expert_process
+        print("Process expert message ", json.dumps(byoeb_message.model_dump()))
         self._logger.info(f"Process expert message: {byoeb_message}")
-        channel_client = self._channel_client_factory.get(byoeb_message.channel_type)
+        return await byoeb_expert_process.handle([byoeb_message])

@@ -25,12 +25,13 @@ class MessageContext(BaseModel):
     additional_info: Optional[Dict[str, Any]] = Field(None, description="Any additional information related to the message")
 
 class ReplyContext(BaseModel):
-    reply_id: Optional[str] = Field(None, description="Unique identifier for the reply", example="reply12345")
-    reply_type: Optional[str] = Field(None, description="Type of the reply (e.g., acknowledgment, response)", example="acknowledgment")
-    reply_source_text: Optional[str] = Field(None, description="Original text of the reply", example="I received your message")
-    reply_english_text: Optional[str] = Field(None, description="Translated English version of the reply", example="I received your message")
-    media_info: Optional[MediaContext] = Field(None, description="Information about media attached to the reply")
-    additional_info: Optional[Dict[str, Any]] = Field(None, description="Any additional information related to the reply")
+    reply_id: Optional[str] = Field(None, description="Unique identifier of the message to reply", example="reply12345")
+    reply_type: Optional[str] = Field(None, description="Type of the message to reply", example="acknowledgment")
+    reply_source_text: Optional[str] = Field(None, description="Original text of message to reply", example="I received your message")
+    reply_english_text: Optional[str] = Field(None, description="Translated English version of message to reply", example="I received your message")
+    media_info: Optional[MediaContext] = Field(None, description="Information about media attached")
+    message_category: Optional[str] = Field(None, description="Category of the message to reply", example="notification")
+    additional_info: Optional[Dict[str, Any]] = Field(None, description="Any additional information related to the message to reply")
 
 class ByoebMessageContext(BaseModel):
     channel_type: str = Field(..., description="The communication channel type (e.g., whatsapp, telegram)", example="whatsapp")
