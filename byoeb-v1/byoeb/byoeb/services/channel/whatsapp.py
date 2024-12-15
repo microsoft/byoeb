@@ -1,7 +1,7 @@
 import asyncio
 import json
 import byoeb_integrations.channel.whatsapp.request_payload as wa_req_payload
-from byoeb.services.channel.base import BaseChannelService
+from byoeb.services.channel.base import BaseChannelService, MessageReaction
 from byoeb_integrations.channel.whatsapp.meta.async_whatsapp_client import AsyncWhatsAppClient
 from byoeb_core.models.byoeb.message_context import (
     ByoebMessageContext,   
@@ -57,13 +57,13 @@ class WhatsAppService(BaseChannelService):
         )
     def prepare_reaction_requests(
         self,
-        reaction,
-        responses: List[WhatsAppResponse]
+        message_reactions: List[MessageReaction]
     ) -> List[Dict[str, Any]]:
         reactions = []
-        for response in responses:
-            message_id = response.messages[0].id
-            phone_number_id = response.contacts[0].wa_id
+        for message_reaction in message_reactions:
+            message_id = message_reaction.message_id
+            phone_number_id = message_reaction.phone_number_id
+            reaction = message_reaction.reaction
             reaction_request = wa_req_payload.get_whatsapp_reaction_request(
                 phone_number_id,
                 message_id,
@@ -98,7 +98,7 @@ class WhatsAppService(BaseChannelService):
     async def send_requests(
         self,
         payload: List[Dict[str, Any]]
-    ) -> List[WhatsAppResponse]:
+    ) -> Tuple[List[WhatsAppResponse], List[str]]:
         from byoeb.app.configuration.dependency_setup import channel_client_factory
         client = channel_client_factory.get(self.__client_type)
         tasks = []
@@ -107,7 +107,9 @@ class WhatsAppService(BaseChannelService):
             tasks.append(client.asend_batch_messages([request], message_type))
         results = await asyncio.gather(*tasks)
         responses = [response for result in results for response in result]
-        return responses
+        message_ids = [response.messages[0].id if response.messages else None for response in responses]
+
+        return responses, message_ids
     
     def create_bot_to_user_db_entries(
         self,

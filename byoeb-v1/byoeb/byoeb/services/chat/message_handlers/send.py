@@ -4,7 +4,7 @@ import asyncio
 from typing import List, Dict, Any
 from byoeb.app.configuration.config import app_config
 from byoeb_core.models.byoeb.message_context import ByoebMessageContext
-from byoeb.services.channel.base import BaseChannelService
+from byoeb.services.channel.base import BaseChannelService, MessageReaction
 from byoeb.services.chat.message_handlers.base import Handler
 
 
@@ -27,15 +27,21 @@ class ByoebUserSendResponse(Handler):
         wa_expert_requests = channel_service.prepare_requests(expert_message_context)
         interactive_button_message = wa_expert_requests[0]
         template_verification_message = wa_expert_requests[1]
-        responses = await channel_service.send_requests([interactive_button_message])
+        responses, message_ids = await channel_service.send_requests([interactive_button_message])
         # print(responses[0].response_status.status)
         if int(responses[0].response_status.status) != 200:
             responses = await channel_service.send_requests([template_verification_message])
         pending_emoji = expert_message_context.message_context.additional_info.get("emoji")
-        reaction_requests = channel_service.prepare_reaction_requests(
-            pending_emoji,
-            responses
-        )
+        message_reactions = [
+            MessageReaction(
+                reaction=pending_emoji,
+                message_id=message_id,
+                phone_number_id=expert_message_context.user.phone_number_id
+            )
+            for message_id in message_ids if message_id is not None
+        ]
+
+        reaction_requests = channel_service.prepare_reaction_requests(message_reactions)
         await channel_service.send_requests(reaction_requests)
         return responses
 
@@ -45,12 +51,17 @@ class ByoebUserSendResponse(Handler):
         user_message_context: ByoebMessageContext
     ):
         wa_user_requests = channel_service.prepare_requests(user_message_context)
-        responses = await channel_service.send_requests( wa_user_requests)
+        responses, message_ids = await channel_service.send_requests( wa_user_requests)
         pending_emoji = user_message_context.message_context.additional_info.get("emoji")
-        reaction_requests = channel_service.prepare_reaction_requests(
-            pending_emoji,
-            responses
-        )
+        message_reactions = [
+            MessageReaction(
+                reaction=pending_emoji,
+                message_id=message_id,
+                phone_number_id=user_message_context.user.phone_number_id
+            )
+            for message_id in message_ids if message_id is not None
+        ]
+        reaction_requests = channel_service.prepare_reaction_requests(message_reactions)
         await channel_service.send_requests(reaction_requests)
         return responses
     
@@ -102,5 +113,5 @@ class ByoebExpertSendResponse(Handler):
         byoeb_user_message = messages[0]
         byoeb_expert_message = messages[1]
         channel_service = self.get_channel_service(byoeb_expert_message.channel_type)
-        
+
         return

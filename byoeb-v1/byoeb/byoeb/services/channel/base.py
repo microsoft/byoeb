@@ -1,6 +1,12 @@
 from abc import ABC, abstractmethod
+from pydantic import BaseModel
 from typing import List, Any, Dict
 from byoeb_core.models.byoeb.message_context import ByoebMessageContext
+
+class MessageReaction(BaseModel):
+    reaction: str
+    message_id: str
+    phone_number_id: str
 
 class BaseChannelService(ABC):
     @abstractmethod
@@ -13,8 +19,7 @@ class BaseChannelService(ABC):
     @abstractmethod
     def prepare_reaction_requests(
         self,
-        reaction: Any,
-        responses: Any
+        message_reactions = List[MessageReaction]
     ) -> List[Dict[str, Any]]:
         pass
 
