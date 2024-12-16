@@ -17,11 +17,10 @@ import traceback
 __import__("pysqlite3")
 sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
 sys.path.append("src")
-from onboard import onboard_template
 from conversation_database import LoggingDatabase
 from responder import WhatsappResponder
 from medics_integration import OnboardMedics
-from azure.identity import DefaultAzureCredential
+from az_table import PatientTable
 from utils import is_older_than_n_minutes
 
 with open("config.yaml") as file:
@@ -50,6 +49,8 @@ try:
     queue_client.create_queue()
 except ResourceExistsError:
     pass
+
+patient_table = PatientTable()
 
 
 @app.route("/")
@@ -147,12 +148,19 @@ def scheduler():
 
 
 # Define a route for handling a POST request related to long-term processing
-@app.route("/long_term", methods=["POST"])
+@app.route("/medics-sankara", methods=["POST"])
 def long_term():
-    data_row = request.json
-    print("Long term updated")
-    print(data_row)
-    onboard_template(config, logger, data_row)
+    data = request.json
+    for row in data:
+        #make all values string
+        for key in row:
+            row[key] = str(row[key])
+        try:
+            patient_table.insert_data(row)
+        except Exception as e:
+            print(e)
+            traceback.print_exc()
+    print("Medics sankara data received")
     return "OK", 200
 
 
