@@ -125,9 +125,10 @@ class AsyncAzureCosmosMongoDBCollection(BaseDocumentCollection):
              result = await self.__collection.insert_many(documents, ordered=False)
         except Exception as e:
             self.__logger.error(f"Error inserting data: {e}")
+            return [], e
         if result is None:
-            return []
-        return result.inserted_ids
+            return [], None
+        return result.inserted_ids, None
         
     
     def fetch(

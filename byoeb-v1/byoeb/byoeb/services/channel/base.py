@@ -19,24 +19,24 @@ class BaseChannelService(ABC):
     @abstractmethod
     def prepare_reaction_requests(
         self,
-        message_reactions = List[MessageReaction]
+        message_reactions: List[MessageReaction]
     ) -> List[Dict[str, Any]]:
         pass
 
     @abstractmethod
-    async def send_requests(self, requests: Dict[str, Any]) -> Any:
+    async def send_requests(self, requests: List[Dict[str, Any]]) -> Any:
         pass
 
     @abstractmethod
-    async def create_bot_to_user_db_entries(
+    def create_conv(
         self,
-        byoeb_message: Any, 
+        byoeb_user_message: Any, 
         responses: Any
     ) -> List[ByoebMessageContext]:
         pass
 
     @abstractmethod
-    async def create_cross_conv_db_entries(
+    def create_cross_conv(
         self,
         byoeb_user_message: ByoebMessageContext,
         byoeb_expert_message: ByoebMessageContext,

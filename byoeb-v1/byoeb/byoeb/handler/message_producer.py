@@ -38,11 +38,11 @@ class QueueProducerHandler:
         message
     ):
         channel, message_type = await self.__validate_channel_and_get_message_type(message)
-        # if message_type == "status":
-        #     return ByoebResponseModel(
-        #         status_code=ByoebStatusCodes.OK,
-        #         message="status update"
-        #     )
+        if message_type == "status":
+            return ByoebResponseModel(
+                status_code=ByoebStatusCodes.OK,
+                message="status update"
+            )
         if not channel:
             return ByoebResponseModel(
                 status_code=ByoebStatusCodes.BAD_REQUEST,

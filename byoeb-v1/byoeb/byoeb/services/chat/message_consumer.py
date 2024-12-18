@@ -9,7 +9,7 @@ from byoeb.models.message_category import MessageCategory
 from byoeb.factory import MongoDBFactory, ChannelClientFactory
 from byoeb.app.configuration.config import bot_config
 from byoeb_core.models.byoeb.user import User
-from byoeb_integrations.databases.mongo_db.azure.async_azure_cosmos_mongo_db import AsyncAzureCosmosMongoDBCollection
+from byoeb.services.databases.mongo_db import MongoDBService
 from byoeb_core.models.byoeb.message_context import ByoebMessageContext
 
 class Conversation(BaseModel):
@@ -21,64 +21,15 @@ class MessageConsmerService:
     def __init__(
         self,
         config,
-        mongo_db_facory: MongoDBFactory,
+        mongo_db_service: MongoDBService,
         channel_client_factory: ChannelClientFactory
     ):
         self._config = config
         self._logger = logging.getLogger(self.__class__.__name__)
-        self._mongo_db_facory = mongo_db_facory
+        self._mongo_db_service = mongo_db_service
         self._channel_client_factory = channel_client_factory
         self._regular_user_type = bot_config["regular"]["user_type"]
         self._expert_user_type = bot_config["expert"]["user_type"]
-
-    async def __get_message_collection_client(
-        self
-    ):
-        mongo_db = await self._mongo_db_facory.get(self._config["app"]["db_provider"])
-        message_collection = self._config["databases"]["mongo_db"]["message_collection"]
-        message_collection_client = AsyncAzureCosmosMongoDBCollection(
-            collection=mongo_db.get_collection(message_collection)
-        )
-        return message_collection_client
-    
-    async def __get_user_collection_client(
-        self
-    ):
-        mongo_db = await self._mongo_db_facory.get(self._config["app"]["db_provider"])
-        user_collection = self._config["databases"]["mongo_db"]["user_collection"]
-        user_collection_client = AsyncAzureCosmosMongoDBCollection(
-            collection=mongo_db.get_collection(user_collection)
-        )
-        return user_collection_client
-
-    async def __get_users(
-        self,
-        user_ids: list
-    ) -> List[User]:
-        user_collection_client = await self.__get_user_collection_client()
-        query = {"_id": {"$in": user_ids}}
-        users_obj = await user_collection_client.afetch_all(query)
-        byoeb_users = []
-        for user_obj in users_obj:
-            user = user_obj['User']
-            byoeb_user = User(**user)
-            byoeb_users.append(byoeb_user)
-        return byoeb_users
-    
-    async def __get_bot_messages(
-        self,
-        bot_message_ids: list
-    ) -> List[ByoebMessageContext]:
-        message_collection_client = await self.__get_message_collection_client()
-        query = {"_id": {"$in": bot_message_ids}}
-        messages_obj = await message_collection_client.afetch_all(query)
-        byoeb_messages = []
-        for message_obj in messages_obj:
-            message = message_obj['message_data']
-            byoeb_message = ByoebMessageContext(**message)
-            byoeb_messages.append(byoeb_message)
-
-        return byoeb_messages
 
     # TODO: Hash can be used or better way to get user by phone number
     def __get_user(
@@ -109,11 +60,11 @@ class MessageConsmerService:
     ) -> List[ByoebMessageContext]:
         phone_numbers = list(set([message.user.phone_number_id for message in messages]))
         user_ids = list(set([hashlib.md5(number.encode()).hexdigest() for number in phone_numbers]))
-        byoeb_users = await self.__get_users(user_ids)
+        byoeb_users = await self._mongo_db_service.get_users(user_ids)
         bot_message_ids = list(
             set(message.reply_context.reply_id for message in messages if message.reply_context.reply_id is not None)
         )
-        bot_messages = await self.__get_bot_messages(bot_message_ids)
+        bot_messages = await self._mongo_db_service.get_bot_messages(bot_message_ids)
         conversations = []
         for message in messages:
             user = self.__get_user(byoeb_users,message.user.phone_number_id)
@@ -137,22 +88,6 @@ class MessageConsmerService:
             conversation.cross_conversation_context = bot_message.cross_conversation_context
             conversations.append(conversation)
         return conversations
-    
-    async def __write_to_db(
-        self,
-        db_entries: List[ByoebMessageContext]
-    ):
-        if len(db_entries) == 0:
-            return
-        message_collection_client = await self.__get_message_collection_client()
-        json_message_data = []
-        for db_entry in db_entries:
-            json_message_data.append({
-                "_id": db_entry.message_context.message_id,
-                "message_data": db_entry.model_dump(),
-                "timestamp": str(int(datetime.now().timestamp()))
-            })
-        await message_collection_client.ainsert(json_message_data)
         
     async def consume(
         self,
@@ -171,10 +106,8 @@ class MessageConsmerService:
             elif conversation.user.user_type == self._expert_user_type:
                 task.append(self.__process_byoebexpert_conversation(conversation))
         results = await asyncio.gather(*task)
-        db_entries = []
-        if results is not None and len(results) > 0:
-            db_entries = [entry for result in results if result is not None for entry in result]
-        await self.__write_to_db(db_entries)
+        for queries in results:
+            await self._mongo_db_service.execute_message_queries(queries)
 
     async def __process_byoebuser_conversation(
         self,

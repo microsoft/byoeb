@@ -33,6 +33,7 @@ class WhatsAppService(BaseChannelService):
     ):
         return (
             byoeb_message.message_context.additional_info is not None and
+            "description" in byoeb_message.message_context.additional_info and
             "row_texts" in byoeb_message.message_context.additional_info
         )
     
@@ -54,6 +55,14 @@ class WhatsAppService(BaseChannelService):
             "template_name" in byoeb_message.message_context.additional_info and
             "template_language" in byoeb_message.message_context.additional_info and
             "template_parameters" in byoeb_message.message_context.additional_info
+        )
+    
+    def __has_text(
+        self,
+        byoeb_message: ByoebMessageContext
+    ):
+        return (
+            byoeb_message.message_context.message_source_text is not None
         )
     def prepare_reaction_requests(
         self,
@@ -83,7 +92,7 @@ class WhatsAppService(BaseChannelService):
         elif self.__has_interactive_list_additional_info(byoeb_message):  
             wa_interactive_list_message = wa_req_payload.get_whatsapp_interactive_list_request_from_byoeb_message(byoeb_message)
             wa_requests.append(wa_interactive_list_message)
-        else:
+        elif self.__has_text(byoeb_message):
             wa_text_message = wa_req_payload.get_whatsapp_text_request_from_byoeb_message(byoeb_message)
             wa_requests.append(wa_text_message)
         if self.__has_template_additional_info(byoeb_message):
@@ -97,41 +106,45 @@ class WhatsAppService(BaseChannelService):
     
     async def send_requests(
         self,
-        payload: List[Dict[str, Any]]
+        requests: List[Dict[str, Any]]
     ) -> Tuple[List[WhatsAppResponse], List[str]]:
         from byoeb.app.configuration.dependency_setup import channel_client_factory
         client = channel_client_factory.get(self.__client_type)
         tasks = []
-        for request in payload:
+        for request in requests:
             message_type = request["type"]
             tasks.append(client.asend_batch_messages([request], message_type))
         results = await asyncio.gather(*tasks)
         responses = [response for result in results for response in result]
         message_ids = [response.messages[0].id if response.messages else None for response in responses]
-
         return responses, message_ids
     
-    def create_bot_to_user_db_entries(
+    def create_conv(
         self,
         byoeb_user_message: ByoebMessageContext,
         responses: List[WhatsAppResponse]
     ) -> List[ByoebMessageContext]:
         bot_to_user_messages = []
+        message_type = None
+        if self.__has_interactive_list_additional_info(byoeb_user_message):
+            message_type = MessageTypes.INTERACTIVE_LIST.value
         for response in responses:
             media_info = None
             if response.media_message is not None:
                 media_info = MediaContext(
                     media_id=response.media_message.id
                 )
+                message_type = MessageTypes.REGULAR_AUDIO.value
             byoeb_message = ByoebMessageContext( 
                 channel_type=byoeb_user_message.channel_type,
                 message_category=byoeb_user_message.message_category,
                 user=byoeb_user_message.user,
                 message_context=MessageContext(
                     message_id=response.messages[0].id,
-                    message_type=byoeb_user_message.message_context.message_type,
+                    message_type=message_type,
                     message_english_text=byoeb_user_message.message_context.message_english_text,
                     message_source_text=byoeb_user_message.message_context.message_source_text,
+                    additional_info=byoeb_user_message.message_context.additional_info,
                     media_info=media_info
                 ),
                 reply_context=ReplyContext(
@@ -144,7 +157,17 @@ class WhatsAppService(BaseChannelService):
             bot_to_user_messages.append(byoeb_message)
         return bot_to_user_messages
     
-    def create_cross_conv_db_entries(
+    def create_verification_status_update_query(
+        self,
+        byoeb_message: ByoebMessageContext
+    ):
+        query = {
+            "_id": byoeb_message.message_context.message_id,
+            "message_data.message_context.additional_info.status": byoeb_message.message_context.additional_info.get("status")
+        }
+        return query
+    
+    def create_cross_conv(
         self,
         byoeb_user_message: ByoebMessageContext,
         byoeb_expert_message: ByoebMessageContext,
@@ -153,12 +176,13 @@ class WhatsAppService(BaseChannelService):
     ):
         user_messages_context = []
         for user_response in user_responses:
-            message_type = MessageTypes.REGULAR_TEXT.value
+            message_type = MessageTypes.INTERACTIVE_LIST.value
             if user_response.media_message is not None:
                 message_type = MessageTypes.REGULAR_AUDIO.value
             user_message_context = MessageContext(
                 message_id=user_response.messages[0].id,
-                message_type=message_type
+                message_type=message_type,
+                additional_info=byoeb_user_message.message_context.additional_info
             )
             user_messages_context.append(user_message_context)
         

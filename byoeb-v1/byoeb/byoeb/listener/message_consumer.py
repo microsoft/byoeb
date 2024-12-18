@@ -4,6 +4,7 @@ from datetime import datetime
 from byoeb_core.message_queue.base import BaseQueue
 from byoeb.factory import MongoDBFactory, ChannelClientFactory
 from byoeb.services.chat.message_consumer import MessageConsmerService
+from byoeb.services.databases.mongo_db import MongoDBService
 from byoeb_integrations.message_queue.azure.async_azure_storage_queue import AsyncAzureStorageQueue
 
 class QueueConsumer:
@@ -14,7 +15,7 @@ class QueueConsumer:
         account_url: str,
         queue_name: str,
         config: dict,
-        mongo_db_facory: MongoDBFactory,
+        mongo_db_service: MongoDBService,
         channel_client_factory: ChannelClientFactory,
         consuemr_type: str = None,
     ):
@@ -23,7 +24,7 @@ class QueueConsumer:
         self._account_url = account_url
         self._queue_name = queue_name
         self._config = config
-        self._mongo_db_facory = mongo_db_facory
+        self._mongo_db_service = mongo_db_service
         self._channel_client_factory = channel_client_factory
     
     async def __get_or_create_az_storage_queue_client(
@@ -83,7 +84,7 @@ class QueueConsumer:
         await self.initialize()
         message_consumer_svc = MessageConsmerService(
             config=self._config,
-            mongo_db_facory=self._mongo_db_facory,
+            mongo_db_service=self._mongo_db_service,
             channel_client_factory=self._channel_client_factory
         )
         self._logger.info(f"Queue info: {self._az_storage_queue}")

@@ -60,6 +60,7 @@ class ByoebExpertProcess(Handler):
             source_language=message.user.user_language,
             target_language="en"
         )
+        message.message_context.message_english_text = translated_en_text
         if self._successor:
             return await self._successor.handle([message])
             

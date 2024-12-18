@@ -96,6 +96,7 @@ def get_whatsapp_interactive_list_request_from_byoeb_message(
             title="Default Section",
             rows=rows
         )
+    description = byoeb_message.message_context.additional_info["description"]
     row_texts = byoeb_message.message_context.additional_info["row_texts"]
     message_text = byoeb_message.message_context.message_source_text
     phone_number_id = byoeb_message.user.phone_number_id
@@ -109,7 +110,7 @@ def get_whatsapp_interactive_list_request_from_byoeb_message(
                 text=message_text
             ),
             action=wa_requests.InteractiveAction(
-                button="Button Options",
+                button=description,
                 sections=[
                     get_section(row_texts),
                 ]
