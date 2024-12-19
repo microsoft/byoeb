@@ -77,6 +77,9 @@ class WhatsappResponder(BaseResponder):
     def update_kb(self):
         self.knowledge_base = KnowledgeBase(self.config)
 
+    def clear_cache(self):
+        self.user_db.clear_cache()
+
     def response(self, body):
         if (
             body.get("object")

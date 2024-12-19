@@ -74,4 +74,7 @@ class UserDB(BaseDB):
         user = self.collection.find_one({'user_id': user_id})
         return user.get('related_qns', [])
 
+    def clear_cache(self):
+        cache.clear()
+
     

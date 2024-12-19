@@ -163,6 +163,9 @@ def long_term():
     print("Medics sankara data received")
     return "OK", 200
 
+@app.route("/cache-clear", methods=["POST"])
+def clear_cache():
+    responder.clear_cache()
 
 # Define a route for handling webhooks
 @app.route("/webhooks", methods=["GET"])
