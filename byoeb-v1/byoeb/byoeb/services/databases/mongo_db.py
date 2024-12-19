@@ -1,5 +1,6 @@
 import asyncio
 import json
+import byoeb.services.chat.constants as constants
 from byoeb_core.models.byoeb.message_context import ByoebMessageContext
 from typing import List, Dict, Any
 from datetime import datetime
@@ -82,18 +83,51 @@ class MongoDBService:
             })
         return json_message_data
     
+    def correction_update_query(
+        self,
+        byoeb_user_messages: List[ByoebMessageContext],
+        byoeb_expert_message: ByoebMessageContext
+    ):
+        for byoeb_user_message in byoeb_user_messages:
+            reply_context = byoeb_user_message.reply_context
+            update_id = reply_context.additional_info.get(constants.UPDATE_ID)
+            reply_context.reply_id = update_id
+            byoeb_user_message.reply_context = reply_context
+        update_data = {
+            "$set":{
+                "message_data.message_context.additional_info.correction_en_text": byoeb_expert_message.reply_context.additional_info.get(constants.CORRECTION_EN),
+                "message_data.message_context.additional_info.correction_source_text": byoeb_expert_message.reply_context.additional_info.get(constants.CORRECTION_SOURCE),
+            }
+        }
+        expert_update_queries = [({"_id": byoeb_expert_message.reply_context.reply_id}, update_data)]
+        user_update_queries = []
+        for byoeb_user_message in byoeb_user_messages:
+            update_data = {
+                "$set":{
+                    "message_data.message_context.additional_info.corrected_en_text": byoeb_user_message.message_context.message_english_text,
+                    "message_data.message_context.additional_info.corrected_source_text": byoeb_user_message.message_context.message_source_text
+                }
+            }
+            user_update_queries.append(({"_id": byoeb_user_message.reply_context.reply_id}, update_data))
+        return expert_update_queries + user_update_queries
+    
     def verification_status_update_query(
         self,
         byoeb_user_messages: List[ByoebMessageContext],
         byoeb_expert_message: ByoebMessageContext
     ):
-        verification_status_param = "verification_status"
+        for byoeb_user_message in byoeb_user_messages:
+            reply_context = byoeb_user_message.reply_context
+            update_id = reply_context.additional_info.get(constants.UPDATE_ID)
+            reply_context.reply_id = update_id
+            byoeb_user_message.reply_context = reply_context
+        verification_status_param = constants.VERIFICATION_STATUS
         expert_verification_status = byoeb_expert_message.reply_context.additional_info.get(verification_status_param) 
         user_verification_status = byoeb_user_messages[0].reply_context.additional_info.get(verification_status_param)
         update_data = {
             "$set":{
                 "message_data.message_context.additional_info.verification_status": expert_verification_status,
-                "message_data.cross_conversation_context.messages_context.$[].additional_info.verification_status": user_verification_status
+                "message_data.cross_conversation_context.messages_context.$[].message_context.additional_info.verification_status": user_verification_status
             }
         }
         expert_update_queries = [({"_id": byoeb_expert_message.reply_context.reply_id}, update_data)]

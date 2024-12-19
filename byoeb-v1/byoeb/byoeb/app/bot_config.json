@@ -3,7 +3,8 @@
         "user_type": "byoebuser"
     },
     "expert": {
-        "user_type": "byoebexpert"
+        "user_type_1": "byoebexpert",
+        "user_type_2": "byoebexpert2"
     },
     "llm_response": {
         "answer_prompts": {
@@ -11,7 +12,7 @@
             "user_prompt": "The following knowledge base chunks have been provided to you as reference:\n<CHUNKS>\nYou are asked the following question:\n<QUESTION>"
         },
         "correction_prompts": {
-            "system_prompt": "You are a correction assistant. A user asked a query and the bot answered it. But, the expert gives a correction to the bot's response. Update the bot's response by taking the expert's correction into account. Respond only with the final updated response.\n",
+            "system_prompt": "You are a correction assistant. A user asked a query and the bot answered it. But, the expert gives a correction to the bot's response. Update the bot's response by taking the expert's correction into account. Respond ONLY with the final updated response.\n",
             "user_prompt": "Following are the question, answer, and correction to the answer:\n Question: <QUESTION> \n Answer: <ANSWER> \n Correction: <CORRECTION>"
         }
     },

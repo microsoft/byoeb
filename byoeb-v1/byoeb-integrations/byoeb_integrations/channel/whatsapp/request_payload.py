@@ -100,6 +100,12 @@ def get_whatsapp_interactive_list_request_from_byoeb_message(
     row_texts = byoeb_message.message_context.additional_info["row_texts"]
     message_text = byoeb_message.message_context.message_source_text
     phone_number_id = byoeb_message.user.phone_number_id
+    context = None
+    if byoeb_message.reply_context is not None:
+        reply_id = byoeb_message.reply_context.reply_id
+        context = WhatsappMessageReplyContext(
+            message_id=reply_id
+        )
     interactive_message = wa_requests.WhatsAppInteractiveMessage(
         messaging_product="whatsapp",
         to=phone_number_id,
@@ -115,7 +121,8 @@ def get_whatsapp_interactive_list_request_from_byoeb_message(
                     get_section(row_texts),
                 ]
             )
-        )
+        ),
+        context=context
     )
     return interactive_message.model_dump()
 

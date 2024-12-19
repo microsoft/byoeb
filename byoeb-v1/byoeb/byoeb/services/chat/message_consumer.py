@@ -29,7 +29,7 @@ class MessageConsmerService:
         self._mongo_db_service = mongo_db_service
         self._channel_client_factory = channel_client_factory
         self._regular_user_type = bot_config["regular"]["user_type"]
-        self._expert_user_type = bot_config["expert"]["user_type"]
+        self._expert_user_type = bot_config["expert"]["user_type_1"]
 
     # TODO: Hash can be used or better way to get user by phone number
     def __get_user(

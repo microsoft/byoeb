@@ -22,7 +22,7 @@ class UsersHandler:
         self.__mongo_db = None
         self.__user_collection_client = None
         self.__regular_user_type = bot_config["regular"]["user_type"]
-        self.__expert_user_type = bot_config["expert"]["user_type"]
+        self.__expert_user_type = bot_config["expert"]["user_type_1"]
 
     async def get_collection_client(self) -> BaseDocumentCollection:
         if self.__user_collection_client is not None:
