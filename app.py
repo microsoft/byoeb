@@ -151,6 +151,14 @@ def scheduler():
 @app.route("/medics-sankara", methods=["POST"])
 def long_term():
     data = request.json
+    logger.add_log(
+        sender_id="Medics",
+        receiver_id="Bot",
+        message_id=None,
+        action_type="Medics",
+        details=data,
+        timestamp=datetime.now
+    )
     for row in data:
         #make all values string
         for key in row:
