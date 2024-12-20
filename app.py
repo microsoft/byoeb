@@ -157,7 +157,7 @@ def long_term():
         message_id=None,
         action_type="Medics",
         details=data,
-        timestamp=datetime.now
+        timestamp=datetime.now()
     )
     for row in data:
         #make all values string
@@ -210,8 +210,12 @@ def process_queue():
                 try:
                     if message.dequeue_count > 1:
                         logger.add_log(
-                            event_name="app_error",
-                            details={"message": message.content, "error": "Dequeue count exceeded"},
+                            sender_id="queue_processor",
+                            receiver_id="Bot",
+                            message_id=None,
+                            action_type="Dequeue count exceeded",
+                            details={"message": message.content},
+                            timestamp=datetime.now(),
                         )
                         queue_client.delete_message(message)
                         continue
