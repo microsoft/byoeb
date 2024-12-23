@@ -36,7 +36,9 @@ class OnboardMedics:
         unit_data = self.unit_onboarding_data[unit]
         unit_lang_template = unit_data['lang_template_name']
         
-
+        if self.user_db.get_from_whatsapp_id('91'+str(data['phone_number'])) is not None:
+            print('User already exists')
+            return
         
         patient_row = {
             'user_id': str(uuid4()),
@@ -44,6 +46,8 @@ class OnboardMedics:
             'user_language': unit_data['language'],
             'user_type': 'Patient',
         }
+
+        
 
         patient_meta = {
             'patient_id': data['MRD'],
@@ -150,16 +154,7 @@ class OnboardMedics:
     
 
 if __name__ == "__main__":
-    logger = LoggingDatabase(config)
-    messenger = WhatsappMessenger(config, logger)
-
     onboard_medics = OnboardMedics()
-    data = [{"MRD":"SEHBLR/828933/24","name":"Bhuvan","phone_number":"8375066113","surgery_name":"CATARACT","suregery_group_name":"Others","age":23,"gender":"male","procedure_type":"Major Procedure","surgery_date":"10-04-2024","operating_doctor":"MSR","operating_doctor_number":"8904954952","counsellor_name":"MSR counsellor","counsellor_number":""}]
-    for row in data:
-        onboard_medics.onboard_medics_helper(row)
-
-
-    #sample request: [{"MRD":"SEHBLR/828933/24","name":"Bhuvan","phone_number":"8375066113","surgery_name":"CATARACT","suregery_group_name":"Others","age":23,"gender":"male","procedure_type":"Major Procedure","surgery_date":"10-04-2024","operating_doctor":"MSR","operating_doctor_number":8904954952,"counsellor_name":"MSR counsellor","counsellor_number":""}]
-
-
-    #reply: Message received {"object": "whatsapp_business_account", "entry": [{"id": "145465768651550", "changes": [{"value": {"messaging_product": "whatsapp", "metadata": {"display_phone_number": "15550489892", "phone_number_id": "165481563304443"}, "contacts": [{"profile": {"name": "Bhuvan Sachdeva"}, "wa_id": "918375066113"}], "messages": [{"context": {"from": "15550489892", "id": "wamid.HBgMOTE4Mzc1MDY2MTEzFQIAERgSRjMzNzY5NDA1RjkyODcwQTY4AA=="}, "from": "918375066113", "id": "wamid.HBgMOTE4Mzc1MDY2MTEzFQIAEhggNEQ2NUM0NDZGNjVGQkU2RkRCMjI0MjdCRENENjUxNDEA", "timestamp": "1729148937", "type": "button", "button": {"payload": "\u0939\u093f\u0902\u0926\u0940", "text": "\u0939\u093f\u0902\u0926\u0940"}}]}, "field": "messages"}]}]}
+    # data = [{"MRD":"SEHBLR/828933/24","name":"Bhuvan","phone_number":"8375066113","surgery_name":"CATARACT","suregery_group_name":"Others","age":23,"gender":"male","procedure_type":"Major Procedure","surgery_date":"10-04-2024","operating_doctor":"MSR","operating_doctor_number":"8904954952","counsellor_name":"MSR counsellor","counsellor_number":""}]
+    # for row in data:
+    #     onboard_medics.onboard_medics_helper(row)
