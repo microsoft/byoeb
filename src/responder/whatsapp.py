@@ -188,6 +188,17 @@ class WhatsappResponder(BaseResponder):
             timestamp=datetime.now(),
         )
 
+        self.user_conv_db.insert_row(
+            user_id=row_lt['user_id'],
+            message_id=msg_id,
+            message_type='onboarding_response',
+            message_source_lang=msg_object["button"]["text"],
+            source_language=row_lt['user_language'],
+            message_translated=None,
+            audio_blob_path=None,
+            message_timestamp=datetime.now(),
+        )
+
         return
     
     def language_onboarding_response(self, msg_object, row_lt):
