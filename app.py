@@ -151,6 +151,7 @@ def scheduler():
 @app.route("/medics-sankara", methods=["POST"])
 def long_term():
     data = request.json
+    data = data["data"]
     logger.add_log(
         sender_id="Medics",
         receiver_id="Bot",
