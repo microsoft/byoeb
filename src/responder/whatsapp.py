@@ -203,6 +203,18 @@ class WhatsappResponder(BaseResponder):
         self.user_db.update_user_language(row_lt['user_id'], detected_lang)
         onboarding_msg_id = self.messenger.send_template(row_lt['whatsapp_id'], 'onboard_cataractbot', detected_lang)
         
+        self.user_conv_db.insert_row(
+            user_id=row_lt['user_id'],
+            message_id=msg_object['id'],
+            message_type='lang_poll_response',
+            message_source_lang=msg_object['button']['payload'],
+            source_language=detected_lang,
+            message_translated=None,
+            audio_blob_path=None,
+            message_timestamp=datetime.now(),
+        )
+
+
         self.bot_conv_db.insert_row(
             receiver_id=row_lt['user_id'],
             message_type='onboarding_template',
