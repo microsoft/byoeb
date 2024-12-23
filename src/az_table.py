@@ -28,6 +28,11 @@ class PatientTable():
         except Exception as e:
             print(f"Error inserting entity: {e}")
 
+    def fetch_all_rows(self):
+        """Fetch all rows from the table."""
+        entities = self.table_client.list_entities()
+        return list(entities)
+
 if __name__ == "__main__":
     patient_table = PatientTable()
     row = {
