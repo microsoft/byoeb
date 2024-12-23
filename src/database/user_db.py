@@ -6,7 +6,7 @@ from uuid import uuid4
 from cachetools import cached, TTLCache
 from database.base import BaseDB
 
-eight_hours = 10
+eight_hours = 1
 cache = TTLCache(maxsize=100, ttl=eight_hours)
 
 class UserDB(BaseDB):
