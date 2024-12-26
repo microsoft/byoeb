@@ -2,6 +2,17 @@ import hashlib
 from byoeb_core.models.byoeb.user import User
 from typing import List, Dict, Any
 
+def get_experts_numbers(
+    experts: Dict[str, List[str]]
+) -> List[str]:
+    # print("Experts: ", experts)
+    # print("type: ", type(experts))
+    combined_list = []
+    for items in experts.values():
+        if items:  # Check if the value is not None or empty
+            combined_list.extend(items)
+    return combined_list
+
 def get_user_ids_from_phone_number_ids(
     phone_number_ids: List[str]
 ) -> List[str]:
@@ -30,13 +41,16 @@ def get_relations_update(
 ) -> Dict[str, List[str]]:
     user_ids_relations_update: Dict[str, List[str]] = {}
     for user in users:
-        relation_numbers = user.audience + user.experts
+        relation_numbers = user.audience + get_experts_numbers(user.experts)
         user_ids = get_user_ids_from_phone_number_ids(relation_numbers)
         _, present_ids = get_missing_and_present_ids(ids, user_ids)
         for id in present_ids:
             if id not in user_ids_relations_update:
                 user_ids_relations_update[id] = []
-            user_ids_relations_update[id].append(user.phone_number_id)
+            user_ids_relations_update[id].append({
+                "user_type": user.user_type,
+                "phone_number_id": user.phone_number_id
+            })
     affected_ids = list(user_ids_relations_update.keys())
     return affected_ids, user_ids_relations_update
 

@@ -8,7 +8,7 @@ from byoeb.services.channel.base import MessageReaction
 
 class ByoebExpertSendResponse(Handler):
     _regular_user_type = bot_config["regular"]["user_type"]
-    _expert_user_type = bot_config["expert"]["user_type_1"]
+    _expert_user_types = bot_config["expert"]
 
     def __init__(
         self,
@@ -31,7 +31,7 @@ class ByoebExpertSendResponse(Handler):
     ):
         expert_messages = [
             byoeb_message for byoeb_message in byoeb_messages 
-            if byoeb_message.user.user_type == self._expert_user_type
+            if byoeb_message.user.user_type in self._expert_user_types.values()
         ]
         return expert_messages
 

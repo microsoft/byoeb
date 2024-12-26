@@ -1,9 +1,7 @@
 import asyncio
-import json
 import byoeb.services.chat.constants as constants
 import byoeb_integrations.channel.whatsapp.request_payload as wa_req_payload
 from byoeb.services.channel.base import BaseChannelService, MessageReaction
-from byoeb_integrations.channel.whatsapp.meta.async_whatsapp_client import AsyncWhatsAppClient
 from byoeb_core.models.byoeb.message_context import (
     ByoebMessageContext,   
     MessageContext,

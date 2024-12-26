@@ -3,8 +3,8 @@
         "user_type": "byoebuser"
     },
     "expert": {
-        "user_type_1": "byoebexpert",
-        "user_type_2": "byoebexpert2"
+        "medical": "byoebexpert",
+        "logistical": "byoebexpert2"
     },
     "llm_response": {
         "answer_prompts": {
@@ -30,9 +30,15 @@
             }
         },
         "user": {
-            "wrong_answer": "The answer provided is incorrect. Please wait while we get verified answer from expert.",
-            "verified_answer": "The answer provided is verified by expert.",
-            "corrected_answer": "Here is the correct and verified answer: <CORRECTED_ANSWER>"
+            "wrong_answer": {
+                "en": "The answer provided is incorrect. Please wait while we get verified answer from expert."
+            },
+            "verified_answer": {
+                "en": "The answer provided is verified by expert."
+            },
+            "corrected_answer": {
+                "en": "Here is the correct and verified answer: <CORRECTED_ANSWER>"
+            }
         }
     },
     "channel_templates": { 

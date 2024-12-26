@@ -30,3 +30,4 @@ CORRECTION_EN = "correction_en"
 CORRECTION_SOURCE = "correction_source"
 
 UPDATE_ID = "update_id"
+MODIFIED_TIMESTAMP = "modified_timestamp"

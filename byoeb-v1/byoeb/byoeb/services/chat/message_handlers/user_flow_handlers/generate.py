@@ -1,7 +1,6 @@
 import hashlib
 import byoeb.services.chat.constants as constants
-from typing import List
-import byoeb.services.chat.constants
+from typing import List, Dict, Any
 from byoeb.app.configuration.config import bot_config, app_config
 from byoeb.models.message_category import MessageCategory
 from byoeb_core.models.byoeb.message_context import (
@@ -14,9 +13,9 @@ from byoeb_core.models.byoeb.user import User
 from byoeb.services.chat.message_handlers.base import Handler
 
 class ByoebUserGenerateResponse(Handler):
-    PENDING = "pending"
     EXPERT_PENDING_EMOJI = app_config["channel"]["reaction"]["expert"]["pending"]
     USER_PENDING_EMOJI = app_config["channel"]["reaction"]["user"]["pending"]
+    _expert_user_types = bot_config["expert"]
 
     async def __aretrieve_chunks_list(
         self,
@@ -65,6 +64,18 @@ class ByoebUserGenerateResponse(Handler):
             "template_parameters": texts
         }
         return additional_info
+    
+    def __get_expert_number_and_type(
+        self,
+        experts: Dict[str, List[Any]],
+        query_type = "medical"
+    ):
+        expert_type = self._expert_user_types.get(query_type)
+        if experts is None:
+            return None
+        if expert_type not in experts:
+            return None
+        return experts[expert_type][0], expert_type
     
     async def __get_new_user_message(
         self,
@@ -141,7 +152,7 @@ class ByoebUserGenerateResponse(Handler):
         status = None,
     ) -> ByoebMessageContext:
         
-        expert_phone_number_id = message.user.experts[0]
+        expert_phone_number_id , expert_type= self.__get_expert_number_and_type(message.user.experts)
         expert_user_id = hashlib.md5(expert_phone_number_id.encode()).hexdigest()
         verification_question_template = bot_config["template_messages"]["expert"]["verification"]["Question"]
         verification_bot_answer_template = bot_config["template_messages"]["expert"]["verification"]["Bot_Answer"]
@@ -165,6 +176,7 @@ class ByoebUserGenerateResponse(Handler):
             message_category=MessageCategory.BOT_TO_EXPERT_VERIFICATION.value,
             user=User(
                 user_id=expert_user_id,
+                user_type=expert_type,
                 user_language='en',
                 phone_number_id=expert_phone_number_id
             ),
@@ -193,7 +205,7 @@ class ByoebUserGenerateResponse(Handler):
             message=message,
             response_text=response_text,
             emoji=self.USER_PENDING_EMOJI,
-            status=self.PENDING,
+            status=constants.PENDING,
             related_questions=["abc", "def"]
         )
         if byoeb_user_message.message_context.additional_info is None:
@@ -202,8 +214,8 @@ class ByoebUserGenerateResponse(Handler):
             message,
             response_text,
             self.EXPERT_PENDING_EMOJI,
-            self.PENDING
+            constants.PENDING
         )
-        
+
         if self._successor:
             return await self._successor.handle([byoeb_user_message, byoeb_expert_message])

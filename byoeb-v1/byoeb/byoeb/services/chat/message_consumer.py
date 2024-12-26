@@ -29,7 +29,7 @@ class MessageConsmerService:
         self._mongo_db_service = mongo_db_service
         self._channel_client_factory = channel_client_factory
         self._regular_user_type = bot_config["regular"]["user_type"]
-        self._expert_user_type = bot_config["expert"]["user_type_1"]
+        self._expert_user_types = bot_config["expert"]
 
     # TODO: Hash can be used or better way to get user by phone number
     def __get_user(
@@ -39,6 +39,15 @@ class MessageConsmerService:
 
     ) -> User:
         return next((user for user in users if user.phone_number_id == phone_number_id), None)
+    
+    def __is_expert_user_type(
+        self,
+        user_type: str
+    ):
+        if user_type in self._expert_user_types.values():
+            return True
+        return False
+            
     
     def __get_bot_message(
         self,
@@ -72,7 +81,7 @@ class MessageConsmerService:
             conversation = ByoebMessageContext.model_validate(message)
             if user.user_type == self._regular_user_type:
                 conversation.message_category = MessageCategory.USER_TO_BOT.value
-            elif user.user_type == self._expert_user_type:
+            elif self.__is_expert_user_type(user.user_type):
                 conversation.message_category = MessageCategory.EXPERT_TO_BOT.value
             conversation.user = user
             if bot_message is None:
@@ -103,7 +112,7 @@ class MessageConsmerService:
         for conversation in conversations:
             if conversation.user.user_type == self._regular_user_type:
                 task.append(self.__process_byoebuser_conversation(conversation))
-            elif conversation.user.user_type == self._expert_user_type:
+            elif self.__is_expert_user_type(conversation.user.user_type):
                 task.append(self.__process_byoebexpert_conversation(conversation))
         results = await asyncio.gather(*task)
         for queries in results:

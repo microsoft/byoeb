@@ -122,11 +122,14 @@ class MongoDBService:
             reply_context.reply_id = update_id
             byoeb_user_message.reply_context = reply_context
         verification_status_param = constants.VERIFICATION_STATUS
-        expert_verification_status = byoeb_expert_message.reply_context.additional_info.get(verification_status_param) 
+        expert_verification_status = byoeb_expert_message.reply_context.additional_info.get(verification_status_param)
+        expert_modified_timestamp = byoeb_expert_message.reply_context.additional_info.get(constants.MODIFIED_TIMESTAMP)
         user_verification_status = byoeb_user_messages[0].reply_context.additional_info.get(verification_status_param)
+        user_modified_timestamp = byoeb_user_messages[0].reply_context.additional_info.get(constants.MODIFIED_TIMESTAMP)
         update_data = {
             "$set":{
                 "message_data.message_context.additional_info.verification_status": expert_verification_status,
+                "message_data.message_context.additional_info.modified_timestamp": expert_modified_timestamp,
                 "message_data.cross_conversation_context.messages_context.$[].message_context.additional_info.verification_status": user_verification_status
             }
         }
@@ -135,7 +138,8 @@ class MongoDBService:
         for byoeb_user_message in byoeb_user_messages:
             update_data = {
                 "$set":{
-                    "message_data.message_context.additional_info.verification_status": user_verification_status
+                    "message_data.message_context.additional_info.verification_status": user_verification_status,
+                    "message_data.message_context.additional_info.modified_timestamp": user_modified_timestamp
                 }
             }
             user_update_queries.append(({"_id": byoeb_user_message.reply_context.reply_id}, update_data))

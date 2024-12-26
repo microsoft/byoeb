@@ -2,6 +2,7 @@ import re
 import json
 import byoeb.services.chat.constants as constants
 from typing import List
+from datetime import datetime
 from byoeb.app.configuration.config import bot_config, app_config
 from byoeb.models.message_category import MessageCategory
 from byoeb_core.models.byoeb.message_context import (
@@ -20,9 +21,9 @@ class ByoebExpertGenerateResponse(Handler):
     EXPERT_ASK_FOR_CORRECTION = bot_config["template_messages"]["expert"]["ask_for_correction"]
     EXPERT_ALREADY_VERIFIED_MESSAGE = bot_config["template_messages"]["expert"]["already_answered"]
 
-    USER_VERIFIED_ANSWER_MESSAGE = bot_config["template_messages"]["user"]["verified_answer"]
-    USER_WRONG_ANSWER_MESSAGE = bot_config["template_messages"]["user"]["wrong_answer"]
-    USER_CORRECTED_ANSWER_MESSAGE = bot_config["template_messages"]["user"]["corrected_answer"]
+    USER_VERIFIED_ANSWER_MESSAGES = bot_config["template_messages"]["user"]["verified_answer"]
+    USER_WRONG_ANSWER_MESSAGES = bot_config["template_messages"]["user"]["wrong_answer"]
+    USER_CORRECTED_ANSWER_MESSAGES = bot_config["template_messages"]["user"]["corrected_answer"]
 
     USER_VERIFIED_EMOJI = app_config["channel"]["reaction"]["user"]["verified"]
     USER_REJECTED_EMOJI = app_config["channel"]["reaction"]["user"]["rejected"]
@@ -33,7 +34,13 @@ class ByoebExpertGenerateResponse(Handler):
     EXPERT_WAITING_EMOJI = app_config["channel"]["reaction"]["expert"]["waiting"]
 
     _regular_user_type = bot_config["regular"]["user_type"]
-    _expert_user_type = bot_config["expert"]["user_type_1"]
+
+    def __get_user_language(
+        self,
+        user_info_dict: dict
+    ):
+        user = User.model_validate(user_info_dict)
+        return user.user_language
 
     def __parse_message(self, message: str) -> dict:
         pattern = r"\*Question\*:\s*(.*?)\n\*Bot_Answer\*:\s*(.*)"
@@ -81,7 +88,8 @@ class ByoebExpertGenerateResponse(Handler):
         reply_additional_info = {
             constants.UPDATE_ID: cross_conv_message.message_context.message_id,
             constants.EMOJI: emoji,
-            constants.VERIFICATION_STATUS: status
+            constants.VERIFICATION_STATUS: status,
+            constants.MODIFIED_TIMESTAMP: str(int(datetime.now().timestamp()))
         }
         if (status == constants.VERIFIED
             and byoeb_message.reply_context.additional_info[constants.VERIFICATION_STATUS] == constants.WAITING
@@ -90,7 +98,8 @@ class ByoebExpertGenerateResponse(Handler):
             reply_type = None
             reply_additional_info = {
                 constants.UPDATE_ID: cross_conv_message.message_context.message_id,
-                constants.VERIFICATION_STATUS: status
+                constants.VERIFICATION_STATUS: status,
+                constants.MODIFIED_TIMESTAMP: str(int(datetime.now().timestamp()))
             }
 
         return ReplyContext(
@@ -107,6 +116,7 @@ class ByoebExpertGenerateResponse(Handler):
         status = None,
     ):
         from byoeb.app.configuration.dependency_setup import speech_translator
+        from byoeb.app.configuration.dependency_setup import text_translator
         user_info_dict = byoeb_message.cross_conversation_context.get(constants.USER)
         user = User.model_validate(user_info_dict)
         user.user_type = self._regular_user_type
@@ -117,10 +127,16 @@ class ByoebExpertGenerateResponse(Handler):
         if (status == constants.VERIFIED
             and byoeb_message.reply_context.additional_info[constants.VERIFICATION_STATUS] == constants.WAITING
         ):
+            translated_text = await text_translator.atranslate_text(
+                input_text=text_message,
+                source_language="en",
+                target_language=user.user_language
+            )
+            text_message = self.USER_CORRECTED_ANSWER_MESSAGES.get(user.user_language).replace("<CORRECTED_ANSWER>", translated_text)
             translated_audio_message = await speech_translator.atext_to_speech(
-                    input_text=text_message,
-                    source_language=user.user_language,
-                )
+                input_text=text_message,
+                source_language=user.user_language,
+            )
             media_additiona_info = {
                 constants.DATA: translated_audio_message,
                 constants.MIME_TYPE: "audio/wav"
@@ -193,8 +209,8 @@ class ByoebExpertGenerateResponse(Handler):
             message_category=MessageCategory.BOT_TO_EXPERT.value,
             user=User(
                 user_id=byoeb_message.user.user_id,
+                user_type=byoeb_message.user.user_type,
                 user_language=byoeb_message.user.user_language,
-                user_type=self._expert_user_type,
                 phone_number_id=byoeb_message.user.phone_number_id
             ),
             message_context=MessageContext(
@@ -207,7 +223,8 @@ class ByoebExpertGenerateResponse(Handler):
                 additional_info={
                     constants.EMOJI: emoji,
                     constants.VERIFICATION_STATUS: status,
-                    **correction_info
+                    **correction_info,
+                    constants.MODIFIED_TIMESTAMP: str(int(datetime.now().timestamp()))
                 }
             ),
             cross_conversation_context=byoeb_message.cross_conversation_context,
@@ -278,9 +295,12 @@ class ByoebExpertGenerateResponse(Handler):
                 message,
                 self.EXPERT_RESOLVED_EMOJI,
                 constants.VERIFIED
+            ) 
+            user_lang = self.__get_user_language(
+                message.cross_conversation_context.get(constants.USER)
             )
             byoeb_user_messages = await self.__get_user_message(
-                self.USER_VERIFIED_ANSWER_MESSAGE,
+                self.USER_VERIFIED_ANSWER_MESSAGES.get(user_lang),
                 message,
                 self.USER_VERIFIED_EMOJI,
                 constants.VERIFIED
@@ -294,8 +314,11 @@ class ByoebExpertGenerateResponse(Handler):
                 message,
                 self.EXPERT_WAITING_EMOJI,
                 constants.WAITING)
+            user_lang = self.__get_user_language(
+                message.cross_conversation_context.get(constants.USER)
+            )
             byoeb_user_messages = await self.__get_user_message(
-                self.USER_WRONG_ANSWER_MESSAGE,
+                self.USER_WRONG_ANSWER_MESSAGES.get(user_lang),
                 message,
                 self.USER_REJECTED_EMOJI,
                 constants.WRONG
@@ -314,15 +337,14 @@ class ByoebExpertGenerateResponse(Handler):
             )
             augmented_prompts = self.__augment(user_prompt)
             llm_response, response_text = await llm_client.agenerate_response(augmented_prompts)
-            corrected_answer = self.USER_CORRECTED_ANSWER_MESSAGE.replace("<CORRECTED_ANSWER>", response_text)
-            print("Corrected answer: ", corrected_answer)
+            print("Corrected answer: ", response_text)
             byoeb_expert_messages = self.__get_expert_message(
                 self.EXPERT_THANK_YOU_MESSAGE,
                 message,
                 self.EXPERT_RESOLVED_EMOJI,
                 constants.VERIFIED)
             byoeb_user_messages = await self.__get_user_message(
-                corrected_answer,
+                response_text,
                 message,
                 self.USER_VERIFIED_EMOJI,
                 constants.VERIFIED
