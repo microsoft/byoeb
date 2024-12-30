@@ -851,17 +851,18 @@ class WhatsappResponder(BaseResponder):
         )
 
         if escalation:
+            self.user_conv_db.mark_escalated(row_query["_id"])
 
-            primary_poll = self.bot_conv_db.find({"$and" : [{"receiver_id": expert_row_lt["user_id"]}, {"transaction_message_id": row_query["message_id"]}, {"message_type": "poll_primary"}]})
-            receiver_name = f"escalation {expert}"
-            primanry_notif = expert_row_lt_notif["whatsapp_id"]
-            self.messenger.send_message(
-                primanry_notif,
-                "Escalating it to " + receiver_name,
-                reply_to_msg_id=primary_poll["message_id"],
-            )
-
-
+            if expert_row_lt_notif is not None:
+                primary_poll = self.bot_conv_db.find({"$and" : [{"receiver_id": expert_row_lt["user_id"]}, {"transaction_message_id": row_query["message_id"]}, {"message_type": "poll_primary"}]})
+                receiver_name = f"escalation {expert}"
+                primary_notif = expert_row_lt_notif["whatsapp_id"]
+                self.messenger.send_message(
+                    primary_notif,
+                    "Escalating it to " + receiver_name,
+                    reply_to_msg_id=primary_poll["message_id"],
+                )
+            
         return message_id
 
 
@@ -996,7 +997,7 @@ class WhatsappResponder(BaseResponder):
                     notif_row_lt['whatsapp_id'], poll_notif["message_id"], "\u2705"
                 )
 
-            self.user_conv_db.mark_resolved(transaction_message_id)
+            self.user_conv_db.mark_resolved(row_query['_id'])
             self.expert_conv_db.insert_row(
                 user_id=expert_row_lt["user_id"],
                 message_type="poll_response",
@@ -1242,7 +1243,7 @@ class WhatsappResponder(BaseResponder):
         self.messenger.send_message(
             msg_object["from"], "Correction noted. Thank you.", msg_object["id"]
         )
-        self.user_conv_db.mark_resolved(transaction_message_id)
+        self.user_conv_db.mark_resolved(row_query['_id'])
         
         
         if row_query['message_type'] == 'audio':

@@ -150,7 +150,7 @@ for index, row in tqdm(df.iterrows()):
         transaction_message_id=row["message_id"],
     )
 
-    user_conv_db.mark_resolved(row["message_id"])
+    user_conv_db.mark_resolved(row["_id"])
     print("Marking resolved", row["message_id"])
 
 

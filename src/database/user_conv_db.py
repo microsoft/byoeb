@@ -68,9 +68,9 @@ class UserConvDB(BaseDB):
             }}
         )
 
-    def mark_resolved(self, message_id):
+    def mark_resolved(self, db_id):
         self.collection.update_one(
-            {'message_id': message_id},
+            {'_id': db_id},
             {'$set': {
                 'resolved': True
             }}
@@ -79,3 +79,11 @@ class UserConvDB(BaseDB):
     def get_all_unresolved(self, from_ts, to_ts):
         user_conv = self.collection.find({"$and": [{"resolved": {"$ne": True}}, {'message_timestamp': {'$gte': from_ts, '$lt': to_ts}}]})
         return user_conv
+    
+    def mark_escalated(self, db_id):
+        self.collection.update_one(
+            {'_id': db_id},
+            {'$set': {
+                'escalated': True
+            }}
+        )
