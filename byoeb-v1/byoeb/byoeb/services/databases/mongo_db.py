@@ -1,6 +1,8 @@
 import asyncio
+import hashlib
 import json
 import byoeb.services.chat.constants as constants
+from byoeb.chat_app.configuration.config import app_config
 from byoeb_core.models.byoeb.message_context import ByoebMessageContext
 from typing import List, Dict, Any
 from datetime import datetime
@@ -18,6 +20,7 @@ class MongoDBService:
     ):
         self._config = config
         self._mongo_db_factory = mongo_db_factory
+        self._history_length = self._config["app"]["history_length"]
 
     async def __get_message_collection_client(
         self
@@ -38,7 +41,19 @@ class MongoDBService:
             collection=mongo_db.get_collection(user_collection)
         )
         return user_collection_client
-
+    
+    async def get_user_activity_timestamp(
+        self,
+        user_id: str,
+    ) -> str:
+        user_collection_client = await self.__get_user_collection_client()
+        query = {"_id": user_id}
+        user_obj = await user_collection_client.afetch(query)
+        if user_obj is None:
+            return None
+        user = User(**user_obj['User'])
+        return user.activity_timestamp
+        
     async def get_users(
         self,
         user_ids: list
@@ -83,6 +98,28 @@ class MongoDBService:
             })
         return json_message_data
     
+    def user_activity_update_query(
+        self,
+        user: User,
+        qa: Dict[str, Any] = None
+    ):
+        user_id = user.user_id
+        latest_timestamp = str(int(datetime.now().timestamp()))
+        update_data = {
+            "$set": {
+                "User.activity_timestamp": latest_timestamp
+            }
+        }
+        if qa is None:
+            return ({"_id": user_id}, update_data)
+        last_convs = user.last_conversations
+        print("last_convs", last_convs)
+        if len(last_convs) >= self._history_length:
+            last_convs.pop(0)
+        last_convs.append(qa)
+        update_data["$set"]["User.last_conversations"] = last_convs
+        return ({"_id": user_id}, update_data)
+
     def correction_update_query(
         self,
         byoeb_user_messages: List[ByoebMessageContext],
@@ -147,7 +184,7 @@ class MongoDBService:
     
     async def execute_message_queries(
         self,
-        queries: List[Dict[str, Any]]
+        queries: Dict[str, Any]
     ):
         message_client = await self.__get_message_collection_client()
         if queries is None or len(queries) == 0:
@@ -159,7 +196,7 @@ class MongoDBService:
            
     async def execute_user_queries(
         self,
-        queries: List[Dict[str, Any]]
+        queries: Dict[str, Any]
     ):
         user_client = await self.__get_user_collection_client()
         if queries is None or len(queries) == 0:

@@ -1,7 +1,7 @@
 import asyncio
 import byoeb.services.chat.constants as constants
-from typing import List
-from byoeb_core.models.byoeb.message_context import ByoebMessageContext
+from typing import Any, Dict, List
+from byoeb_core.models.byoeb.message_context import ByoebMessageContext, MessageTypes
 from byoeb.services.channel.base import BaseChannelService, MessageReaction
 from byoeb.services.databases.mongo_db import MongoDBService
 from byoeb.services.chat.message_handlers.base import Handler
@@ -23,6 +23,27 @@ class ByoebUserSendResponse(Handler):
             from byoeb.services.channel.whatsapp import WhatsAppService
             return WhatsAppService()
         return None
+    
+    def __prepare_db_queries(
+        self,
+        convs: List[ByoebMessageContext],
+        byoeb_user_message: ByoebMessageContext,
+    ):
+        message_db_queries = {
+            constants.CREATE: self._mongo_db_service.message_create_queries(convs)
+        }
+        qa = {
+            constants.QUESTION: byoeb_user_message.reply_context.reply_english_text,
+            constants.ANSWER: byoeb_user_message.message_context.message_english_text
+        }
+        user_db_queries = {
+            constants.UPDATE: [self._mongo_db_service.user_activity_update_query(byoeb_user_message.user, qa)]
+        }
+        return {
+            constants.MESSAGE_DB_QUERIES: message_db_queries,
+            constants.USER_DB_QUERIES: user_db_queries
+        }
+        
 
     async def __handle_expert(
         self,
@@ -33,8 +54,8 @@ class ByoebUserSendResponse(Handler):
         interactive_button_message = expert_requests[0]
         template_verification_message = expert_requests[1]
         responses, message_ids = await channel_service.send_requests([interactive_button_message])
-        # print(responses[0].response_status.status)
         if int(responses[0].response_status.status) != 200:
+            expert_message_context.message_context.message_type = MessageTypes.TEMPLATE_BUTTON.value
             responses = await channel_service.send_requests([template_verification_message])
         pending_emoji = expert_message_context.message_context.additional_info.get(constants.EMOJI)
         message_reactions = [
@@ -55,8 +76,21 @@ class ByoebUserSendResponse(Handler):
         channel_service: BaseChannelService,
         user_message_context: ByoebMessageContext
     ):
+        responses = []
+        message_ids = []
         user_requests = channel_service.prepare_requests(user_message_context)
-        responses, message_ids = await channel_service.send_requests(user_requests)
+        if user_message_context.message_context.message_type == MessageTypes.REGULAR_AUDIO.value:
+            user_message_copy = user_message_context.__deepcopy__()
+            user_message_copy.reply_context = None
+            user_requests_no_tag = channel_service.prepare_requests(user_message_copy)
+            audio_tag_message = user_requests[1]
+            text_no_tag_message = user_requests_no_tag[0]
+            response_audio, message_id_audio = await channel_service.send_requests([audio_tag_message])
+            response_text, message_id_text = await channel_service.send_requests([text_no_tag_message])
+            responses = response_audio + response_text
+            message_ids = message_id_audio + message_id_text
+        else:
+            responses, message_ids = await channel_service.send_requests(user_requests)
         pending_emoji = user_message_context.message_context.additional_info.get(constants.EMOJI)
         message_reactions = [
             MessageReaction(
@@ -73,7 +107,7 @@ class ByoebUserSendResponse(Handler):
     async def handle(
         self,
         messages: List[ByoebMessageContext]
-    ) -> List[ByoebMessageContext]:
+    ) -> Dict[str, Any]:
         db_queries = {}
         verification_status = constants.VERIFICATION_STATUS
         byoeb_user_message = messages[0]
@@ -106,7 +140,5 @@ class ByoebUserSendResponse(Handler):
             user_responses,
             expert_responses
         )
-        db_queries = {
-            constants.CREATE: self._mongo_db_service.message_create_queries(bot_to_user_convs + bot_to_expert_cross_convs)
-        }
+        db_queries = self.__prepare_db_queries(bot_to_user_convs + bot_to_expert_cross_convs, byoeb_user_message)
         return db_queries

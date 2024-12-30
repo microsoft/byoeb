@@ -84,7 +84,7 @@ async def inspect():
     results = await c1_client.afetch_all()
     for result in results:
         print(json.dumps(result))
-    # await c1_client.adelete_collection()
+    await c1_client.adelete_collection()
 
 # asyncio.run(aazure_cosmos_mongo_db())
 def test_aazure_cosmos_mongo_db_batch(event_loop):

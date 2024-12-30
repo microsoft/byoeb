@@ -1,9 +1,9 @@
 import re
 import json
 import byoeb.services.chat.constants as constants
-from typing import List
+from typing import List, Dict, Any
 from datetime import datetime
-from byoeb.app.configuration.config import bot_config, app_config
+from byoeb.chat_app.configuration.config import bot_config, app_config
 from byoeb.models.message_category import MessageCategory
 from byoeb_core.models.byoeb.message_context import (
     ByoebMessageContext,
@@ -34,6 +34,9 @@ class ByoebExpertGenerateResponse(Handler):
     EXPERT_WAITING_EMOJI = app_config["channel"]["reaction"]["expert"]["waiting"]
 
     _regular_user_type = bot_config["regular"]["user_type"]
+    button_titles = bot_config["template_messages"]["expert"]["verification"]["button_titles"]
+    yes = button_titles[0]
+    no = button_titles[1]
 
     def __get_user_language(
         self,
@@ -115,18 +118,20 @@ class ByoebExpertGenerateResponse(Handler):
         emoji = None,
         status = None,
     ):
-        from byoeb.app.configuration.dependency_setup import speech_translator
-        from byoeb.app.configuration.dependency_setup import text_translator
+        from byoeb.chat_app.configuration.dependency_setup import speech_translator
+        from byoeb.chat_app.configuration.dependency_setup import text_translator
         user_info_dict = byoeb_message.cross_conversation_context.get(constants.USER)
         user = User.model_validate(user_info_dict)
         user.user_type = self._regular_user_type
-        user_reply_to_messages_context = byoeb_message.cross_conversation_context.get(constants.MESSAGES_CONTEXT)
-        user_reply_to_message_context = None
+        reply_to_user_messages_context = byoeb_message.cross_conversation_context.get(constants.MESSAGES_CONTEXT)
+        reply_to_user_message_context = None
         message_reaction_additional_info = {}
         media_additiona_info = {}
+        message_en_text = None
         if (status == constants.VERIFIED
             and byoeb_message.reply_context.additional_info[constants.VERIFICATION_STATUS] == constants.WAITING
         ):
+            message_en_text = text_message
             translated_text = await text_translator.atranslate_text(
                 input_text=text_message,
                 source_language="en",
@@ -146,17 +151,17 @@ class ByoebExpertGenerateResponse(Handler):
                 constants.VERIFICATION_STATUS: status
             }
         new_user_messages = []
-        for message_context_dict in user_reply_to_messages_context:
-            user_reply_to_message_context = ByoebMessageContext.model_validate(message_context_dict)
+        for message_context_dict in reply_to_user_messages_context:
+            reply_to_user_message_context = ByoebMessageContext.model_validate(message_context_dict)
             reply_context = self.__create_user_reply_context(
                 byoeb_message,
-                user_reply_to_message_context,
+                reply_to_user_message_context,
                 emoji,
                 status
             )
             print("Reply context: ", json.dumps(reply_context.model_dump()))
             message_context = None
-            if user_reply_to_message_context.message_context.message_type == MessageTypes.REGULAR_AUDIO.value:
+            if (reply_to_user_message_context.message_context.message_type == MessageTypes.REGULAR_AUDIO.value):
                 message_context = MessageContext(
                     message_type=MessageTypes.REGULAR_AUDIO.value,
                     additional_info={
@@ -164,19 +169,19 @@ class ByoebExpertGenerateResponse(Handler):
                         **message_reaction_additional_info
                     }
                 )
-            elif user_reply_to_message_context.message_context.message_type == MessageTypes.INTERACTIVE_LIST.value:
-                related_questions = user_reply_to_message_context.message_context.additional_info.get(constants.RELATED_QUESTIONS)
+            elif reply_to_user_message_context.message_context.message_type == MessageTypes.INTERACTIVE_LIST.value:
+                related_questions = reply_to_user_message_context.message_context.additional_info.get(constants.RELATED_QUESTIONS)
                 message_context = MessageContext(
-                    message_type=MessageTypes.INTERACTIVE_LIST.value,
+                    message_type=MessageTypes.REGULAR_TEXT.value,
+                    message_english_text=message_en_text,
                     message_source_text=text_message,
-                    message_english_text=text_message,
                     additional_info={
                         **message_reaction_additional_info,
                         constants.DESCRIPTION: "xyz",
                         constants.ROW_TEXTS: related_questions
                     }
                 )
-                print("Message context: ", json.dumps(message_context.model_dump()))
+            # print("Message context: ", json.dumps(message_context.model_dump()))
             
             new_user_message = ByoebMessageContext(
                 channel_type=byoeb_message.channel_type,
@@ -197,7 +202,9 @@ class ByoebExpertGenerateResponse(Handler):
     ):
         correction_info = {}
 
-        if status == constants.VERIFIED:
+        if (status == constants.VERIFIED
+            and byoeb_message.message_context.message_source_text != self.yes
+        ):
             correction_source = byoeb_message.message_context.message_source_text
             correction_english = byoeb_message.message_context.message_english_text
             correction_info = {
@@ -261,16 +268,13 @@ class ByoebExpertGenerateResponse(Handler):
     async def handle(
         self,
         messages: List[ByoebMessageContext]
-    ):
+    ) -> Dict[str, Any]:
         message = messages[0]
-        from byoeb.app.configuration.dependency_setup import llm_client
+        from byoeb.chat_app.configuration.dependency_setup import llm_client
         reply_context = message.reply_context
         cross_message_verification_status = self.__get_cross_conv_verification_status(message)
         byoeb_expert_messages = []
         byoeb_user_messages = []
-        button_titles = bot_config["template_messages"]["expert"]["verification"]["button_titles"]
-        yes = button_titles[0]
-        no = button_titles[1]
         byoeb_messages = []
 
         if reply_context is None or reply_context.reply_id is None:
@@ -284,18 +288,18 @@ class ByoebExpertGenerateResponse(Handler):
 
         elif (reply_context.message_category == MessageCategory.BOT_TO_EXPERT_VERIFICATION.value
             and reply_context.additional_info[constants.VERIFICATION_STATUS] == constants.PENDING
-            and message.message_context.message_english_text not in button_titles):
+            and message.message_context.message_english_text not in self.button_titles):
             byoeb_expert_messages = self.__get_expert_message(self.EXPERT_DEFAULT_MESSAGE, message)
 
         elif (reply_context.message_category == MessageCategory.BOT_TO_EXPERT_VERIFICATION.value
             and reply_context.additional_info[constants.VERIFICATION_STATUS] == constants.PENDING
-            and message.message_context.message_english_text == yes):
+            and message.message_context.message_english_text == self.yes):
             byoeb_expert_messages = self.__get_expert_message(
                 self.EXPERT_THANK_YOU_MESSAGE,
                 message,
                 self.EXPERT_RESOLVED_EMOJI,
                 constants.VERIFIED
-            ) 
+            )
             user_lang = self.__get_user_language(
                 message.cross_conversation_context.get(constants.USER)
             )
@@ -308,7 +312,7 @@ class ByoebExpertGenerateResponse(Handler):
 
         elif (reply_context.message_category == MessageCategory.BOT_TO_EXPERT_VERIFICATION.value
             and reply_context.additional_info[constants.VERIFICATION_STATUS] == constants.PENDING
-            and message.message_context.message_english_text == no):
+            and message.message_context.message_english_text == self.no):
             byoeb_expert_messages = self.__get_expert_message(
                 self.EXPERT_ASK_FOR_CORRECTION,
                 message,

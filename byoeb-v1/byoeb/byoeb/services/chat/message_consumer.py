@@ -2,12 +2,13 @@ import logging
 import asyncio
 import json
 import hashlib
+import byoeb.services.chat.constants as constants
 from datetime import datetime
 from pydantic import BaseModel
 from typing import Optional, List
 from byoeb.models.message_category import MessageCategory
 from byoeb.factory import MongoDBFactory, ChannelClientFactory
-from byoeb.app.configuration.config import bot_config
+from byoeb.chat_app.configuration.config import bot_config
 from byoeb_core.models.byoeb.user import User
 from byoeb.services.databases.mongo_db import MongoDBService
 from byoeb_core.models.byoeb.message_context import ByoebMessageContext
@@ -110,28 +111,42 @@ class MessageConsmerService:
         conversations = await self.__create_conversations(byoeb_messages)
         task = []
         for conversation in conversations:
+            conversation.user.activity_timestamp = str(int(datetime.now().timestamp()))
             if conversation.user.user_type == self._regular_user_type:
                 task.append(self.__process_byoebuser_conversation(conversation))
             elif self.__is_expert_user_type(conversation.user.user_type):
                 task.append(self.__process_byoebexpert_conversation(conversation))
         results = await asyncio.gather(*task)
         for queries in results:
-            await self._mongo_db_service.execute_message_queries(queries)
+            await self._mongo_db_service.execute_message_queries(queries.get(constants.MESSAGE_DB_QUERIES))
+            await self._mongo_db_service.execute_user_queries(queries.get(constants.USER_DB_QUERIES))
 
     async def __process_byoebuser_conversation(
         self,
         byoeb_message: ByoebMessageContext
     ):
-        from byoeb.app.configuration.dependency_setup import byoeb_user_process
-        # print("Process user message ", byoeb_message)
+        from byoeb.chat_app.configuration.dependency_setup import byoeb_user_process
+        print("Process user message ", byoeb_message)
         self._logger.info(f"Process user message: {byoeb_message}")
-        return await byoeb_user_process.handle([byoeb_message])
+        try:
+            queries = await byoeb_user_process.handle([byoeb_message])
+            return queries
+        except Exception as e:
+            self._logger.error(f"Error processing user message: {e}")
+            print("Error processing user message: ", e)
+            return {}
 
     async def __process_byoebexpert_conversation(
         self,
         byoeb_message: ByoebMessageContext
     ):
-        from byoeb.app.configuration.dependency_setup import byoeb_expert_process
+        from byoeb.chat_app.configuration.dependency_setup import byoeb_expert_process
         print("Process expert message ", json.dumps(byoeb_message.model_dump()))
         self._logger.info(f"Process expert message: {byoeb_message}")
-        return await byoeb_expert_process.handle([byoeb_message])
+        try:
+            queries = await byoeb_expert_process.handle([byoeb_message])
+            return queries
+        except Exception as e:
+            self._logger.error(f"Error processing expert message: {e}")
+            print("Error processing expert message: ", e)
+            return {}

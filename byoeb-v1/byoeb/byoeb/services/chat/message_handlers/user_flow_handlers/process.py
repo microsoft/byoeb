@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, Any, List
 from byoeb_core.models.byoeb.message_context import ByoebMessageContext, MessageTypes
 from byoeb.services.chat.message_handlers.base import Handler
 
@@ -7,11 +7,11 @@ class ByoebUserProcess(Handler):
     async def handle(
         self,
         messages: List[ByoebMessageContext]
-    ) -> List[ByoebMessageContext]:
+    ) -> Dict[str, Any]:
         # dependency injection
-        from byoeb.app.configuration.dependency_setup import text_translator
-        from byoeb.app.configuration.dependency_setup import channel_client_factory
-        from byoeb.app.configuration.dependency_setup import speech_translator
+        from byoeb.chat_app.configuration.dependency_setup import text_translator
+        from byoeb.chat_app.configuration.dependency_setup import channel_client_factory
+        from byoeb.chat_app.configuration.dependency_setup import speech_translator_whisper
         from byoeb_core.convertor.audio_convertor import ogg_opus_to_wav_bytes
 
         message = messages[0]
@@ -31,17 +31,17 @@ class ByoebUserProcess(Handler):
             channel_client = channel_client_factory.get(channel_type)
             _, audio_message, err = await channel_client.adownload_media(media_id)
             audio_message_wav = ogg_opus_to_wav_bytes(audio_message.data)
-            with open("audio_message.wav", "wb") as audio_file:
-                audio_file.write(audio_message_wav)
-            audio_to_text = await speech_translator.aspeech_to_text(audio_message_wav, source_language)
-            print("audio_to_text", audio_to_text)
+            # with open("audio_message.wav", "wb") as audio_file:
+            #     audio_file.write(audio_message_wav)
+            audio_to_text = await speech_translator_whisper.aspeech_to_text(audio_message_wav, source_language)
+            # print("audio_to_text", audio_to_text)
             translated_en_text = await text_translator.atranslate_text(
                 input_text=audio_to_text,
                 source_language=source_language,
                 target_language="en"
             )
             message.message_context.media_info.media_type = audio_message.mime_type
-
+            
         message.message_context.message_english_text = translated_en_text
         
         if self._successor:

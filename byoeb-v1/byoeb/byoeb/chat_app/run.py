@@ -30,7 +30,7 @@ def create_app():
 async def lifespan(app: FastAPI):
     pid = os.getpid()
     print(f"FastAPI app is running with PID: {pid}")
-    from byoeb.app.configuration.dependency_setup import (
+    from byoeb.chat_app.configuration.dependency_setup import (
         channel_client_factory, 
         message_consumer,
         queue_producer_factory

@@ -1,6 +1,6 @@
 import logging
 import json
-import byoeb.app.configuration.dependency_setup as dependency_setup
+import byoeb.chat_app.configuration.dependency_setup as dependency_setup
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 

@@ -4,7 +4,7 @@ from typing import List, Any, Dict
 from byoeb.services.user.user import UserService
 from byoeb_core.models.byoeb.response import ByoebResponseModel, ByoebStatusCodes
 from byoeb_core.models.byoeb.user import User 
-from byoeb.app.configuration.config import app_config, bot_config
+from byoeb.chat_app.configuration.config import app_config, bot_config
 from byoeb.factory import MongoDBFactory
 from byoeb_core.databases.mongo_db.base import BaseDocumentCollection
 from byoeb_integrations.databases.mongo_db.azure.async_azure_cosmos_mongo_db import AsyncAzureCosmosMongoDB, AsyncAzureCosmosMongoDBCollection

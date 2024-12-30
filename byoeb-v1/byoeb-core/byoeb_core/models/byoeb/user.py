@@ -13,3 +13,4 @@ class User(BaseModel):
     audience: Optional[List[str]] = Field(default_factory=list, description="List of users associated with this user")
     created_timestamp: Optional[int] = Field(None, description="Timestamp when the user was created", example=1633028300)
     activity_timestamp: Optional[int] = Field(None, description="Timestamp of the user's last activity", example=1633028301)
+    last_conversations: Optional[List[Dict[str, Any]]] = Field(default_factory=list, description="List of the user's last conversations")

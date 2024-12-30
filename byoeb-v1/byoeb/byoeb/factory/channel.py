@@ -2,7 +2,7 @@ import os
 import logging
 from enum import Enum
 from byoeb_integrations.channel.whatsapp.register import RegisterWhatsapp
-from byoeb.app.configuration.config import (
+from byoeb.chat_app.configuration.config import (
     env_whatsapp_token,
     env_whatsapp_phone_number_id,
     env_whatsapp_auth_token

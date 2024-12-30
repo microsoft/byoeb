@@ -10,7 +10,7 @@ from byoeb.handler import (
     QueueProducerHandler,
     UsersHandler
 )
-from byoeb.app.configuration.config import app_config
+from byoeb.chat_app.configuration.config import app_config
 from byoeb.listener.message_consumer import QueueConsumer
 from byoeb.services.databases.mongo_db import MongoDBService
 
@@ -67,16 +67,24 @@ token_provider = get_bearer_token_provider(
 # TODO: factory implementation
 text_translator = AsyncAzureTextTranslator(
     credential=AzureCliCredential(),
-    region=app_config["translators"]["text"]["azure"]["region"],
-    resource_id=app_config["translators"]["text"]["azure"]["resource_id"],
+    region=app_config["translators"]["text"]["azure_cognitive"]["region"],
+    resource_id=app_config["translators"]["text"]["azure_cognitive"]["resource_id"],
 )
 
 # Speech translator
 # TODO: factory implementation
 speech_translator = AsyncAzureSpeechTranslator(
     token_provider=token_provider,
-    region=app_config["translators"]["speech"]["azure"]["region"],
-    resource_id=app_config["translators"]["speech"]["azure"]["resource_id"],
+    region=app_config["translators"]["speech"]["azure_cognitive"]["region"],
+    resource_id=app_config["translators"]["speech"]["azure_cognitive"]["resource_id"],
+)
+
+from byoeb_integrations.translators.speech.azure.async_azure_openai_whisper import AsyncAzureOpenAIWhisper
+speech_translator_whisper = AsyncAzureOpenAIWhisper(
+    token_provider=token_provider,
+    model=app_config["translators"]["speech"]["azure_oai"]["model"],
+    azure_endpoint=app_config["translators"]["speech"]["azure_oai"]["endpoint"],
+    api_version=app_config["translators"]["speech"]["azure_oai"]["api_version"]
 )
 
 # vector store

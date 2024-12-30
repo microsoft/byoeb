@@ -32,7 +32,7 @@ class MongoDBFactory:
     async def __get_or_create_az_cosmos_mongo_db_client(
         self
     ):
-        import byoeb.app.configuration.config as env_config
+        import byoeb.chat_app.configuration.config as env_config
         from byoeb_integrations.databases.mongo_db.azure.async_azure_cosmos_mongo_db import AsyncAzureCosmosMongoDB
 
         if self._az_cosmos_mongo_db and self._scope == Scope.SINGLETON.value:

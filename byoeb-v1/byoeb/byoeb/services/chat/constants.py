@@ -31,3 +31,11 @@ CORRECTION_SOURCE = "correction_source"
 
 UPDATE_ID = "update_id"
 MODIFIED_TIMESTAMP = "modified_timestamp"
+ACTIVITY_TIMESTAMP = "activity_timestamp"
+LAST_CONVS = "last_conversations"
+
+QUESTION = "question"
+ANSWER = "answer"
+
+MESSAGE_DB_QUERIES = "message_db_queries"
+USER_DB_QUERIES = "user_db_queries"

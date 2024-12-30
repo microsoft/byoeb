@@ -1,6 +1,8 @@
-from typing import List
-from byoeb.app.configuration.config import bot_config
-from byoeb_core.models.byoeb.message_context import ByoebMessageContext
+import byoeb.services.chat.constants as constants
+import byoeb.services.chat.utils as utils
+from typing import List, Dict, Any
+from byoeb.chat_app.configuration.config import bot_config
+from byoeb_core.models.byoeb.message_context import ByoebMessageContext, MessageTypes
 from byoeb.services.channel.base import BaseChannelService, MessageReaction
 from byoeb.services.databases.mongo_db import MongoDBService
 from byoeb.services.chat.message_handlers.base import Handler
@@ -45,38 +47,86 @@ class ByoebExpertSendResponse(Handler):
         ]
 
         return user_messages
+    
+    def __modify_user_messages_context(
+        self,
+        user_messages_context: List[ByoebMessageContext]
+    ):
+        has_audio = False
+        audio_message = None
 
+        for user_message in user_messages_context:
+            if (user_message.message_context.message_type == MessageTypes.REGULAR_AUDIO.value
+                and utils.has_audio_additional_info(user_message)):
+                has_audio = True
+                audio_message = user_message
+                break
+
+        if not has_audio:
+            return user_messages_context
+
+        new_contexts = [audio_message] 
+        for user_message in user_messages_context:
+            if user_message != audio_message:
+                new_context = user_message.__deepcopy__()
+                new_context.reply_context = None
+                new_contexts.append(new_context)
+
+        return new_contexts
+    
+    def __prepare_db_queries(
+        self,
+        byoeb_user_messages: List[ByoebMessageContext],
+        byoeb_expert_message: ByoebMessageContext,
+    ):
+        message_update_queries = (
+            self._mongo_db_service.correction_update_query(byoeb_user_messages, byoeb_expert_message) +
+            self._mongo_db_service.verification_status_update_query(byoeb_user_messages, byoeb_expert_message)
+        )
+        user_update_queries = [self._mongo_db_service.user_activity_update_query(byoeb_expert_message.user)]
+        return {
+            constants.MESSAGE_DB_QUERIES: {
+                constants.UPDATE: message_update_queries
+            },
+            constants.USER_DB_QUERIES: {
+                constants.UPDATE: user_update_queries
+            }
+        }
+        
     async def __handle_user(
         self,
         channel_service: BaseChannelService,
-        user_message_context: List[ByoebMessageContext]
+        user_messages_context: List[ByoebMessageContext]
     ):
         message_reactions = [
             MessageReaction(
-                reaction=user_message.reply_context.additional_info.get("emoji"),
+                reaction=user_message.reply_context.additional_info.get(constants.EMOJI),
                 message_id=user_message.reply_context.reply_id,
                 phone_number_id=user_message.user.phone_number_id
             )
-            for user_message in user_message_context
-            if user_message.reply_context and user_message.reply_context.additional_info.get("emoji") is not None
+            for user_message in user_messages_context
+            if user_message.reply_context and user_message.reply_context.additional_info.get(constants.EMOJI) is not None
         ]
         if message_reactions:  # Proceed only if there are valid reactions
             reaction_requests = channel_service.prepare_reaction_requests(message_reactions)
             await channel_service.send_requests(reaction_requests)
-        user_requests = []
-        for user_message in user_message_context:
+        responses = []
+        message_ids = []
+        modified_user_messages_context = self.__modify_user_messages_context(user_messages_context)
+        for user_message in modified_user_messages_context:
             requests = channel_service.prepare_requests(user_message)
-            user_requests.extend(requests)
-        responses, message_ids = await channel_service.send_requests(user_requests)
+            response, message_id = await channel_service.send_requests(requests)
+            responses.extend(response)
+            message_ids.extend(message_id)
 
-        emoji = user_message_context[0].message_context.additional_info.get("emoji")
+        emoji = user_messages_context[0].message_context.additional_info.get(constants.EMOJI)
         if emoji is None:
             return
         message_reactions = [
             MessageReaction(
                 reaction=emoji,
                 message_id=message_id,
-                phone_number_id=user_message_context[0].user.phone_number_id
+                phone_number_id=user_messages_context[0].user.phone_number_id
             )
             for message_id in message_ids if message_id is not None
         ]
@@ -95,10 +145,10 @@ class ByoebExpertSendResponse(Handler):
         # Check if reply_id is present
         if (expert_message_context.reply_context
             and expert_message_context.reply_context.reply_id
-            and expert_message_context.reply_context.additional_info.get("emoji")
+            and expert_message_context.reply_context.additional_info.get(constants.EMOJI)
         ):
             expert_reaction = MessageReaction(
-                reaction=expert_message_context.reply_context.additional_info.get("emoji"),
+                reaction=expert_message_context.reply_context.additional_info.get(constants.EMOJI),
                 message_id=expert_message_context.reply_context.reply_id,
                 phone_number_id=expert_message_context.user.phone_number_id
             )
@@ -110,7 +160,7 @@ class ByoebExpertSendResponse(Handler):
     async def handle(
         self,
         messages: List[ByoebMessageContext]
-    ):
+    ) -> Dict[str, Any]:
         db_queries = {}
         byoeb_user_messages = self.__get_user_byoeb_messages(messages)
         byoeb_expert_messages = self.__get_expert_byoeb_messages(messages)
@@ -120,13 +170,5 @@ class ByoebExpertSendResponse(Handler):
         if len(byoeb_user_messages) == 0:
             return
         user_responses = await self.__handle_user(channel_service, byoeb_user_messages)
-
-        # Generate update queries for corrections and status
-        update_queries = (
-            self._mongo_db_service.correction_update_query(byoeb_user_messages, byoeb_expert_message) +
-            self._mongo_db_service.verification_status_update_query(byoeb_user_messages, byoeb_expert_message)
-        )
-
-        # Prepare the database queries
-        db_queries = {"update": update_queries}
+        db_queries = self.__prepare_db_queries(byoeb_user_messages, byoeb_expert_message)
         return db_queries

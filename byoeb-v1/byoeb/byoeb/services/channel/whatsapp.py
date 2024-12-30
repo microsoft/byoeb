@@ -1,5 +1,6 @@
 import asyncio
 import byoeb.services.chat.constants as constants
+import byoeb.services.chat.utils as utils 
 import byoeb_integrations.channel.whatsapp.request_payload as wa_req_payload
 from byoeb.services.channel.base import BaseChannelService, MessageReaction
 from byoeb_core.models.byoeb.message_context import (
@@ -13,56 +14,10 @@ from byoeb_core.models.whatsapp.response.message_response import WhatsAppRespons
 from typing import List, Dict, Any, Tuple
 from datetime import datetime
 
+
 class WhatsAppService(BaseChannelService):
     __client_type = "whatsapp"
-    def __has_audio_additional_info(
-        self,
-        byoeb_message: ByoebMessageContext
-    ):
-        return (
-            byoeb_message.message_context.additional_info is not None and
-            constants.DATA in byoeb_message.message_context.additional_info and
-            constants.MIME_TYPE in byoeb_message.message_context.additional_info and
-            "audio" in byoeb_message.message_context.additional_info.get(constants.MIME_TYPE)
-        )
-    
-    def __has_interactive_list_additional_info(
-        self,
-        byoeb_message: ByoebMessageContext
-    ):
-        return (
-            byoeb_message.message_context.additional_info is not None and
-            constants.DESCRIPTION in byoeb_message.message_context.additional_info and
-            constants.ROW_TEXTS in byoeb_message.message_context.additional_info
-        )
-    
-    def __has_interactive_button_additional_info(
-        self,
-        byoeb_message: ByoebMessageContext
-    ):
-        return (
-            byoeb_message.message_context.additional_info is not None and
-            "button_titles" in byoeb_message.message_context.additional_info
-        )
-    
-    def __has_template_additional_info(    
-        self,
-        byoeb_message: ByoebMessageContext
-    ):
-        return (    
-            byoeb_message.message_context.additional_info is not None and
-            constants.TEMPLATE_NAME in byoeb_message.message_context.additional_info and
-            constants.TEMPLATE_LANGUAGE in byoeb_message.message_context.additional_info and
-            constants.TEMPLATE_PARAMETERS in byoeb_message.message_context.additional_info
-        )
-    
-    def __has_text(
-        self,
-        byoeb_message: ByoebMessageContext
-    ):
-        return (
-            byoeb_message.message_context.message_source_text is not None
-        )
+
     def prepare_reaction_requests(
         self,
         message_reactions: List[MessageReaction]
@@ -85,29 +40,29 @@ class WhatsAppService(BaseChannelService):
         byoeb_message: ByoebMessageContext
     ) -> List[Dict[str, Any]]:
         wa_requests = []
-        if self.__has_interactive_button_additional_info(byoeb_message):
+        if utils.has_interactive_button_additional_info(byoeb_message):
             wa_interactive_button_message = wa_req_payload.get_whatsapp_interactive_button_request_from_byoeb_message(byoeb_message)
             wa_requests.append(wa_interactive_button_message)
-        elif self.__has_interactive_list_additional_info(byoeb_message):  
+        elif utils.has_interactive_list_additional_info(byoeb_message):
             wa_interactive_list_message = wa_req_payload.get_whatsapp_interactive_list_request_from_byoeb_message(byoeb_message)
             wa_requests.append(wa_interactive_list_message)
-        elif self.__has_text(byoeb_message):
+        elif utils.has_text(byoeb_message):
             wa_text_message = wa_req_payload.get_whatsapp_text_request_from_byoeb_message(byoeb_message)
             wa_requests.append(wa_text_message)
-        if self.__has_template_additional_info(byoeb_message):
+        if utils.has_template_additional_info(byoeb_message):
             wa_template_message = wa_req_payload.get_whatsapp_template_request_from_byoeb_message(byoeb_message)
             # print("Whatsapp template message", json.dumps(wa_template_message))
             wa_requests.append(wa_template_message)
-        if self.__has_audio_additional_info(byoeb_message):
+        if utils.has_audio_additional_info(byoeb_message):
             wa_audio_message = wa_req_payload.get_whatsapp_audio_request_from_byoeb_message(byoeb_message)
-            wa_requests.append(wa_audio_message)       
+            wa_requests.append(wa_audio_message)
         return wa_requests
     
     async def send_requests(
         self,
         requests: List[Dict[str, Any]]
     ) -> Tuple[List[WhatsAppResponse], List[str]]:
-        from byoeb.app.configuration.dependency_setup import channel_client_factory
+        from byoeb.chat_app.configuration.dependency_setup import channel_client_factory
         client = channel_client_factory.get(self.__client_type)
         tasks = []
         for request in requests:
@@ -124,16 +79,16 @@ class WhatsAppService(BaseChannelService):
         responses: List[WhatsAppResponse]
     ) -> List[ByoebMessageContext]:
         bot_to_user_messages = []
-        message_type = None
-        if MessageTypes.INTERACTIVE_LIST.value in byoeb_user_message.message_context.message_type:
-            message_type = MessageTypes.INTERACTIVE_LIST.value
         for response in responses:
             media_info = None
+            message_type = None
             if response.media_message is not None:
                 media_info = MediaContext(
                     media_id=response.media_message.id
                 )
                 message_type = MessageTypes.REGULAR_AUDIO.value
+            elif byoeb_user_message.message_context.additional_info.get(constants.RELATED_QUESTIONS) is not None:
+                message_type = MessageTypes.INTERACTIVE_LIST.value
             byoeb_message = ByoebMessageContext( 
                 channel_type=byoeb_user_message.channel_type,
                 message_category=byoeb_user_message.message_category,

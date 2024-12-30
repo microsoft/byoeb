@@ -3,7 +3,8 @@
         "batch_size": 5,
         "azure_cognitive_endpoint": "https://cognitiveservices.azure.com/.default",
         "queue_provider": "azure_storage_queue",
-        "db_provider": "azure_cosmos_mongo_db"
+        "db_provider": "azure_cosmos_mongo_db",
+        "history_length": 3
     },
     "channel": {
         "whatsapp": {
@@ -70,13 +71,18 @@
     },
     "translators": {
         "speech":{
-            "azure": {
+            "azure_cognitive": {
                 "resource_id": "/subscriptions/cef13953-6a76-4434-9a65-1d95481f83c7/resourceGroups/swasthyabot/providers/Microsoft.CognitiveServices/accounts/swasthyabot-speech2",
                 "region": "centralindia"
+            },
+            "azure_oai": {
+                "endpoint": "https://swasthyabot-oai-vision.openai.azure.com/",
+                "model": "whisper",
+                "api_version": "2024-06-01"
             }
         },
         "text": {
-            "azure": {
+            "azure_cognitive": {
                 "resource_id": "/subscriptions/cef13953-6a76-4434-9a65-1d95481f83c7/resourceGroups/swasthyabot/providers/Microsoft.CognitiveServices/accounts/swasthyabot-translator",
                 "region": "centralindia"
             }

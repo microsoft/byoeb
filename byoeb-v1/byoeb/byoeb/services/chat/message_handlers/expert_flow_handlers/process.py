@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict, Any
 from byoeb_core.models.byoeb.message_context import ByoebMessageContext, MessageTypes
 from byoeb.services.chat.message_handlers.base import Handler
 
@@ -7,8 +7,8 @@ class ByoebExpertProcess(Handler):
     async def handle(
         self,
         messages: List[ByoebMessageContext]
-    ):
-        from byoeb.app.configuration.dependency_setup import text_translator
+    ) -> Dict[str, Any]:
+        from byoeb.chat_app.configuration.dependency_setup import text_translator
         message = messages[0]
         translated_en_text = await text_translator.atranslate_text(
             input_text=message.message_context.message_source_text,

@@ -1,7 +1,7 @@
 import hashlib
 import byoeb.services.chat.constants as constants
 from typing import List, Dict, Any
-from byoeb.app.configuration.config import bot_config, app_config
+from byoeb.chat_app.configuration.config import bot_config, app_config
 from byoeb.models.message_category import MessageCategory
 from byoeb_core.models.byoeb.message_context import (
     ByoebMessageContext,
@@ -22,7 +22,7 @@ class ByoebUserGenerateResponse(Handler):
         text,
         k
     ) -> List[str]:
-        from byoeb.app.configuration.dependency_setup import vector_store
+        from byoeb.chat_app.configuration.dependency_setup import vector_store
         retrieved_chunks = await vector_store.aretrieve_top_k_chunks(text, k)
         return [chunk.text for chunk in retrieved_chunks]
 
@@ -85,26 +85,53 @@ class ByoebUserGenerateResponse(Handler):
         emoji = None,
         status = None,
     ) -> ByoebMessageContext:
-        from byoeb.app.configuration.dependency_setup import text_translator
-        from byoeb.app.configuration.dependency_setup import speech_translator
-        additional_info = None
+        from byoeb.chat_app.configuration.dependency_setup import text_translator
+        from byoeb.chat_app.configuration.dependency_setup import speech_translator
         user_language = message.user.user_language
-        interactive_list_additional_info = {}
-        media_info = {}
-        message_type = ""
+        status_info = {
+            constants.EMOJI: emoji,
+            constants.VERIFICATION_STATUS: status,
+        }
         message_source_text = await text_translator.atranslate_text(
             input_text=response_text,
             source_language="en",
             target_language=user_language
         )
+        interactive_list_additional_info = {}
+        user_message = None
         if related_questions is not None:
-            message_type = message_type + MessageTypes.INTERACTIVE_LIST.value + ","
             interactive_list_additional_info = {
                 constants.DESCRIPTION: "xyz",
                 constants.ROW_TEXTS: related_questions
             }
+            user_message = ByoebMessageContext(
+                channel_type=message.channel_type,
+                message_category=MessageCategory.BOT_TO_USER_RESPONSE.value,
+                user=User(
+                    user_id=message.user.user_id,
+                    user_language=user_language,
+                    phone_number_id=message.user.phone_number_id,
+                    last_conversations=message.user.last_conversations
+                ),
+                message_context=MessageContext(
+                    message_type=MessageTypes.INTERACTIVE_LIST.value,
+                    message_source_text=message_source_text,
+                    message_english_text=response_text,
+                    additional_info={
+                        **status_info,
+                        **interactive_list_additional_info
+                    }
+                ),
+                reply_context=ReplyContext(
+                    reply_id=message.message_context.message_id,
+                    reply_type=message.message_context.message_type,
+                    reply_english_text=message.message_context.message_english_text,
+                    reply_source_text=message.message_context.message_source_text,
+                    media_info=message.message_context.media_info
+                ),
+                incoming_timestamp=message.incoming_timestamp,
+            )
         if message.message_context.message_type == MessageTypes.REGULAR_AUDIO.value:
-            message_type = message_type + MessageTypes.INTERACTIVE_LIST.value + ","
             translated_audio_message = await speech_translator.atext_to_speech(
                 input_text=message_source_text,
                 source_language=user_language,
@@ -113,36 +140,34 @@ class ByoebUserGenerateResponse(Handler):
                 constants.DATA: translated_audio_message,
                 constants.MIME_TYPE: "audio/wav",
             }
-        message_type = message_type.rstrip(',')
-        additional_info = {
-            constants.EMOJI: emoji,
-            constants.VERIFICATION_STATUS: status,
-            **media_info,
-            **interactive_list_additional_info
-        }
-        new_user_message = ByoebMessageContext(
-            channel_type=message.channel_type,
-            message_category=MessageCategory.BOT_TO_USER_RESPONSE.value,
-            user=User(
-                user_id=message.user.user_id,
-                user_language=user_language,
-                phone_number_id=message.user.phone_number_id
-            ),
-            message_context=MessageContext(
-                message_type=MessageTypes.INTERACTIVE_LIST.value + ',' + MessageTypes.REGULAR_AUDIO.value,
-                message_source_text=message_source_text,
-                message_english_text=response_text,
-                additional_info=additional_info
-            ),
-            reply_context=ReplyContext(
-                reply_id=message.message_context.message_id,
-                reply_type=message.message_context.message_type,
-                media_info=message.message_context.media_info
-            ),
-            incoming_timestamp=message.incoming_timestamp,
-        )
-        
-        return new_user_message
+            user_message = ByoebMessageContext(
+                channel_type=message.channel_type,
+                message_category=MessageCategory.BOT_TO_USER_RESPONSE.value,
+                user=User(
+                    user_id=message.user.user_id,
+                    user_language=user_language,
+                    phone_number_id=message.user.phone_number_id,
+                    last_conversations=message.user.last_conversations
+                ),
+                message_context=MessageContext(
+                    message_type=MessageTypes.REGULAR_AUDIO.value,
+                    message_source_text=message_source_text,
+                    message_english_text=response_text,
+                    additional_info={
+                        **status_info,
+                        **media_info,
+                        **interactive_list_additional_info
+                    }
+                ),
+                reply_context=ReplyContext(
+                    reply_id=message.message_context.message_id,
+                    reply_type=message.message_context.message_type,
+                    reply_english_text=message.message_context.message_english_text,
+                    media_info=message.message_context.media_info
+                ),
+                incoming_timestamp=message.incoming_timestamp,
+            )
+        return user_message
     
     def __get_new_expert_verification_message(
         self,
@@ -181,7 +206,7 @@ class ByoebUserGenerateResponse(Handler):
                 phone_number_id=expert_phone_number_id
             ),
             message_context=MessageContext(
-                message_type=MessageTypes.REGULAR_TEXT.value,
+                message_type=MessageTypes.INTERACTIVE_BUTTON.value,
                 message_source_text=expert_message,
                 message_english_text=expert_message,
                 additional_info=additional_info
@@ -193,9 +218,9 @@ class ByoebUserGenerateResponse(Handler):
     async def handle(
         self,
         messages: List[ByoebMessageContext]
-    ) -> List[ByoebMessageContext]:
+    ) -> Dict[str, Any]:
         message = messages[0]
-        from byoeb.app.configuration.dependency_setup import llm_client
+        from byoeb.chat_app.configuration.dependency_setup import llm_client
         message_english = message.message_context.message_english_text
         chunks_list = await self.__aretrieve_chunks_list(message_english, k=3)
         user_prompt = self.__get_user_prompt(", ".join(chunks_list), message_english)
@@ -208,8 +233,6 @@ class ByoebUserGenerateResponse(Handler):
             status=constants.PENDING,
             related_questions=["abc", "def"]
         )
-        if byoeb_user_message.message_context.additional_info is None:
-            print("No additional info")
         byoeb_expert_message = self.__get_new_expert_verification_message(
             message,
             response_text,

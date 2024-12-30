@@ -99,11 +99,14 @@ class QueueConsumer:
                 self._logger.info("No messages received")
                 await asyncio.sleep(2)
                 continue
-            await message_consumer_svc.consume(message_content)
-            # handle messages
-            self._logger.info(f"Received {len(messages)} messages")
-            await self.__delete_message(messages)
-            self._logger.info(f"Deleted {len(messages)} messages")
+            try:
+                await message_consumer_svc.consume(message_content)
+                # handle messages
+                self._logger.info(f"Received {len(messages)} messages")
+                await self.__delete_message(messages)
+                self._logger.info(f"Deleted {len(messages)} messages")
+            except Exception as e:
+                self._logger.error(f"Error consuming messages: {e}")
             await asyncio.sleep(2)
     
     async def close(
