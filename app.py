@@ -101,8 +101,8 @@ def scheduler():
         receiver_id="Bot",
         message_id=None,
         action_type="Scheduler",
-        details={"date": datetime.now()},
-        timestamp=datetime.now(),
+        details={},
+        timestamp=str(datetime.now()),
     )
     # stop the process queue
     global pause_queue, queue_lock
