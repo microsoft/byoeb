@@ -32,6 +32,14 @@ class PatientTable():
         """Fetch all rows from the table."""
         entities = self.table_client.list_entities()
         return list(entities)
+    
+    def delete_entity(self, partition_key, row_key):
+        """Delete an entity from the table."""
+        try:
+            self.table_client.delete_entity(partition_key=partition_key, row_key=row_key)
+            print(f"Entity deleted: PartitionKey={partition_key}, RowKey={row_key}")
+        except Exception as e:
+            print(f"Error deleting entity: {e}")
 
 if __name__ == "__main__":
     patient_table = PatientTable()

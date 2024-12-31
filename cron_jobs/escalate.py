@@ -51,7 +51,7 @@ for expert in config["EXPERTS"]:
 print(query_type_to_escalation_expert)
 
 to_ts = datetime.datetime.now() - datetime.timedelta(hours=2)
-from_ts = datetime.datetime.now() - datetime.timedelta(hours=4)
+from_ts = datetime.datetime.now() - datetime.timedelta(hours=24)
 
 list_cursor = user_conv_db.get_all_unresolved(from_ts, to_ts)
 
