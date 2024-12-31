@@ -1,5 +1,7 @@
 import asyncio
 import byoeb.services.chat.constants as constants
+from byoeb.chat_app.configuration.config import app_config
+from byoeb.services.chat import utils
 from typing import Any, Dict, List
 from byoeb_core.models.byoeb.message_context import ByoebMessageContext, MessageTypes
 from byoeb.services.channel.base import BaseChannelService, MessageReaction
@@ -8,7 +10,7 @@ from byoeb.services.chat.message_handlers.base import Handler
 from byoeb.services.channel.base import MessageReaction
 
 class ByoebUserSendResponse(Handler):
-
+    __max_last_active_duration_seconds: int = app_config["app"]["max_last_active_duration_seconds"]
     def __init__(
         self,
         mongo_db_service: MongoDBService,
@@ -50,13 +52,17 @@ class ByoebUserSendResponse(Handler):
         channel_service: BaseChannelService,
         expert_message_context: ByoebMessageContext
     ):
+        user_timestamp = await self._mongo_db_service.get_user_activity_timestamp(expert_message_context.user.user_id)
+        last_active_duration_seconds = utils.get_last_active_duration_seconds(user_timestamp)
         expert_requests = channel_service.prepare_requests(expert_message_context)
         interactive_button_message = expert_requests[0]
         template_verification_message = expert_requests[1]
-        responses, message_ids = await channel_service.send_requests([interactive_button_message])
-        if int(responses[0].response_status.status) != 200:
+        
+        if last_active_duration_seconds >= self.__max_last_active_duration_seconds:
             expert_message_context.message_context.message_type = MessageTypes.TEMPLATE_BUTTON.value
-            responses = await channel_service.send_requests([template_verification_message])
+            responses, message_ids = await channel_service.send_requests([template_verification_message])
+        else:
+            responses, message_ids = await channel_service.send_requests([interactive_button_message])
         pending_emoji = expert_message_context.message_context.additional_info.get(constants.EMOJI)
         message_reactions = [
             MessageReaction(
