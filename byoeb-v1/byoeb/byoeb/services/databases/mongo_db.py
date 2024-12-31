@@ -113,7 +113,6 @@ class MongoDBService:
         if qa is None:
             return ({"_id": user_id}, update_data)
         last_convs = user.last_conversations
-        print("last_convs", last_convs)
         if len(last_convs) >= self._history_length:
             last_convs.pop(0)
         last_convs.append(qa)

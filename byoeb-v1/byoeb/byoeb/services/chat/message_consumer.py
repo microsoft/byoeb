@@ -19,6 +19,8 @@ class Conversation(BaseModel):
     user: User
 
 class MessageConsmerService:
+
+    __timeout_seconds = 60
     def __init__(
         self,
         config,
@@ -102,8 +104,9 @@ class MessageConsmerService:
     async def consume(
         self,
         messages: list
-    ):
+    ) -> List[ByoebMessageContext]:
         byoeb_messages = []
+        successfully_processed_messages = []
         for message in messages:
             json_message = json.loads(message)
             byoeb_message = ByoebMessageContext.model_validate(json_message)
@@ -117,36 +120,48 @@ class MessageConsmerService:
             elif self.__is_expert_user_type(conversation.user.user_type):
                 task.append(self.__process_byoebexpert_conversation(conversation))
         results = await asyncio.gather(*task)
-        for queries in results:
+        for queries, processed_message, err in results:
+            if err is not None:
+                continue
+            successfully_processed_messages.append(processed_message)
             await self._mongo_db_service.execute_message_queries(queries.get(constants.MESSAGE_DB_QUERIES))
             await self._mongo_db_service.execute_user_queries(queries.get(constants.USER_DB_QUERIES))
+        return successfully_processed_messages
 
-    async def __process_byoebuser_conversation(
-        self,
-        byoeb_message: ByoebMessageContext
-    ):
+    async def __process_byoebuser_conversation(self, byoeb_message):
         from byoeb.chat_app.configuration.dependency_setup import byoeb_user_process
-        print("Process user message ", byoeb_message)
-        self._logger.info(f"Process user message: {byoeb_message}")
+        byoeb_message_copy = byoeb_message.model_copy(deep=True)
         try:
-            queries = await byoeb_user_process.handle([byoeb_message])
-            return queries
+            queries = await asyncio.wait_for(byoeb_user_process.handle([byoeb_message]), timeout=self.__timeout_seconds)
+            return queries, byoeb_message_copy, None
+        except asyncio.TimeoutError:
+            error_message = f"Timeout error: Task took longer than {self.__timeout_seconds} seconds."
+            self._logger.error(error_message)
+            print(error_message)
+            return None, byoeb_message_copy, "TimeoutError"
         except Exception as e:
             self._logger.error(f"Error processing user message: {e}")
             print("Error processing user message: ", e)
-            return {}
+            return None, byoeb_message_copy, e
+
 
     async def __process_byoebexpert_conversation(
         self,
         byoeb_message: ByoebMessageContext
     ):
         from byoeb.chat_app.configuration.dependency_setup import byoeb_expert_process
-        print("Process expert message ", json.dumps(byoeb_message.model_dump()))
+        # print("Process expert message ", json.dumps(byoeb_message.model_dump()))
+        byoeb_message_copy = byoeb_message.model_copy(deep=True)
         self._logger.info(f"Process expert message: {byoeb_message}")
         try:
-            queries = await byoeb_expert_process.handle([byoeb_message])
-            return queries
+            queries = await asyncio.wait_for(byoeb_expert_process.handle([byoeb_message]), timeout=self.__timeout_seconds)
+            return queries, byoeb_message_copy, None
+        except asyncio.TimeoutError:
+            error_message = f"Timeout error: Expert process task took longer than {self.__timeout_seconds} seconds."
+            self._logger.error(error_message)
+            print(error_message)
+            return None, byoeb_message_copy, "TimeoutError"
         except Exception as e:
             self._logger.error(f"Error processing expert message: {e}")
             print("Error processing expert message: ", e)
-            return {}
+            return None, byoeb_message_copy, e

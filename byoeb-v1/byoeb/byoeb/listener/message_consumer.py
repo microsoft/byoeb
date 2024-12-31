@@ -100,11 +100,13 @@ class QueueConsumer:
                 await asyncio.sleep(2)
                 continue
             try:
-                await message_consumer_svc.consume(message_content)
+                successfully_processed_messages =  await message_consumer_svc.consume(message_content)
                 # handle messages
                 self._logger.info(f"Received {len(messages)} messages")
-                await self.__delete_message(messages)
-                self._logger.info(f"Deleted {len(messages)} messages")
+                processed_ids = {message.message_context.message_id for message in successfully_processed_messages}
+                remove_messages = [msg for msg in messages if any(processed_id in msg.content for processed_id in processed_ids)]
+                await self.__delete_message(remove_messages)
+                self._logger.info(f"Deleted {len(remove_messages)} messages")
             except Exception as e:
                 self._logger.error(f"Error consuming messages: {e}")
             await asyncio.sleep(2)
