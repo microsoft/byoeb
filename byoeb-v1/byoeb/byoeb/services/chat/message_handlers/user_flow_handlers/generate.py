@@ -16,6 +16,7 @@ class ByoebUserGenerateResponse(Handler):
     EXPERT_PENDING_EMOJI = app_config["channel"]["reaction"]["expert"]["pending"]
     USER_PENDING_EMOJI = app_config["channel"]["reaction"]["user"]["pending"]
     _expert_user_types = bot_config["expert"]
+    _regular_user_type = bot_config["regular"]["user_type"]
 
     async def __aretrieve_chunks_list(
         self,
@@ -77,7 +78,20 @@ class ByoebUserGenerateResponse(Handler):
             return None
         return experts[expert_type][0], expert_type
     
-    async def __get_new_user_message(
+    def __get_read_reciept_message(
+        self,
+        message: ByoebMessageContext,
+    ) -> ByoebMessageContext:
+        read_reciept_message = ByoebMessageContext(
+            channel_type=message.channel_type,
+            message_category=MessageCategory.READ_RECEIPT.value,
+            message_context=MessageContext(
+                message_id=message.message_context.message_id,
+            )
+        )
+        return read_reciept_message
+    
+    async def __create_user_message(
         self,
         message: ByoebMessageContext,
         response_text: str,
@@ -110,6 +124,7 @@ class ByoebUserGenerateResponse(Handler):
                 user=User(
                     user_id=message.user.user_id,
                     user_language=user_language,
+                    user_type=self._regular_user_type,
                     phone_number_id=message.user.phone_number_id,
                     last_conversations=message.user.last_conversations
                 ),
@@ -169,7 +184,7 @@ class ByoebUserGenerateResponse(Handler):
             )
         return user_message
     
-    def __get_new_expert_verification_message(
+    def __create_expert_verification_message(
         self,
         message: ByoebMessageContext,
         response_text: str,
@@ -220,20 +235,21 @@ class ByoebUserGenerateResponse(Handler):
         messages: List[ByoebMessageContext]
     ) -> Dict[str, Any]:
         message = messages[0]
+        read_reciept_message = self.__get_read_reciept_message(message)
         from byoeb.chat_app.configuration.dependency_setup import llm_client
         message_english = message.message_context.message_english_text
         chunks_list = await self.__aretrieve_chunks_list(message_english, k=3)
         user_prompt = self.__get_user_prompt(", ".join(chunks_list), message_english)
         augmented_prompts = self.__augment(user_prompt)
         llm_response, response_text = await llm_client.agenerate_response(augmented_prompts)
-        byoeb_user_message = await self.__get_new_user_message(
+        byoeb_user_message = await self.__create_user_message(
             message=message,
             response_text=response_text,
             emoji=self.USER_PENDING_EMOJI,
             status=constants.PENDING,
             related_questions=["abc", "def"]
         )
-        byoeb_expert_message = self.__get_new_expert_verification_message(
+        byoeb_expert_message = self.__create_expert_verification_message(
             message,
             response_text,
             self.EXPERT_PENDING_EMOJI,
@@ -241,4 +257,6 @@ class ByoebUserGenerateResponse(Handler):
         )
 
         if self._successor:
-            return await self._successor.handle([byoeb_user_message, byoeb_expert_message])
+            return await self._successor.handle(
+                [byoeb_user_message, byoeb_expert_message, read_reciept_message]
+            )

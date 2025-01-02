@@ -1,6 +1,7 @@
 import byoeb.services.chat.constants as constants
 import byoeb.services.chat.utils as utils
 from typing import List, Dict, Any
+from byoeb.models.message_category import MessageCategory
 from byoeb.chat_app.configuration.config import bot_config
 from byoeb_core.models.byoeb.message_context import ByoebMessageContext, MessageTypes
 from byoeb.services.channel.base import BaseChannelService, MessageReaction
@@ -33,7 +34,7 @@ class ByoebExpertSendResponse(Handler):
     ):
         expert_messages = [
             byoeb_message for byoeb_message in byoeb_messages 
-            if byoeb_message.user.user_type in self._expert_user_types.values()
+            if byoeb_message.user is not None and byoeb_message.user.user_type in self._expert_user_types.values()
         ]
         return expert_messages
 
@@ -43,10 +44,19 @@ class ByoebExpertSendResponse(Handler):
     ):
         user_messages = [
             byoeb_message for byoeb_message in byoeb_messages 
-            if byoeb_message.user.user_type == self._regular_user_type
+            if byoeb_message.user is not None and byoeb_message.user.user_type == self._regular_user_type
         ]
-
         return user_messages
+    
+    def __get_read_receipt_byoeb_messages(
+        self,
+        byoeb_messages: List[ByoebMessageContext]
+    ):
+        read_receipt_messages = [
+            byoeb_message for byoeb_message in byoeb_messages
+            if byoeb_message.message_category == MessageCategory.READ_RECEIPT.value
+        ]
+        return read_receipt_messages
     
     def __modify_user_messages_context(
         self,
@@ -162,10 +172,12 @@ class ByoebExpertSendResponse(Handler):
         messages: List[ByoebMessageContext]
     ) -> Dict[str, Any]:
         db_queries = {}
+        read_receipt_messages = self.__get_read_receipt_byoeb_messages(messages)
         byoeb_user_messages = self.__get_user_byoeb_messages(messages)
         byoeb_expert_messages = self.__get_expert_byoeb_messages(messages)
         byoeb_expert_message = byoeb_expert_messages[0]
         channel_service = self.get_channel_service(byoeb_expert_message.channel_type)
+        await channel_service.amark_read(read_receipt_messages)
         expert_responses = await self.__handle_expert(channel_service, byoeb_expert_message)
         if len(byoeb_user_messages) == 0:
             return

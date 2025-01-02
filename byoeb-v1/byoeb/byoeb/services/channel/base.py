@@ -45,3 +45,9 @@ class BaseChannelService(ABC):
     ) -> List[ByoebMessageContext]:
         pass
 
+    @abstractmethod
+    async def amark_read(
+        self,
+        messages: List[ByoebMessageContext]
+    ) -> Any:
+        pass

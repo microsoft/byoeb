@@ -58,6 +58,19 @@ class WhatsAppService(BaseChannelService):
             wa_requests.append(wa_audio_message)
         return wa_requests
     
+    async def amark_read(
+        self,
+        messages: List[ByoebMessageContext]
+    ) -> List[WhatsAppResponse]:
+        from byoeb.chat_app.configuration.dependency_setup import channel_client_factory
+        client = channel_client_factory.get(self.__client_type)
+        tasks = []
+        for message in messages:
+            if message.message_context.message_id is None:
+                continue
+            tasks.append(client.amark_as_read(message.message_context.message_id))
+        await asyncio.gather(*tasks)
+    
     async def send_requests(
         self,
         requests: List[Dict[str, Any]]
