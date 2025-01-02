@@ -8,15 +8,15 @@ exclude = ["**/tests/**", "**/tests"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-openai = "^1.45.1"
-chromadb = "^0.5.5"
-llama-index-embeddings-azure-openai = "^0.2.5"
-azure-storage-queue = "^12.11.0"
-azure-storage-blob = "^12.22.0"
-azure-cognitiveservices-speech = "^1.40.0"
-azure-ai-translation-text = "^1.0.1"
-motor = "^3.6.0"
-llama-index-vector-stores-chroma = "^0.3.0"
+openai = "1.58.1"
+chromadb = "0.5.23"
+llama-index-embeddings-azure-openai = "0.2.5"
+azure-storage-queue = "12.12.0"
+azure-storage-blob = "12.24.0"
+azure-cognitiveservices-speech = "1.41.1"
+azure-ai-translation-text = "1.0.1"
+motor = "3.6.0"
+llama-index-vector-stores-chroma = "0.3.0"
 byoeb-core = {path = "../byoeb-core/dist/byoeb_core-0.1.0-py3-none-any.whl"}
 
 
