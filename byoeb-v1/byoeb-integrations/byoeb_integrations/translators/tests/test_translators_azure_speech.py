@@ -41,12 +41,48 @@ async def aazure_openai_whisper_translate_en():
         azure_endpoint=WHISPER_ENDPOINT,
         api_version=WHISPER_API_VERSION
     )
-    with open("trimmed_example.wav", "rb") as f:
-        audio_data = f.read()
-    result = await async_azure_openai_whisper.aspeech_to_text(
-        audio_data=audio_data,
+    text = "Hello how are you?"
+    async_azure_speech_translator = AsyncAzureSpeechTranslator(
+        region=SPEECH_TRANSLATOR_REGION,
+        token_provider=token_provider,
+        resource_id=SPEECH_TRANSLATOR_RESOURCE_ID,
     )
-    print(result)
+    result = await async_azure_speech_translator.atext_to_speech(
+        input_text=text,
+        source_language="en",
+    )
+   
+    new_text = await async_azure_openai_whisper.aspeech_to_text(
+        audio_data=result,
+    )
+    print(new_text)
+    assert new_text is not None
+    assert new_text.lower().__contains__("hello")
+
+async def aazure_openai_whisper_translate_hi():
+    async_azure_openai_whisper = AsyncAzureOpenAIWhisper(
+        token_provider=token_provider,
+        model=WHISPER_MODEL,
+        azure_endpoint=WHISPER_ENDPOINT,
+        api_version=WHISPER_API_VERSION
+    )
+    text = "नमस्कार क्या हालचाल हैं?"
+    async_azure_speech_translator = AsyncAzureSpeechTranslator(
+        region=SPEECH_TRANSLATOR_REGION,
+        token_provider=token_provider,
+        resource_id=SPEECH_TRANSLATOR_RESOURCE_ID,
+    )
+    result = await async_azure_speech_translator.atext_to_speech(
+        input_text=text,
+        source_language="hi",
+    )
+ 
+    new_text = await async_azure_openai_whisper.aspeech_to_text(
+        audio_data=result,
+    )
+    print(new_text)
+    assert new_text is not None
+    assert new_text.lower().__contains__("नम")
 
 async def aazure_bytes_speech_translate_en():
     
@@ -95,8 +131,14 @@ def test_aazure_speech_translate_en(event_loop):
 def test_aazure_speech_translate_hi(event_loop):
     event_loop.run_until_complete(aazure_bytes_speech_translate_hi())
 
+def test_aazure_openai_whisper_translate_en(event_loop):
+    event_loop.run_until_complete(aazure_openai_whisper_translate_en())
+
+def test_aazure_openai_whisper_translate_hi(event_loop):
+    event_loop.run_until_complete(aazure_openai_whisper_translate_hi())
+
 if __name__ == "__main__":
     event_loop = asyncio.get_event_loop()
-    event_loop.run_until_complete(aazure_openai_whisper_translate_en())
-    event_loop.run_until_complete(aazure_bytes_speech_translate_en())
+    event_loop.run_until_complete(aazure_openai_whisper_translate_hi())
+    # event_loop.run_until_complete(aazure_bytes_speech_translate_en())
     event_loop.close()

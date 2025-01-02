@@ -56,7 +56,7 @@ class AsyncAzureSpeechTranslator(BaseSpeechTranslator):
         **kwargs
     ) -> str:
         speech_config = self.__get_speech_config()
-        speech_config.speech_recognition_language =  "en-IN"
+        speech_config.speech_recognition_language =  f"{source_language}-IN"
         # Create a push stream
         push_stream = speechsdk.audio.PushAudioInputStream()
         audio_config = speechsdk.audio.AudioConfig(stream=push_stream)
