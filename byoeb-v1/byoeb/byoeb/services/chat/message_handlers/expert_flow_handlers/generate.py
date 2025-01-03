@@ -183,6 +183,7 @@ class ByoebExpertGenerateResponse(Handler):
                     }
                 )
             elif reply_to_user_message_context.message_context.message_type == MessageTypes.INTERACTIVE_LIST.value:
+                description = bot_config["template_messages"]["user"]["follow_up_questions_description"][user.user_language]
                 related_questions = reply_to_user_message_context.message_context.additional_info.get(constants.RELATED_QUESTIONS)
                 message_context = MessageContext(
                     message_type=MessageTypes.REGULAR_TEXT.value,
@@ -190,7 +191,7 @@ class ByoebExpertGenerateResponse(Handler):
                     message_source_text=text_message,
                     additional_info={
                         **message_reaction_additional_info,
-                        constants.DESCRIPTION: "xyz",
+                        constants.DESCRIPTION: description,
                         constants.ROW_TEXTS: related_questions
                     }
                 )

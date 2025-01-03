@@ -2,7 +2,7 @@ import logging
 import asyncio
 from datetime import datetime
 from byoeb_core.message_queue.base import BaseQueue
-from byoeb.factory import MongoDBFactory, ChannelClientFactory
+from byoeb.factory import ChannelClientFactory
 from byoeb.services.chat.message_consumer import MessageConsmerService
 from byoeb.services.databases.mongo_db import MongoDBService
 from byoeb_integrations.message_queue.azure.async_azure_storage_queue import AsyncAzureStorageQueue

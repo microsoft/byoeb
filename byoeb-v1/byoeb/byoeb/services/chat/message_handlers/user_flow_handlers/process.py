@@ -18,21 +18,12 @@ class ByoebUserProcess(Handler):
         channel_type = message.channel_type
         source_language = message.user.user_language
         translated_en_text = None
-        if message.message_context.message_type == MessageTypes.REGULAR_TEXT.value:
-            source_text = message.message_context.message_source_text
-            translated_en_text = await text_translator.atranslate_text(
-                input_text=source_text,
-                source_language=source_language,
-                target_language="en"
-            )
 
-        elif message.message_context.message_type == MessageTypes.REGULAR_AUDIO.value:
+        if message.message_context.message_type == MessageTypes.REGULAR_AUDIO.value:
             media_id = message.message_context.media_info.media_id
             channel_client = channel_client_factory.get(channel_type)
             _, audio_message, err = await channel_client.adownload_media(media_id)
             audio_message_wav = ogg_opus_to_wav_bytes(audio_message.data)
-            # with open("audio_message.wav", "wb") as audio_file:
-            #     audio_file.write(audio_message_wav)
             audio_to_text = await speech_translator_whisper.aspeech_to_text(audio_message_wav, source_language)
             # print("audio_to_text", audio_to_text)
             translated_en_text = await text_translator.atranslate_text(
@@ -41,6 +32,14 @@ class ByoebUserProcess(Handler):
                 target_language="en"
             )
             message.message_context.media_info.media_type = audio_message.mime_type
+        
+        else:
+            source_text = message.message_context.message_source_text
+            translated_en_text = await text_translator.atranslate_text(
+                input_text=source_text,
+                source_language=source_language,
+                target_language="en"
+            )
             
         message.message_context.message_english_text = translated_en_text
         

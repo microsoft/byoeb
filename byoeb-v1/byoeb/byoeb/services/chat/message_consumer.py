@@ -144,7 +144,6 @@ class MessageConsmerService:
             print("Error processing user message: ", e)
             return None, byoeb_message_copy, e
 
-
     async def __process_byoebexpert_conversation(
         self,
         byoeb_message: ByoebMessageContext
