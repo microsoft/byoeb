@@ -2,7 +2,8 @@ import asyncio
 import hashlib
 import json
 import byoeb.services.chat.constants as constants
-from byoeb.chat_app.configuration.config import app_config
+from aiocache import cached, Cache
+from aiocache.serializers import JsonSerializer
 from byoeb_core.models.byoeb.message_context import ByoebMessageContext
 from typing import List, Dict, Any
 from datetime import datetime
@@ -42,6 +43,7 @@ class MongoDBService:
         )
         return user_collection_client
     
+    @cached(ttl=3600, cache=Cache.MEMORY, serializer=JsonSerializer())
     async def get_user_activity_timestamp(
         self,
         user_id: str,
