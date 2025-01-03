@@ -152,6 +152,7 @@ class ByoebUserGenerateResponse(Handler):
                 user=User(
                     user_id=message.user.user_id,
                     user_language=user_language,
+                    user_type=self._regular_user_type,
                     phone_number_id=message.user.phone_number_id,
                     last_conversations=message.user.last_conversations
                 ),
@@ -248,7 +249,7 @@ class ByoebUserGenerateResponse(Handler):
         user_prompt = template_user_prompt.replace("<CHUNKS>", chunks).replace("<QUESTION>", question)
         augmented_prompts = self.__augment(system_prompt, user_prompt)
         llm_response, response_text = await llm_client.agenerate_response(augmented_prompts)
-        print("Response text: ", response_text)
+        # print("Response text: ", response_text)
         answer, query_type = parse_response(response_text)
         return answer, query_type
 
@@ -263,7 +264,7 @@ class ByoebUserGenerateResponse(Handler):
         user_prompt = template_user_prompt.replace("<CHUNKS>", chunks)
         augmented_prompts = self.__augment(system_prompt, user_prompt)
         llm_response, response_text = await llm_client.agenerate_response(augmented_prompts)
-        print("Follow up questions response text: ", response_text)
+        # print("Follow up questions response text: ", response_text)
         next_questions = re.findall(r"<q_\d+>(.*?)</q_\d+>", response_text)
         return next_questions
     

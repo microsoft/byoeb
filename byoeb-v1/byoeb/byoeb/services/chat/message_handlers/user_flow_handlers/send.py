@@ -1,9 +1,8 @@
 import asyncio
 import byoeb.services.chat.constants as constants
-from byoeb.chat_app.configuration.config import app_config, bot_config
+from byoeb.chat_app.configuration.config import app_config
 from byoeb.services.chat import utils
 from typing import Any, Dict, List
-from byoeb.models.message_category import MessageCategory
 from byoeb_core.models.byoeb.message_context import ByoebMessageContext, MessageTypes
 from byoeb.services.channel.base import BaseChannelService, MessageReaction
 from byoeb.services.databases.mongo_db import MongoDBService
@@ -12,8 +11,6 @@ from byoeb.services.channel.base import MessageReaction
 
 class ByoebUserSendResponse(Handler):
     __max_last_active_duration_seconds: int = app_config["app"]["max_last_active_duration_seconds"]
-    _regular_user_type = bot_config["regular"]["user_type"]
-    _expert_user_types = bot_config["expert"]
 
     def __init__(
         self,
@@ -29,37 +26,7 @@ class ByoebUserSendResponse(Handler):
             from byoeb.services.channel.whatsapp import WhatsAppService
             return WhatsAppService()
         return None
-    
-    def __get_expert_byoeb_messages(
-        self,
-        byoeb_messages: List[ByoebMessageContext]
-    ):
-        expert_messages = [
-            byoeb_message for byoeb_message in byoeb_messages 
-            if byoeb_message.user is not None and byoeb_message.user.user_type in self._expert_user_types.values()
-        ]
-        return expert_messages
 
-    def __get_user_byoeb_messages(
-        self,
-        byoeb_messages: List[ByoebMessageContext]
-    ):
-        user_messages = [
-            byoeb_message for byoeb_message in byoeb_messages 
-            if byoeb_message.user is not None and byoeb_message.user.user_type == self._regular_user_type
-        ]
-        return user_messages
-    
-    def __get_read_receipt_byoeb_messages(
-        self,
-        byoeb_messages: List[ByoebMessageContext]
-    ):
-        read_receipt_messages = [
-            byoeb_message for byoeb_message in byoeb_messages
-            if byoeb_message.message_category == MessageCategory.READ_RECEIPT.value
-        ]
-        return read_receipt_messages
-    
     def __prepare_db_queries(
         self,
         convs: List[ByoebMessageContext],
@@ -150,9 +117,9 @@ class ByoebUserSendResponse(Handler):
     ) -> Dict[str, Any]:
         db_queries = {}
         verification_status = constants.VERIFICATION_STATUS
-        read_receipt_messages = self.__get_read_receipt_byoeb_messages(messages)
-        byoeb_user_messages = self.__get_user_byoeb_messages(messages)
-        byoeb_expert_messages = self.__get_expert_byoeb_messages(messages)
+        read_receipt_messages = utils.get_read_receipt_byoeb_messages(messages)
+        byoeb_user_messages = utils.get_user_byoeb_messages(messages)
+        byoeb_expert_messages = utils.get_expert_byoeb_messages(messages)
         byoeb_user_message = byoeb_user_messages[0]
         byoeb_expert_message = byoeb_expert_messages[0]
         if byoeb_user_message.channel_type != byoeb_expert_message.channel_type:
