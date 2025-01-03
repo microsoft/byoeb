@@ -60,7 +60,8 @@ class QueueConsumer:
         if isinstance(self._az_storage_queue, AsyncAzureStorageQueue):
             msgs = await self._az_storage_queue.areceive_message(
                 visibility_timeout=self._config["message_queue"]["azure"]["visibility_timeout"],
-                messages_per_page=self._config["message_queue"]["azure"]["messages_per_page"]
+                messages_per_page=self._config["message_queue"]["azure"]["messages_per_page"],
+                max_messages=self._config["app"]["batch_size"]
             )
             async for msg in msgs:
                 messages.append(msg)

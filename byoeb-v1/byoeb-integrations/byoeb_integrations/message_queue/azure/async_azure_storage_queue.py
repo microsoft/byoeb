@@ -10,6 +10,7 @@ class AzureStorageQueueParamsEnum(Enum):
     TIME_TO_LIVE = "time_to_live"
     VISIBILITY_TIMEOUT = "visibility_timeout"
     MESSAGES_PER_PAGE = "messages_per_page"
+    MAX_MESSAGES = "max_messages"
  
 class AsyncAzureStorageQueue(BaseQueue):
     __DEFAULT_TIME_TO_LIVE = 120
@@ -95,9 +96,14 @@ class AsyncAzureStorageQueue(BaseQueue):
             AzureStorageQueueParamsEnum.MESSAGES_PER_PAGE.value,
             self.__MESSAGES_PER_PAGE
         )
+        max_messages = kwargs.get(
+            AzureStorageQueueParamsEnum.MAX_MESSAGES.value,
+            self.__MESSAGES_PER_PAGE
+        )
         messages = self.__queue_client.receive_messages(
             visibility_timeout=visibility_timeout,
-            messages_per_page=messages_per_page
+            messages_per_page=messages_per_page,
+            max_messages=max_messages
         )
         return messages
         
