@@ -284,7 +284,7 @@ class ByoebUserGenerateResponse(Handler):
         self,
         messages: ByoebMessageContext
     ) -> List[ByoebMessageContext]:
-        message = messages[0]
+        message = messages[0].model_copy(deep=True)
         read_reciept_message = self.__create_read_reciept_message(message)
         message_english = message.message_context.message_english_text
         chunks_list = await self.__aretrieve_chunks_list(message_english, k=3)

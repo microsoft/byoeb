@@ -14,7 +14,7 @@ class ByoebUserProcess(Handler):
         from byoeb.chat_app.configuration.dependency_setup import speech_translator_whisper
         from byoeb_core.convertor.audio_convertor import ogg_opus_to_wav_bytes
 
-        message = messages[0]
+        message = messages[0].model_copy(deep=True)
         channel_type = message.channel_type
         source_language = message.user.user_language
         translated_en_text = None
