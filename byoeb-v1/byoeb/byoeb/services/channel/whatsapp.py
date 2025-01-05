@@ -63,7 +63,7 @@ class WhatsAppService(BaseChannelService):
         messages: List[ByoebMessageContext]
     ) -> List[WhatsAppResponse]:
         from byoeb.chat_app.configuration.dependency_setup import channel_client_factory
-        client = channel_client_factory.get(self.__client_type)
+        client = await channel_client_factory.get(self.__client_type)
         tasks = []
         for message in messages:
             if message.message_context.message_id is None:
@@ -76,7 +76,7 @@ class WhatsAppService(BaseChannelService):
         requests: List[Dict[str, Any]]
     ) -> Tuple[List[WhatsAppResponse], List[str]]:
         from byoeb.chat_app.configuration.dependency_setup import channel_client_factory
-        client = channel_client_factory.get(self.__client_type)
+        client = await channel_client_factory.get(self.__client_type)
         tasks = []
         for request in requests:
             message_type = request["type"]

@@ -21,7 +21,7 @@ class ByoebUserProcess(Handler):
 
         if message.message_context.message_type == MessageTypes.REGULAR_AUDIO.value:
             media_id = message.message_context.media_info.media_id
-            channel_client = channel_client_factory.get(channel_type)
+            channel_client = await channel_client_factory.get(channel_type)
             _, audio_message, err = await channel_client.adownload_media(media_id)
             audio_message_wav = ogg_opus_to_wav_bytes(audio_message.data)
             audio_to_text = await speech_translator_whisper.aspeech_to_text(audio_message_wav, source_language)

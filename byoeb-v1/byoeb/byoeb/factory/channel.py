@@ -1,4 +1,4 @@
-import os
+import asyncio
 import logging
 from enum import Enum
 from byoeb_integrations.channel.whatsapp.register import RegisterWhatsapp
@@ -29,6 +29,7 @@ class ChannelRegisterFactory:
 
 class ChannelClientFactory:
     _whatsapp_client = None
+    _lock: asyncio.Lock = asyncio.Lock()
 
     def __init__(
         self,
@@ -37,22 +38,23 @@ class ChannelClientFactory:
         self._logger = logging.getLogger(__name__)
         self._config = config
 
-    def __get_whatsapp_client(
+    async def __get_whatsapp_client(
         self
     ) -> AsyncWhatsAppClient:
-        if self._whatsapp_client is None:
-            self._whatsapp_client = AsyncWhatsAppClient(
-                phone_number_id=env_whatsapp_phone_number_id,
-                bearer_token=env_whatsapp_auth_token,
-                reuse_client=self._config["channel"]["whatsapp"]["reuse_client"]
-            )
-        return self._whatsapp_client
-    def get(
+        async with self._lock:
+            if self._whatsapp_client is None:
+                self._whatsapp_client = AsyncWhatsAppClient(
+                    phone_number_id=env_whatsapp_phone_number_id,
+                    bearer_token=env_whatsapp_auth_token,
+                    reuse_client=self._config["channel"]["whatsapp"]["reuse_client"]
+                )
+            return self._whatsapp_client
+    async def get(
         self,
         channel_type: str
     ):
         if channel_type == ChannelType.WHATSAPP.value:
-            return self.__get_whatsapp_client()
+            return await self.__get_whatsapp_client()
         else:
             self._logger.error(f"Invalid channel type: {channel_type}")
             raise ValueError(f"Invalid channel type: {channel_type}")
