@@ -84,13 +84,27 @@ class MongoDBService:
             byoeb_messages.append(byoeb_message)
 
         return byoeb_messages
+    
+    async def get_latest_bot_messages_by_timestamp(
+        self,
+        timestamp: str
+    ):
+        message_collection_client = await self.__get_message_collection_client()
+        query = {"timestamp": {"$gt": timestamp}}
+        messages_obj = await message_collection_client.afetch_all(query)
+        byoeb_messages = []
+        for message_obj in messages_obj:
+            message = message_obj['message_data']
+            byoeb_message = ByoebMessageContext(**message)
+            byoeb_messages.append(byoeb_message)
+        return byoeb_messages
 
     def message_create_queries(
         self,
         byoeb_messages: List[ByoebMessageContext]
     ) -> list:
         if len(byoeb_messages) == 0:
-            return
+            return []
         json_message_data = []
         for byoeb_message in byoeb_messages:
             json_message_data.append({
@@ -190,9 +204,9 @@ class MongoDBService:
         if queries is None or queries == {}:
             return
         message_client = await self.__get_message_collection_client()
-        if "create" in queries:
+        if "create" in queries and len(queries["create"]) > 0:
             await message_client.ainsert(queries["create"])
-        if "update" in queries:
+        if "update" in queries and len(queries["update"]) > 0:
             await message_client.aupdate(bulk_queries=queries["update"])
            
     async def execute_user_queries(
@@ -202,8 +216,8 @@ class MongoDBService:
         if queries is None or queries == {}:
             return
         user_client = await self.__get_user_collection_client()
-        if "create" in queries:
+        if "create" in queries and len(queries["create"]) > 0:
             await user_client.ainsert(queries["create"])
-        if "update" in queries:
+        if "update" in queries and len(queries["update"]) > 0:
             await user_client.aupdate(bulk_queries=queries["update"])
         

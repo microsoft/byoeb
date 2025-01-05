@@ -54,10 +54,14 @@ class ByoebExpertSendResponse(Handler):
         byoeb_user_messages: List[ByoebMessageContext],
         byoeb_expert_message: ByoebMessageContext,
     ):
-        message_update_queries = (
-            self._mongo_db_service.correction_update_query(byoeb_user_messages, byoeb_expert_message) +
-            self._mongo_db_service.verification_status_update_query(byoeb_user_messages, byoeb_expert_message)
-        )
+        message_update_queries = []
+        if byoeb_user_messages is None or len(byoeb_user_messages) == 0:
+            message_update_queries = []
+        else:
+            message_update_queries = (
+                self._mongo_db_service.correction_update_query(byoeb_user_messages, byoeb_expert_message) +
+                self._mongo_db_service.verification_status_update_query(byoeb_user_messages, byoeb_expert_message)
+            )
         user_update_queries = [self._mongo_db_service.user_activity_update_query(byoeb_expert_message.user)]
         return {
             constants.MESSAGE_DB_QUERIES: {
@@ -144,8 +148,7 @@ class ByoebExpertSendResponse(Handler):
         channel_service = self.get_channel_service(byoeb_expert_message.channel_type)
         await channel_service.amark_read(read_receipt_messages)
         expert_responses = await self.__handle_expert(channel_service, byoeb_expert_message)
-        if len(byoeb_user_messages) == 0:
-            return
-        user_responses = await self.__handle_user(channel_service, byoeb_user_messages)
+        if byoeb_user_messages is not None and len(byoeb_user_messages) != 0:
+            user_responses = await self.__handle_user(channel_service, byoeb_user_messages)
         db_queries = self.__prepare_db_queries(byoeb_user_messages, byoeb_expert_message)
         return db_queries
