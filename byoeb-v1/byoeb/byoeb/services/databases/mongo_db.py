@@ -187,9 +187,9 @@ class MongoDBService:
         self,
         queries: Dict[str, Any]
     ):
-        message_client = await self.__get_message_collection_client()
-        if queries is None or len(queries) == 0:
+        if queries is None or queries == {}:
             return
+        message_client = await self.__get_message_collection_client()
         if "create" in queries:
             await message_client.ainsert(queries["create"])
         if "update" in queries:
@@ -199,9 +199,9 @@ class MongoDBService:
         self,
         queries: Dict[str, Any]
     ):
-        user_client = await self.__get_user_collection_client()
-        if queries is None or len(queries) == 0:
+        if queries is None or queries == {}:
             return
+        user_client = await self.__get_user_collection_client()
         if "create" in queries:
             await user_client.ainsert(queries["create"])
         if "update" in queries:

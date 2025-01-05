@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import byoeb.utils.utils as utils
 from datetime import datetime
 from byoeb_core.message_queue.base import BaseQueue
 from byoeb.factory import ChannelClientFactory
@@ -92,6 +93,7 @@ class QueueConsumer:
         while True:
             time_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self._logger.info(f"Listening for messages at: {time_now}")
+            start_time = datetime.now()
             messages = await self.__areceive()
             message_content = []
             for message in messages:
@@ -101,15 +103,19 @@ class QueueConsumer:
                 await asyncio.sleep(2)
                 continue
             try:
-                successfully_processed_messages =  await message_consumer_svc.consume(message_content)
-                # handle messages
                 self._logger.info(f"Received {len(messages)} messages")
+                successfully_processed_messages =  await message_consumer_svc.consume(message_content)
+                utils.log_to_text_file(f"Successfully processed {len(successfully_processed_messages)} messages")
                 processed_ids = {message.message_context.message_id for message in successfully_processed_messages}
                 remove_messages = [msg for msg in messages if any(processed_id in msg.content for processed_id in processed_ids)]
                 await self.__delete_message(remove_messages)
                 self._logger.info(f"Deleted {len(remove_messages)} messages")
             except Exception as e:
                 self._logger.error(f"Error consuming messages: {e}")
+            end_time = datetime.now()
+            duration = (end_time - start_time).seconds
+            self._logger.info(f"Processing time: {duration} seconds")
+            utils.log_to_text_file(f"Processed {len(messages)} message in: {duration} seconds")
             await asyncio.sleep(2)
     
     async def close(
@@ -120,5 +126,4 @@ class QueueConsumer:
             await self._az_storage_queue._close()
             self._logger.info("Closed the Azure storage queue client")
         else:
-            self._logger.info("No queue client to close")
-    
+            self._logger.info("No queue client to close")  

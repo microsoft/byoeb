@@ -1,5 +1,6 @@
 import asyncio
 import byoeb.services.chat.constants as constants
+import byoeb.utils.utils as b_utils
 from byoeb.chat_app.configuration.config import app_config
 from byoeb.services.chat import utils
 from typing import Any, Dict, List
@@ -53,6 +54,10 @@ class ByoebUserSendResponse(Handler):
         channel_service: BaseChannelService,
         expert_message_context: ByoebMessageContext
     ):
+        # responses = [
+        #     utils.get_mock_whatsapp_response(expert_message_context.user.phone_number_id)
+        # ]
+        # return responses
         user_timestamp = await self._mongo_db_service.get_user_activity_timestamp(expert_message_context.user.user_id)
         last_active_duration_seconds = utils.get_last_active_duration_seconds(user_timestamp)
         expert_requests = channel_service.prepare_requests(expert_message_context)
@@ -64,6 +69,7 @@ class ByoebUserSendResponse(Handler):
             responses, message_ids = await channel_service.send_requests([template_verification_message])
         else:
             responses, message_ids = await channel_service.send_requests([interactive_button_message])
+        print("responses", responses)
         pending_emoji = expert_message_context.message_context.additional_info.get(constants.EMOJI)
         message_reactions = [
             MessageReaction(
@@ -83,7 +89,10 @@ class ByoebUserSendResponse(Handler):
         channel_service: BaseChannelService,
         user_message_context: ByoebMessageContext
     ):
-        responses = []
+        # responses = [
+        #     utils.get_mock_whatsapp_response(user_message_context.user.phone_number_id)
+        # ]
+        # return responses
         message_ids = []
         user_requests = channel_service.prepare_requests(user_message_context)
         if user_message_context.message_context.message_type == MessageTypes.REGULAR_AUDIO.value:
@@ -110,12 +119,11 @@ class ByoebUserSendResponse(Handler):
         reaction_requests = channel_service.prepare_reaction_requests(message_reactions)
         await channel_service.send_requests(reaction_requests)
         return responses
-
-    async def handle(
+    
+    async def __handle_message_send_workflow(
         self,
         messages: List[ByoebMessageContext]
-    ) -> Dict[str, Any]:
-        db_queries = {}
+    ):
         verification_status = constants.VERIFICATION_STATUS
         read_receipt_messages = utils.get_read_receipt_byoeb_messages(messages)
         byoeb_user_messages = utils.get_user_byoeb_messages(messages)
@@ -140,7 +148,6 @@ class ByoebUserSendResponse(Handler):
             byoeb_user_message,
             user_responses
         )
-
         byoeb_expert_verification_status = byoeb_expert_message.message_context.additional_info.get(verification_status)
         byoeb_expert_message.message_context.additional_info = {
             verification_status: byoeb_expert_verification_status
@@ -151,5 +158,19 @@ class ByoebUserSendResponse(Handler):
             user_responses,
             expert_responses
         )
-        db_queries = self.__prepare_db_queries(bot_to_user_convs + bot_to_expert_cross_convs, byoeb_user_message)
-        return db_queries
+        return bot_to_user_convs + bot_to_expert_cross_convs, byoeb_user_message
+    
+    async def handle(
+        self,
+        messages: List[ByoebMessageContext]
+    ) -> Dict[str, Any]:
+        if messages is None or len(messages) == 0:
+            return {}
+        try:
+            convs, byoeb_user_message = await self.__handle_message_send_workflow(messages)
+            db_queries = self.__prepare_db_queries(convs, byoeb_user_message)
+            b_utils.log_to_text_file("Successfully send the message to the user and expert")
+            return db_queries
+        except Exception as e:
+            b_utils.log_to_text_file(f"Error in sending message to user and expert: {str(e)}")
+            raise e

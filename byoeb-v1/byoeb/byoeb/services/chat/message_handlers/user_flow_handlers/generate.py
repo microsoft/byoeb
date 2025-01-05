@@ -1,6 +1,8 @@
 import hashlib
 import byoeb.services.chat.constants as constants
 import re
+import byoeb.utils.utils as utils
+from tenacity import retry, stop_after_attempt, wait_exponential, RetryError
 from typing import List, Dict, Any
 from byoeb.chat_app.configuration.config import bot_config, app_config
 from byoeb.models.message_category import MessageCategory
@@ -68,7 +70,7 @@ class ByoebUserGenerateResponse(Handler):
             return None
         return experts[expert_type][0], expert_type
     
-    def __get_read_reciept_message(
+    def __create_read_reciept_message(
         self,
         message: ByoebMessageContext,
     ) -> ByoebMessageContext:
@@ -223,6 +225,10 @@ class ByoebUserGenerateResponse(Handler):
         )
         return new_expert_verification_message
     
+    @retry(
+        stop=stop_after_attempt(3),  # Retry up to 3 times
+        wait=wait_exponential(multiplier=1, max=10),  # Exponential backoff with a max wait time of 10 seconds
+    )
     async def agenerate_answer(
         self,
         question,
@@ -238,7 +244,7 @@ class ByoebUserGenerateResponse(Handler):
             response = response_match.group(1).strip() if response_match else None
 
             # Extract the relevance
-            query_type_match = re.search(query_type_pattern, response_text)
+            query_type_match = re.search(query_type_pattern, response_text, re.DOTALL)
             query_type = query_type_match.group(1).strip() if query_type_match else None
             return response, query_type
         
@@ -249,11 +255,15 @@ class ByoebUserGenerateResponse(Handler):
         user_prompt = template_user_prompt.replace("<CHUNKS>", chunks).replace("<QUESTION>", question)
         augmented_prompts = self.__augment(system_prompt, user_prompt)
         llm_response, response_text = await llm_client.agenerate_response(augmented_prompts)
-        # print("Response text: ", response_text)
         answer, query_type = parse_response(response_text)
+        if answer is None or query_type is None:
+            raise ValueError("Parsing failed, response or query_type is None.")
         return answer, query_type
-
-
+    
+    @retry(
+        stop=stop_after_attempt(3),  # Retry up to 3 times
+        wait=wait_exponential(multiplier=1, max=10),  # Exponential backoff with a max wait time of 10 seconds
+    )
     async def agenerate_follow_up_questions(
         self,
         chunks_list,
@@ -266,14 +276,16 @@ class ByoebUserGenerateResponse(Handler):
         llm_response, response_text = await llm_client.agenerate_response(augmented_prompts)
         # print("Follow up questions response text: ", response_text)
         next_questions = re.findall(r"<q_\d+>(.*?)</q_\d+>", response_text)
+        if next_questions is None or len(next_questions) != 3:
+            raise ValueError("Parsing failed, next_questions.")
         return next_questions
     
-    async def handle(
+    async def __handle_message_generate_workflow(
         self,
-        messages: List[ByoebMessageContext]
-    ) -> Dict[str, Any]:
+        messages: ByoebMessageContext
+    ) -> List[ByoebMessageContext]:
         message = messages[0]
-        read_reciept_message = self.__get_read_reciept_message(message)
+        read_reciept_message = self.__create_read_reciept_message(message)
         message_english = message.message_context.message_english_text
         chunks_list = await self.__aretrieve_chunks_list(message_english, k=3)
         answer_task = self.agenerate_answer(message_english, chunks_list)
@@ -294,8 +306,27 @@ class ByoebUserGenerateResponse(Handler):
             self.EXPERT_PENDING_EMOJI,
             constants.PENDING
         )
-
+        return [byoeb_user_message, byoeb_expert_message, read_reciept_message]
+    
+    async def handle(
+        self,
+        messages: List[ByoebMessageContext]
+    ) -> Dict[str, Any]:
+        if messages is None or len(messages) == 0:
+            return {}
+        new_messages = []
+        try:
+            new_messages = await self.__handle_message_generate_workflow(messages)
+            utils.log_to_text_file(f"Generated answer and related questions")
+        except RetryError as e:
+            utils.log_to_text_file(f"RetryError in generating response: {e}")
+            print("RetryError in generating response: ", e)
+            raise e
+        except Exception as e:
+            utils.log_to_text_file(f"Error in generating response: {e}")
+            print("Error in generating response: ", e)
+            raise e
         if self._successor:
             return await self._successor.handle(
-                [byoeb_user_message, byoeb_expert_message, read_reciept_message]
+                new_messages
             )

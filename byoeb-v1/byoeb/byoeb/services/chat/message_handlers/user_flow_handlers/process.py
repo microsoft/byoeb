@@ -4,10 +4,10 @@ from byoeb.services.chat.message_handlers.base import Handler
 
 class ByoebUserProcess(Handler):
 
-    async def handle(
+    async def __handle_process_message_workflow(
         self,
         messages: List[ByoebMessageContext]
-    ) -> Dict[str, Any]:
+    ) -> ByoebMessageContext:
         # dependency injection
         from byoeb.chat_app.configuration.dependency_setup import text_translator
         from byoeb.chat_app.configuration.dependency_setup import channel_client_factory
@@ -42,6 +42,17 @@ class ByoebUserProcess(Handler):
             )
             
         message.message_context.message_english_text = translated_en_text
+        return message
+
+    async def handle(
+        self,
+        messages: List[ByoebMessageContext]
+    ) -> Dict[str, Any]:
+        message = None
+        try:
+            message = await self.__handle_process_message_workflow(messages)
+        except Exception as e:
+            raise e
         
         if self._successor:
             return await self._successor.handle([message])

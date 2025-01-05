@@ -3,6 +3,7 @@ import asyncio
 import json
 import hashlib
 import byoeb.services.chat.constants as constants
+import byoeb.utils.utils as b_utils
 from datetime import datetime
 from pydantic import BaseModel
 from typing import Optional, List
@@ -115,13 +116,14 @@ class MessageConsmerService:
         task = []
         for conversation in conversations:
             conversation.user.activity_timestamp = str(int(datetime.now().timestamp()))
+            # b_utils.log_to_text_file("Processing message: " + json.dumps(conversation.model_dump()))
             if conversation.user.user_type == self._regular_user_type:
                 task.append(self.__process_byoebuser_conversation(conversation))
             elif self.__is_expert_user_type(conversation.user.user_type):
                 task.append(self.__process_byoebexpert_conversation(conversation))
         results = await asyncio.gather(*task)
         for queries, processed_message, err in results:
-            if err is not None:
+            if err is not None or queries is None:
                 continue
             successfully_processed_messages.append(processed_message)
             await self._mongo_db_service.execute_message_queries(queries.get(constants.MESSAGE_DB_QUERIES))
