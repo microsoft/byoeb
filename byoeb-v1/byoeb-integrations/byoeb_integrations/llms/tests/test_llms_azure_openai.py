@@ -50,11 +50,11 @@ async def atest_llama_index_azure_openai():
     msg = "Hello, how are you?"
     prompt = [{"role": "system", "content": "You are a helpful assistant."}]
     prompt.append({"role": "user", "content": msg})
-    _, response = await llama_index_azure_openai.agenerate_response(
+    llm_resp, response = await llama_index_azure_openai.agenerate_response(
         prompts=prompt
     )
     assert response is not None
-    print(response)
+    print(llama_index_azure_openai.get_response_tokens(llm_resp))
 
 def test_agenerate_response():
     prompt1 = "Hello, how are you?"

@@ -1,5 +1,5 @@
 import threading
-from typing import Any
+from typing import Any, Dict
 from enum import Enum
 from openai import OpenAI, AsyncAzureOpenAI
 from byoeb_core.llms.base import BaseLLM
@@ -63,6 +63,12 @@ class AsyncAzureOpenAILLM(BaseLLM):
             temperature=temperature,
         )
         return response, response.choices[0].message.content.strip()
+    
+    def get_response_tokens(
+        self,
+        response: Any
+    ) -> Dict[str, int]:
+        raise NotImplementedError
 
     def get_llm_client(self):
         return self.__client
