@@ -2,8 +2,8 @@ import asyncio
 import hashlib
 import json
 import byoeb.services.chat.constants as constants
+from datetime import datetime, timedelta
 from aiocache import cached, Cache
-from aiocache.serializers import JsonSerializer
 from byoeb_core.models.byoeb.message_context import ByoebMessageContext
 from typing import List, Dict, Any
 from datetime import datetime
@@ -22,6 +22,7 @@ class MongoDBService:
         self._config = config
         self._mongo_db_factory = mongo_db_factory
         self._history_length = self._config["app"]["history_length"]
+        self.cache = Cache(Cache.MEMORY)
 
     async def __get_message_collection_client(
         self
@@ -43,17 +44,36 @@ class MongoDBService:
         )
         return user_collection_client
     
-    async def get_user_activity_timestamp(
-        self,
-        user_id: str,
-    ) -> str:
+    async def get_user_activity_timestamp(self, user_id: str):
+        # Check if the result is in the cache
+        cached_data = await self.cache.get(user_id)
+        if cached_data:
+            cached_timestamp, activity_timestamp = cached_data
+            # Ignore cache if older than 24 hours
+            if datetime.utcnow() - cached_timestamp > timedelta(hours=24):
+                await self.cache.delete(user_id)
+            else:
+                return activity_timestamp
+
+        # Fetch from database
         user_collection_client = await self.__get_user_collection_client()
         query = {"_id": user_id}
         user_obj = await user_collection_client.afetch(query)
+
         if user_obj is None:
             return None
+
         user = User(**user_obj['User'])
-        return user.activity_timestamp
+        activity_timestamp = user.activity_timestamp
+
+        # Store in cache with a TTL of 1 hour
+        await self.cache.set(
+            user_id,
+            (datetime.utcnow(), activity_timestamp),
+            ttl=3600  # TTL in seconds
+        )
+
+        return activity_timestamp
         
     async def get_users(
         self,
