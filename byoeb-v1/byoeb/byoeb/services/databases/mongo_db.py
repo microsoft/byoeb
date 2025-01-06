@@ -221,3 +221,16 @@ class MongoDBService:
         if "update" in queries and len(queries["update"]) > 0:
             await user_client.aupdate(bulk_queries=queries["update"])
         
+    async def delete_message_collection(
+        self
+    ):
+        try:
+            message_client = await self.__get_message_collection_client()
+            if isinstance(message_client, AsyncAzureCosmosMongoDBCollection):
+                await message_client.adelete_collection()
+                return True, None
+            return False, None
+        except Exception as e:
+            return False, e
+            
+        

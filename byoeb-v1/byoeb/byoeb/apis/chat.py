@@ -31,9 +31,35 @@ async def get_bot_messages(
     """
     Get all messages for a specific BO.
     """
-    response = await dependency_setup.mongo_db_service.get_bot_messages(timestamp)
-    _logger.info(f"Response: {response}")
+    responses = await dependency_setup.mongo_db_service.get_latest_bot_messages_by_timestamp(timestamp)
+    byoeb_response = []
+    for response in responses:
+        byoeb_response.append(response.model_dump())
     return JSONResponse(
-        content="sucess",
-        status_code="200"
+        content=byoeb_response,
+        status_code=200
     )
+
+@chat_apis_router.delete("/delete_message_collection")
+async def delete_collection(
+    request: Request,
+):
+    """
+    Delete a collection from the database.
+    """
+    response, e = await dependency_setup.mongo_db_service.delete_message_collection()
+    if response == True:
+        return JSONResponse(
+            content="Successfully deleted",
+            status_code=200
+        )
+    elif response == False and e is None:
+        return JSONResponse(
+            content="Failed to delete",
+            status_code=500
+        )
+    elif e is not None:
+        return JSONResponse(
+            content=f"Error: {e}",
+            status_code=500
+        )
