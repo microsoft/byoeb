@@ -255,6 +255,8 @@ class ByoebUserGenerateResponse(Handler):
         user_prompt = template_user_prompt.replace("<CHUNKS>", chunks).replace("<QUESTION>", question)
         augmented_prompts = self.__augment(system_prompt, user_prompt)
         llm_response, response_text = await llm_client.agenerate_response(augmented_prompts)
+        tokens = llm_client.get_response_tokens(llm_response)
+        utils.log_to_text_file(f"Generated answer tokens: {str(tokens)}")
         answer, query_type = parse_response(response_text)
         if answer is None or query_type is None:
             raise ValueError("Parsing failed, response or query_type is None.")
@@ -274,7 +276,8 @@ class ByoebUserGenerateResponse(Handler):
         user_prompt = template_user_prompt.replace("<CHUNKS>", chunks)
         augmented_prompts = self.__augment(system_prompt, user_prompt)
         llm_response, response_text = await llm_client.agenerate_response(augmented_prompts)
-        # print("Follow up questions response text: ", response_text)
+        tokens = llm_client.get_response_tokens(llm_response)
+        utils.log_to_text_file(f"Generated answer tokens: {str(tokens)}")
         next_questions = re.findall(r"<q_\d+>(.*?)</q_\d+>", response_text)
         if next_questions is None or len(next_questions) != 3:
             raise ValueError("Parsing failed, next_questions.")

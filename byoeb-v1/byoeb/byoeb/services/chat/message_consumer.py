@@ -6,7 +6,7 @@ import byoeb.services.chat.constants as constants
 import byoeb.utils.utils as b_utils
 from datetime import datetime
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from byoeb.models.message_category import MessageCategory
 from byoeb.factory import MongoDBFactory, ChannelClientFactory
 from byoeb.chat_app.configuration.config import bot_config
@@ -126,8 +126,11 @@ class MessageConsmerService:
             if err is not None or queries is None:
                 continue
             successfully_processed_messages.append(processed_message)
-            await self._mongo_db_service.execute_message_queries(queries.get(constants.MESSAGE_DB_QUERIES))
-            await self._mongo_db_service.execute_user_queries(queries.get(constants.USER_DB_QUERIES))
+        message_queries, user_queries = self._mongo_db_service.aggregate_queries(results)
+        await asyncio.gather(
+            self._mongo_db_service.execute_message_queries(message_queries),
+            self._mongo_db_service.execute_user_queries(user_queries)
+        )
         return successfully_processed_messages
 
     async def __process_byoebuser_conversation(self, byoeb_message):

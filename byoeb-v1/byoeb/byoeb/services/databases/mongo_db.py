@@ -197,6 +197,36 @@ class MongoDBService:
             user_update_queries.append(({"_id": byoeb_user_message.reply_context.reply_id}, update_data))
         return expert_update_queries + user_update_queries
     
+    def aggregate_queries(
+        self,
+        results: List[Dict[str, Any]]
+    ):
+        new_message_queries = {
+            constants.CREATE: [],
+            constants.UPDATE: [],
+        }
+        new_user_queries = {
+            constants.CREATE: [],
+            constants.UPDATE: [],
+        }
+        for queries, _, err in results:
+            if err is not None or queries is None:
+                continue
+            message_queries = queries.get(constants.MESSAGE_DB_QUERIES, {})
+            user_queries = queries.get(constants.USER_DB_QUERIES, {})
+            if message_queries is not None and message_queries != {}:
+                message_create_queries = message_queries.get(constants.CREATE,[])
+                message_update_queries = message_queries.get(constants.UPDATE,[])
+                new_message_queries[constants.CREATE].extend(message_create_queries)
+                new_message_queries[constants.UPDATE].extend(message_update_queries)
+            if user_queries is not None and user_queries != {}:
+                user_create_queries = user_queries.get(constants.CREATE,[])
+                user_update_queries = user_queries.get(constants.UPDATE,[])
+                new_user_queries[constants.CREATE].extend(user_create_queries)
+                new_user_queries[constants.UPDATE].extend(user_update_queries)
+        
+        return new_message_queries, new_user_queries
+    
     async def execute_message_queries(
         self,
         queries: Dict[str, Any]
@@ -232,5 +262,3 @@ class MongoDBService:
             return False, None
         except Exception as e:
             return False, e
-            
-        

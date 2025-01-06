@@ -4,6 +4,7 @@ import byoeb.services.chat.utils as utils
 import byoeb_integrations.channel.whatsapp.request_payload as wa_req_payload
 from byoeb.services.channel.base import BaseChannelService, MessageReaction
 from byoeb_core.models.byoeb.message_context import (
+    User,
     ByoebMessageContext,   
     MessageContext,
     ReplyContext,
@@ -105,7 +106,13 @@ class WhatsAppService(BaseChannelService):
             byoeb_message = ByoebMessageContext( 
                 channel_type=byoeb_user_message.channel_type,
                 message_category=byoeb_user_message.message_category,
-                user=byoeb_user_message.user,
+                user=User(
+                    user_id=byoeb_user_message.user.user_id,
+                    user_type=byoeb_user_message.user.user_type,
+                    user_language=byoeb_user_message.user.user_language,
+                    test_user=byoeb_user_message.user.test_user,
+                    phone_number_id=byoeb_user_message.user.phone_number_id,
+                ),
                 message_context=MessageContext(
                     message_id=response.messages[0].id,
                     message_type=message_type,
@@ -152,7 +159,13 @@ class WhatsAppService(BaseChannelService):
             user_messages_context.append(user_message_context)
         
         cross_conversation_context = {
-            constants.USER: byoeb_user_message.user,
+            constants.USER: User(
+                    user_id=byoeb_user_message.user.user_id,
+                    user_type=byoeb_user_message.user.user_type,
+                    user_language=byoeb_user_message.user.user_language,
+                    test_user=byoeb_user_message.user.test_user,
+                    phone_number_id=byoeb_user_message.user.phone_number_id,
+                ),
             constants.MESSAGES_CONTEXT: user_messages_context
         }
         bot_to_expert_messages = []
