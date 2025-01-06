@@ -3,6 +3,7 @@ import byoeb.services.chat.constants as constants
 import byoeb.utils.utils as b_utils
 from byoeb.chat_app.configuration.config import app_config
 from byoeb.services.chat import utils
+from byoeb.services.chat import mocks
 from typing import Any, Dict, List
 from byoeb_core.models.byoeb.message_context import ByoebMessageContext, MessageTypes
 from byoeb.services.channel.base import BaseChannelService, MessageReaction
@@ -55,7 +56,7 @@ class ByoebUserSendResponse(Handler):
         expert_message_context: ByoebMessageContext
     ):
         # responses = [
-        #     utils.get_mock_whatsapp_response(expert_message_context.user.phone_number_id)
+        #     mocks.get_mock_whatsapp_response(expert_message_context.user.phone_number_id)
         # ]
         # return responses
         user_timestamp = await self._mongo_db_service.get_user_activity_timestamp(expert_message_context.user.user_id)
@@ -90,7 +91,7 @@ class ByoebUserSendResponse(Handler):
         user_message_context: ByoebMessageContext
     ):
         # responses = [
-        #     utils.get_mock_whatsapp_response(user_message_context.user.phone_number_id)
+        #     mocks.get_mock_whatsapp_response(user_message_context.user.phone_number_id)
         # ]
         # return responses
         message_ids = []
