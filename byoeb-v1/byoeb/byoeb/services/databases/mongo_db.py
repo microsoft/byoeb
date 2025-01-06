@@ -43,7 +43,6 @@ class MongoDBService:
         )
         return user_collection_client
     
-    @cached(ttl=3600, cache=Cache.MEMORY, serializer=JsonSerializer())
     async def get_user_activity_timestamp(
         self,
         user_id: str,
