@@ -14,6 +14,7 @@ with open(os.path.join(local_path,'config.yaml')) as file:
 from conversation_database import LoggingDatabase
 from uuid import uuid4
 from database import UserDB, UserConvDB, ExpertConvDB, BotConvDB, UserRelationDB
+from az_table import DoctorAlternateTable
 from messenger import WhatsappMessenger
 
 class OnboardMedics:
@@ -23,6 +24,11 @@ class OnboardMedics:
         self.user_relations_db = UserRelationDB(config)
         self.unit_onboarding_data = json.load(open(os.path.join(os.environ['APP_PATH'], os.environ['DATA_PATH'], 'unit_onboarding_data.json')))
         self.messenger = WhatsappMessenger(config, logger)
+        self.doctor_alternate_table = DoctorAlternateTable()
+        entities = self.doctor_alternate_table.fetch_all_rows()
+        self.doctor_alternate_data = {
+            entity['phone_number_primary']: entity['phone_number_alternate'] for entity in entities
+        }
         
 
     def onboard_medics_helper(self, data):
@@ -99,6 +105,9 @@ class OnboardMedics:
         )
 
         doctor_whatsapp_id = '91'+str(data['operating_doctor_number'])
+
+        if doctor_whatsapp_id in self.doctor_alternate_data:
+            doctor_whatsapp_id = self.doctor_alternate_data[doctor_whatsapp_id]
 
         doctor_row = self.user_db.get_from_whatsapp_id(doctor_whatsapp_id)
         if doctor_row is None:
