@@ -1,23 +1,97 @@
 {
+    "unknown_user" : {
+        "en": "Unknown user. Kindly ask a Sankara Eye Hospital staff member to onboard you."
+    },
+
+    "onboarding" : {
+            "en_consent": "Hi, I am Cataract Bot from Sankara Eye Hospital. I work alongside doctors and counselors to answer any questions you may have about cataract surgery. Whether you're seeking information about the procedure, recovery tips, or what to expect before, during, or after surgery, I'm here to help.\n\nTo continue the onboarding process, please reply with *'Yes'*. Thank you for choosing Sankara Eye Hospital!",
+            "en_consent_options": ["Yes", "No"],
+            "en_language": "Select your preferred language.",
+            "language_options": ["ಕನ್ನಡ", "हिंदी", "తెలుగు", "தமிழ்", "English"],
+            "en_tutorial": "My answers are based on the best available evidence, but they may not always be completely accurate. A medical expert from Sankara Eye Hospital will review and refine my answers within six hours, ensuring you receive reliable information.\n\nMy answers will be marked with these symbols:\n✅ Verified by your doctor or counsellor.\n❓ Awaiting verification.\n❌ Incorrect answer, and I will provide a corrected answer soon.\n\nI am here to help make your cataract surgery experience as smooth as possible!",
+            "en_tutorial_options": ["What next?"]
+    },
+
+    "offboarding" : {
+        "en": "Thank you for choosing Sankara Eye Hospital. Please contact us at <phone_number> to resolve your question."
+    },
+
+    "expert_activity" : {
+        "en": "Reply with 'Yes' to keep CataractBot active.",
+        "en_activity": ["Yes"]
+    },
+
+    "previously_verified_answer" : {
+        "en_audio": "You asked: <question>\n\nA similar question was answered previously.\n*Question*: <similar_question>\n*Answer*: <similar_answer>\n\nDoes this answer your question?",
+        "en_text": "A similar question was answered previously.\n*Question*: <similar_question>\n*Answer*: <similar_answer>\n\nDoes this answer your question?",
+        "en_options": ["Yes", "No"],
+        "en_options_yes": "Thank you for your response."
+    },
+
+    "new_question" : {
+        "en_audio": "You asked: <question>\nAnswer: <answer>",
+        "en_text": "<answer>"
+    },
+
+    "options_related_questions" : {
+        "en": "Related questions"
+    },
+
+    "expert_verification": {
+        "user": {
+            "en_yes": "This answer has been verified by your <expert>.",
+            "en_no": "This answer is invalid. Please wait for a correct answer from your <expert>.\n\nIn the meantime, you can ask me any other cataract surgery related questions.",
+            "en_no_correction_audio": "You asked: <question>\nAnswer: <answer>\n\nThis answer has been verified by your <expert>.",
+            "en_no_correction_text": "<answer>\n\nThis answer has been verified by your <expert>."
+        },
+        "expert":{
+            "en_query": "*Question*: \"<question>\"\n*Bot's response*: <answer>\n*User*: <patient_details>\n\nIs the bot's answer correct and complete?",
+            "en_query_options": ["Yes", "No"],
+            "en_query_yes": "Noted. Thank you.",
+            "en_query_no": "Please reply with a correction.",
+            "en_query_no_correction": "Correction noted. Thank you.",
+            "en_notag": "Please *'reply'* to the specific question whose answer you want to correct.",
+            "en_otherexpertresponded": "This question has been answered by <expert_name>.",
+            "expert_reminders" : {
+                "en_escalation": "This question has been escalated to <escalation_expert>.",
+                "en_response": "Please respond to this question.",
+                "en_correction": "Please respond to this question with a correction."
+            }
+        }
+    },
+
+    "idk": {
+        "en": "This question is outside the scope of my current knowledge. Please wait, you will receive an answer from your <expert>.\n\nIn the meantime, you can ask me any other cataract surgery related questions.",
+        "en_audio": "You asked: *<question>*\n\nDid I understand you correctly?",
+        "en_audio_options": ["Yes, that's correct", "No, I will ask again"],
+        "en_audio_reask": "Please ask your question again. If you have already done so, ignore this message.",
+        "en_expertsaysyes": "I am sorry. Please contact the hospital at <phone_number> to resolve your question.\n\nYou can ask me any other cataract surgery related questions.",
+        "en_incomprehensible_text": "I am sorry, I did not understand this question. Please rephrase or ask again.",
+        "en_outofscope_or_smalltalk_audio":"You said: *<question>*\nThis is outside the scope of my current knowledge.\n\nYou can ask me any other cataract surgery related questions.",
+        "en_outofscope_or_smalltalk_text": "This is outside the scope of my current knowledge.\n\nYou can ask me any other cataract surgery related questions."
+    },
+
+    "smalltalk": {
+        "en_audio": "You said: <question>\n\nResponse: <answer_smalltalk>",
+        "en_text": "<answer_smalltalk>"
+    },
+
+    "not_audio_or_text": {
+        "en": "Sorry, this format is not supported right now. Please send your questions as text or voice messages."
+    },
+
     "verification" : {
         "en": "This answer has been verified by your <expert>."
     },
+
     "invalid_response" : {
-        "en": "This answer is invalid. Please wait for a correct answer from your <expert>.\nYou can ask me any other cataract surgery related questions in the meantime."
+        "en": "This answer is invalid. Please wait for a correct answer from your <expert>.\n\nIn the meantime, you can ask me any other cataract surgery related questions."
     },
-    "idk_response_audio": {
-        "user": {
-            "en": "You asked: *<query>*\n\nDid I understand your question correctly?",
-            "en_options": ["Yes, that's correct.", "No, ask again."],
-            "en_reask": "Please ask your question again. If you have already asked it again, please ignore this message.",
-            "en_raise": "This question is outside the scope of my current knowledge. Please wait, you will receive an answer from your doctor/counsellor. You can ask me any other cataract surgery related questions in the meantime",
-            "en_final": "I am sorry, please contact the hospital to resolve this question. You can ask me any other cataract surgery related questions."
-        }
-    },
+
     "idk_response": {
         "user": {
-            "en_raise": "This question is outside the scope of my current knowledge. Please wait, you will receive an answer from your doctor/counsellor. You can ask me any other cataract surgery related questions in the meantime",
-            "en_final": "I am sorry, please contact the hospital to resolve this question. You can ask me any other cataract surgery related questions."
+            "en_raise": "This is outside the scope of my current knowledge. Please wait, you will receive an answer from your <expert>.\n\nIn the meantime, you can ask me any other cataract surgery related questions.",
+            "en_final": "I am sorry, I cannot answer this question. Please contact the hospital at <phone_number> to resolve your question.\n\nYou can ask me any other cataract surgery related questions."
         }
     }
 }
