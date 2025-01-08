@@ -112,7 +112,7 @@ class WhatsappResponder(BaseResponder):
         if user_type is None:
             self.messenger.send_message(
                 from_number,
-                "Unknown user. Kindly ask a Sankara Eye Hospital staff member to onboard you.",
+                self.template_messages["unknown_user"]["en"],
                 reply_to_msg_id=msg_id,
             )
             return
@@ -156,7 +156,7 @@ class WhatsappResponder(BaseResponder):
             details={"text": msg_object["type"], "reply_to": None},
             timestamp=datetime.now(),
         )
-        text = "Sorry, this format is not supported right now, please send your queries as text/voice messages."
+        text = self.template_messages["not_audio_or_text"]["en"]
         
         translated_text = self.azure_translate.translate_text(
             text, "en", row_lt['user_language'], self.logger
@@ -174,7 +174,7 @@ class WhatsappResponder(BaseResponder):
         if msg_object["button"]["payload"] in self.yes_responses:
             onboard_wa_helper(self.config, self.logger, row_lt['whatsapp_id'], user_type, row_lt['user_language'], row_lt['user_id'], self.user_db)
         else:
-            text_message = "Thank you for your response."
+            text_message = self.template_messages["offboarding"]["en"]
             text = self.azure_translate.translate_text(
                 text_message, "en", row_lt['user_language'], self.logger
             )
@@ -421,15 +421,21 @@ class WhatsappResponder(BaseResponder):
         return sent_msg_id, audio_msg_id
         
     def handle_small_talk_idk(self, row_lt, row_query):
-        text = self.template_messages["idk_response"]["user"]["en_final"]
-        final_message = self.template_messages['idk_response']["user"][f"{row_lt['user_language']}_final"]
+        text = self.template_messages["idk"]["en_outofscope_or_smalltalk_text"]
+        # final_message = self.template_messages['idk_response']["user"][f"{row_lt['user_language']}_final"]
+        final_message = self.azure_translate.translate_text(
+            text, "en", row_lt['user_language'], self.logger
+        )
         _, list_title, questions_source, _ = self.get_suggested_questions(
             row_lt,
             row_query,
             IDK
         )
-        sent_msg_id = self.messenger.send_message(
-            row_lt['whatsapp_id'], final_message, row_query["message_id"]
+        # sent_msg_id = self.messenger.send_message(
+        #     row_lt['whatsapp_id'], final_message, row_query["message_id"]
+        # )
+        sent_msg_id = self.messenger.send_suggestions(
+            row_lt['whatsapp_id'], final_message, list_title, questions_source, row_query['message_id']
         )
         self.bot_conv_db.insert_row(
             receiver_id=row_lt['user_id'],
@@ -551,7 +557,7 @@ class WhatsappResponder(BaseResponder):
                     self.send_audio_idk_response(row_lt, row_query)
                 else:
                     sent_msg_id, audio_msg_id = self.send_idk_raise(row_lt, row_query, msg_type)
-                    raise_message = self.template_messages['idk_response']["user"][f"{row_lt['user_language']}_raise"]
+                    raise_message = self.template_messages["idk"]["en"]
                     self.bot_conv_db.insert_row(
                         receiver_id=row_lt['user_id'],
                         message_type="query_response",
@@ -884,7 +890,7 @@ class WhatsappResponder(BaseResponder):
         if poll is None:
             self.messenger.send_message(
                 msg_object["from"],
-                f"Please reply to the query that you are trying to answer.",
+                self.template_messages["expert_verification"]["expert"]["en_notag"],
                 msg_object["id"],
             )
             return
@@ -944,20 +950,23 @@ class WhatsappResponder(BaseResponder):
         if answer == "Yes":
             self.messenger.send_message(
                 expert_row_lt['whatsapp_id'],
-                "Noted, thank you for the response.",
+                self.template_messages["expert_verification"]["expert"]["en_query_yes"],
                 context_id,
             )
 
 
             
             if row_response["message_category"] == "IDK":
-                text = self.template_messages["idk_response_audio"]["user"]["en_final"]
-                final_message = self.template_messages['idk_response_audio']["user"][f"{user_row_lt['user_language']}_final"]
-                _, list_title, questions_source, _ = self.get_suggested_questions(
-                    user_row_lt,
-                    row_query,
-                    IDK
+                text = self.template_messages["idk"]["en_expertsaysyes"]
+                # final_message = self.template_messages['idk_response_audio']["user"][f"{user_row_lt['user_language']}_final"]
+                final_message = self.azure_translate.translate_text(
+                    text, "en", user_row_lt["user_language"], self.logger
                 )
+                # _, list_title, questions_source, _ = self.get_suggested_questions(
+                #     user_row_lt,
+                #     row_query,
+                #     IDK
+                # )
                 sent_msg_id = self.messenger.send_message(
                     user_row_lt['whatsapp_id'], final_message, row_query["message_id"],
                 )
@@ -969,7 +978,7 @@ class WhatsappResponder(BaseResponder):
                     self.messenger.send_reaction(
                         user_row_lt['whatsapp_id'], row_response["audio_message_id"], "\u2705"
                     )
-                text = self.template_messages["verification"]["en"]
+                text = self.template_messages["expert_verification"]["user"]["en_yes"]
                 text = text.replace("<expert>", expert_row_lt["user_type"].lower())
                 text_translated = self.azure_translate.translate_text(
                     text, "en", user_row_lt["user_language"], self.logger
@@ -1019,7 +1028,7 @@ class WhatsappResponder(BaseResponder):
                     self.messenger.send_reaction(
                         user_row_lt['whatsapp_id'], row_response["audio_message_id"], "\u274C"
                     )
-                text = self.template_messages["invalid_response"]["en"]
+                text = self.template_messages["expert_verification"]["user"]["en_no"]
                 text = text.replace("<expert>", expert_row_lt["user_type"].lower())
                 text_translated = self.azure_translate.translate_text(
                     text, "en", user_row_lt["user_language"], self.logger
@@ -1031,7 +1040,7 @@ class WhatsappResponder(BaseResponder):
                 )
             self.messenger.send_message(
                 expert_row_lt['whatsapp_id'],
-                "Please reply with a correction to the query that you are trying to fix.",
+                self.template_messages["expert_verification"]["expert"]["en_query_no"],
                 context_id,
             )
 
@@ -1055,7 +1064,7 @@ class WhatsappResponder(BaseResponder):
         if msg_object.get("context", False) == False:
             self.messenger.send_message(
                 expert_row_lt['whatsapp_id'],
-                "Please reply to the query you want to fix.",
+                self.template_messages["expert_verification"]["expert"]["en_notag"],
                 msg_object["id"],
             )
             return
@@ -1086,7 +1095,7 @@ class WhatsappResponder(BaseResponder):
                 transaction_message_id=poll["transaction_message_id"],
             )
             self.messenger.send_message(
-                msg_object["from"], "Thank you for the response.", msg_object["id"]
+                msg_object["from"], self.template_messages["expert_verification"]["expert"]["en_query_no_correction"], msg_object["id"]
             )
             return
             
@@ -1095,7 +1104,7 @@ class WhatsappResponder(BaseResponder):
             print(poll)
             self.messenger.send_message(
                 msg_object["from"],
-                f"Please reply to the query you want to fix.",
+                self.template_messages["expert_verification"]["expert"]["en_notag"],
                 msg_object["id"],
             )
             return
@@ -1207,7 +1216,7 @@ class WhatsappResponder(BaseResponder):
                 user_row_lt['whatsapp_id'], updated_audio_msg_id, "\u2705"
             )
         else:
-            verification_text = self.template_messages['verification']['en']
+            verification_text = self.template_messages["expert_verification"]["user"]["en_yes"]
             verification_text = verification_text.replace("<expert>", expert_row_lt["user_type"].lower())
             gpt_output = f"{gpt_output}\n\n{verification_text}"
             gpt_output_source = self.azure_translate.translate_text(
@@ -1235,13 +1244,10 @@ class WhatsappResponder(BaseResponder):
             transaction_message_id=transaction_message_id
         )
 
-        # expert = self.category_to_expert[row_query['query_type']]
-        # text = f"This response has been verified by the {expert}."
-        # msg_text = self.azure_translate.translate_text(text, "en", user_row_lt['user_language'], self.logger)
-        # self.messenger.send_message(user_row_lt["whatsapp_id"], msg_text, updated_msg_id)
+        
 
         self.messenger.send_message(
-            msg_object["from"], "Correction noted. Thank you.", msg_object["id"]
+            msg_object["from"], self.template_messages["expert_verification"]["expert"]["en_query_no_correction"], msg_object["id"]
         )
         self.user_conv_db.mark_resolved(row_query['_id'])
         
