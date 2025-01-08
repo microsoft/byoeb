@@ -106,10 +106,19 @@ class ByoebUserGenerateResponse(Handler):
         interactive_list_additional_info = {}
         user_message = None
         if related_questions is not None:
-            description = bot_config["template_messages"]["user"]["follow_up_questions_description"][message.user.user_language]
+            description = bot_config["template_messages"]["user"]["follow_up_questions_description"][user_language]
+            user_lang_related_questions = [
+                await text_translator.atranslate_text(
+                    input_text=question,
+                    source_language="en",
+                    target_language=user_language
+                )
+                for question in related_questions
+            ]
+
             interactive_list_additional_info = {
                 constants.DESCRIPTION: description,
-                constants.ROW_TEXTS: related_questions
+                constants.ROW_TEXTS: user_lang_related_questions
             }
             user_message = ByoebMessageContext(
                 channel_type=message.channel_type,
