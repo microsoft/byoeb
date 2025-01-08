@@ -972,7 +972,7 @@ class WhatsappResponder(BaseResponder):
                 text = self.template_messages["expert_verification"]["user"]["en_yes"]
                 text = text.replace("<expert>", expert_row_lt["user_type"].lower())
                 text_translated = self.template_messages["expert_verification"]["user"][f"{user_row_lt['user_language']}_yes"]
-                expert_title = self.template_messages["expert_title"][expert_row_lt["user_language"]][user_row_lt["user_language"]]
+                expert_title = self.template_messages["expert_title"][expert_row_lt['user_type']][user_row_lt["user_language"]]
                 text_translated = text_translated.replace("<expert>", expert_title)
                 sent_msg_id = self.messenger.send_message(
                     user_row_lt["whatsapp_id"],
@@ -1022,7 +1022,7 @@ class WhatsappResponder(BaseResponder):
                 text = self.template_messages["expert_verification"]["user"]["en_no"]
                 text = text.replace("<expert>", expert_row_lt["user_type"].lower())
                 text_translated = self.template_messages["expert_verification"]["user"][f"{user_row_lt['user_language']}_no"]
-                expert_title = self.template_messages["expert_title"][expert_row_lt["user_language"]][user_row_lt["user_language"]]
+                expert_title = self.template_messages["expert_title"][expert_row_lt['user_type']][user_row_lt["user_language"]]
                 text_translated = text_translated.replace("<expert>", expert_title)
                 self.messenger.send_message(
                     user_row_lt['whatsapp_id'],
@@ -1171,7 +1171,7 @@ class WhatsappResponder(BaseResponder):
             verification_text = self.template_messages['verification']['en']
             verification_text = verification_text.replace("<expert>", expert_row_lt["user_type"].lower())
             verification_text_source = self.template_messages['verification'][user_row_lt['user_language']]
-            expert_title = self.template_messages["expert_title"][expert_row_lt["user_language"]][user_row_lt["user_language"]]
+            expert_title = self.template_messages["expert_title"][expert_row_lt['user_type']][user_row_lt["user_language"]]
             verification_text_source = verification_text_source.replace("<expert>", expert_title)
             gpt_output_source = self.azure_translate.translate_text(
                 gpt_output, "en", user_row_lt['user_language'], self.logger
@@ -1215,7 +1215,7 @@ class WhatsappResponder(BaseResponder):
             verification_text = self.template_messages["expert_verification"]["user"]["en_yes"]
             verification_text = verification_text.replace("<expert>", expert_row_lt["user_type"].lower())
             verification_text_source = self.template_messages["expert_verification"]["user"][f"{user_row_lt['user_language']}_yes"]
-            expert_title = self.template_messages["expert_title"][expert_row_lt["user_language"]][user_row_lt["user_language"]]
+            expert_title = self.template_messages["expert_title"][expert_row_lt["user_type"]][user_row_lt["user_language"]]
             verification_text_source = verification_text_source.replace("<expert>", expert_title)
             gpt_output_source = self.azure_translate.translate_text(
                 gpt_output, "en", user_row_lt['user_language'], self.logger
