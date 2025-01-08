@@ -1,97 +1,429 @@
 {
-    "unknown_user" : {
-        "en": "Unknown user. Kindly ask a Sankara Eye Hospital staff member to onboard you."
+    "expert_title" : {
+        "Doctor": {
+            "en": "doctor",
+            "hi": "डॉक्टर",
+            "ta": "மருத்துவர்",
+            "te": "వైద్యుడు",
+            "kn": "ವೈದ್ಯ",
+            "ur": "ڈاکٹر"
+        },
+        "Counsellor": {
+            "en": "counsellor",
+            "hi": "काउंसलर",
+            "ta": "ஆலோசகர்",
+            "te": "సలహాదారుడు",
+            "kn": "ಸಲಹೆದಾರ",
+            "ur": "مشیر"
+        }
     },
-
-    "onboarding" : {
-            "en_consent": "Hi, I am Cataract Bot from Sankara Eye Hospital. I work alongside doctors and counselors to answer any questions you may have about cataract surgery. Whether you're seeking information about the procedure, recovery tips, or what to expect before, during, or after surgery, I'm here to help.\n\nTo continue the onboarding process, please reply with *'Yes'*. Thank you for choosing Sankara Eye Hospital!",
-            "en_consent_options": ["Yes", "No"],
-            "en_language": "Select your preferred language.",
-            "language_options": ["ಕನ್ನಡ", "हिंदी", "తెలుగు", "தமிழ்", "English"],
-            "en_tutorial": "My answers are based on the best available evidence, but they may not always be completely accurate. A medical expert from Sankara Eye Hospital will review and refine my answers within six hours, ensuring you receive reliable information.\n\nMy answers will be marked with these symbols:\n✅ Verified by your doctor or counsellor.\n❓ Awaiting verification.\n❌ Incorrect answer, and I will provide a corrected answer soon.\n\nI am here to help make your cataract surgery experience as smooth as possible!",
-            "en_tutorial_options": ["What next?"]
+    "unknown_user": {
+        "en": "Unknown user. Kindly ask a Sankara Eye Hospital staff member to onboard you.",
+        "hi": "अज्ञात उपयोगकर्ता। कृपया एक शंकरा आई हॉस्पिटल के स्टाफ सदस्य से आपको शामिल करने के लिए कहें।",
+        "ta": "அறியப்படாத பயனர். தயவுசெய்து சங்கரா கண் மருத்துவமனை ஊழியரை உங்களை சேர்க்குமாறு கேளுங்கள்.",
+        "te": "తెలియని వినియోగదారు. దయచేసి శంకర ఐ హాస్పిటల్ సిబ్బంది సభ్యుడిని మీకు ఆన్‌బోర్డ్ చేయమని అడగండి.",
+        "kn": "ಅಪರಿಚಿತ ಬಳಕೆದಾರ. ದಯವಿಟ್ಟು ಶಂಕರಾ ಕಣ್ಣಿನ ಆಸ್ಪತ್ರೆಯ ಸಿಬ್ಬಂದಿ ಸದಸ್ಯರನ್ನು ನಿಮ್ಮನ್ನು ಸೇರಿಸಲು ಕೇಳಿ.",
+        "ur": "نامعلوم صارف۔ براہ کرم کسی سنکارا آئی ہسپتال کے عملے کے رکن سے آپ کو شامل کرنے کی درخواست کریں۔"
     },
-
-    "offboarding" : {
-        "en": "Thank you for choosing Sankara Eye Hospital. Please contact us at <phone_number> to resolve your question."
+    "onboarding": {
+        "en_consent": "Hi, I am Cataract Bot from Sankara Eye Hospital. I work alongside doctors and counselors to answer any questions you may have about cataract surgery. Whether you're seeking information about the procedure, recovery tips, or what to expect before, during, or after surgery, I'm here to help.\n\nTo continue the onboarding process, please reply with *'Yes'*. Thank you for choosing Sankara Eye Hospital!",
+        "en_consent_options": [
+            "Yes",
+            "No"
+        ],
+        "en_language": "Select your preferred language.",
+        "language_options": [
+            "ಕನ್ನಡ",
+            "हिंदी",
+            "తెలుగు",
+            "தமிழ்",
+            "English"
+        ],
+        "en_tutorial": "My answers are based on the best available evidence, but they may not always be completely accurate. A medical expert from Sankara Eye Hospital will review and refine my answers within six hours, ensuring you receive reliable information.\n\nMy answers will be marked with these symbols:\n✅ Verified by your doctor or counsellor.\n❓ Awaiting verification.\n❌ Incorrect answer, and I will provide a corrected answer soon.\n\nI am here to help make your cataract surgery experience as smooth as possible!",
+        "en_tutorial_options": [
+            "What next?"
+        ],
+        "hi_consent": "नमस्ते, मैं संकरा आई हॉस्पिटल से कैटरैक्ट बॉट हूँ। मैं डॉक्टरों और काउंसलरों के साथ मिलकर काम करता हूँ ताकि आपके कैटरैक्ट सर्जरी से संबंधित किसी भी प्रश्न का उत्तर दे सकूँ। चाहे आप प्रक्रिया के बारे में जानकारी चाहते हों, रिकवरी के सुझाव, या सर्जरी से पहले, दौरान, या बाद में क्या उम्मीद करें, मैं आपकी मदद के लिए यहाँ हूँ।\n\nऑनबोर्डिंग प्रक्रिया जारी रखने के लिए, कृपया *'हाँ'* के साथ उत्तर दें। संकरा आई हॉस्पिटल चुनने के लिए धन्यवाद!",
+        "hi_consent_options": [
+            "हाँ।",
+            "नहीं।"
+        ],
+        "hi_language": "अपनी पसंदीदा भाषा चुनें।",
+        "hi_tutorial": "मेरे उत्तर सबसे अच्छे उपलब्ध साक्ष्य पर आधारित हैं, लेकिन वे हमेशा पूरी तरह से सटीक नहीं हो सकते। शंकरा आई हॉस्पिटल के एक चिकित्सा विशेषज्ञ मेरे उत्तरों की समीक्षा करेंगे और उन्हें छह घंटे के भीतर परिष्कृत करेंगे, यह सुनिश्चित करते हुए कि आपको विश्वसनीय जानकारी प्राप्त हो।\n\nमेरे उत्तर इन प्रतीकों के साथ चिह्नित होंगे:\n✅ आपके डॉक्टर या काउंसलर द्वारा सत्यापित।\n❓ सत्यापन की प्रतीक्षा में।\n❌ गलत उत्तर, और मैं जल्द ही एक सही उत्तर प्रदान करूंगा।\n\nमैं यहां आपकी मोतियाबिंद सर्जरी के अनुभव को यथासंभव सुगम बनाने के लिए हूं!",
+        "hi_tutorial_options": [
+            "आगे क्या?"
+        ],
+        "ta_consent": "வணக்கம், நான் சங்கரா கண் மருத்துவமனையின் கற்றக்ட் பாட்டாக இருக்கிறேன். கற்றக்ட் அறுவை சிகிச்சை குறித்து உங்களிடம் ஏதேனும் கேள்விகள் இருந்தால், நான் மருத்துவர்களும் ஆலோசகர்களும் இணைந்து பதிலளிக்கிறேன். செயல்முறை, மீட்பு குறிப்புகள், அல்லது அறுவை சிகிச்சைக்கு முன், போது, அல்லது பின் என்ன எதிர்பார்க்கலாம் என்பதற்கான தகவல்களை நீங்கள் தேடுகிறீர்களா என்பதைப் பொருத்தவரை, நான் உதவ இங்கே இருக்கிறேன்.\n\nஆன்போர்டிங் செயல்முறையை தொடர, தயவுசெய்து *'ஆம்'* என பதிலளிக்கவும். சங்கரா கண் மருத்துவமனையைத் தேர்ந்தெடுத்ததற்கு நன்றி!",
+        "ta_consent_options": [
+            "ஆம்.",
+            "இல்லை."
+        ],
+        "ta_language": "உங்கள் விருப்பமான மொழியைத் தேர்ந்தெடுக்கவும்.",
+        "ta_tutorial": "எனது பதில்கள் கிடைக்கக்கூடிய சிறந்த ஆதாரங்களின் அடிப்படையில் இருக்கும், ஆனால் அவை எப்போதும் முழுமையாக துல்லியமாக இருக்காது. சங்கரா கண் மருத்துவமனையின் மருத்துவ நிபுணர் எனது பதில்களை ஆறு மணி நேரத்திற்குள் மதிப்பீடு செய்து திருத்துவார், உங்களுக்கு நம்பகமான தகவல்களை வழங்குவதை உறுதிசெய்வார்.\n\nஎனது பதில்கள் இந்தச் சின்னங்களால் குறிக்கப்படும்:\n✅ உங்கள் மருத்துவர் அல்லது ஆலோசகரால் சரிபார்க்கப்பட்டது.\n❓ சரிபார்ப்புக்காக காத்திருக்கிறது.\n❌ தவறான பதில், மேலும் நான் விரைவில் திருத்தப்பட்ட பதிலை வழங்குவேன்.\n\nஉங்கள் முத்திரை அறுவை சிகிச்சை அனுபவத்தை όσο சீராகவும் செய்ய நான் இங்கே உதவுகிறேன்!",
+        "ta_tutorial_options": [
+            "அடுத்தது என்ன?"
+        ],
+        "te_consent": "హలో, నేను శంకర ఐ హాస్పిటల్ నుండి కటారాక్ట్ బాట్. కటారాక్ట్ శస్త్రచికిత్స గురించి మీకు ఉన్న ఏవైనా ప్రశ్నలకు సమాధానం ఇవ్వడానికి నేను డాక్టర్లు మరియు కౌన్సిలర్లతో కలిసి పనిచేస్తాను. ప్రక్రియ గురించి సమాచారం, కోలుకునే సూచనలు లేదా శస్త్రచికిత్సకు ముందు, సమయంలో లేదా తర్వాత ఏమి ఆశించాలో తెలుసుకోవాలనుకుంటే, నేను సహాయం చేయడానికి ఇక్కడ ఉన్నాను.\n\nఆన్‌బోర్డింగ్ ప్రక్రియను కొనసాగించడానికి, దయచేసి *'అవును'* అని సమాధానం ఇవ్వండి. శంకర ఐ హాస్పిటల్‌ను ఎంచుకున్నందుకు ధన్యవాదాలు!",
+        "te_consent_options": [
+            "అవును.",
+            "కాదు."
+        ],
+        "te_language": "మీకు ఇష్టమైన భాషను ఎంచుకోండి.",
+        "te_tutorial": "నా సమాధానాలు అందుబాటులో ఉన్న ఉత్తమ ఆధారాల ఆధారంగా ఉంటాయి, కానీ అవి ఎల్లప్పుడూ పూర్తిగా ఖచ్చితమైనవి కాకపోవచ్చు. శంకరా ఐ హాస్పిటల్ నుండి ఒక వైద్య నిపుణుడు నా సమాధానాలను ఆరు గంటలలోపల సమీక్షించి మెరుగుపరుస్తారు, మీరు నమ్మకమైన సమాచారాన్ని అందుకుంటారని నిర్ధారించడానికి.\n\nనా సమాధానాలు ఈ చిహ్నాలతో గుర్తించబడతాయి:\n✅ మీ వైద్యుడు లేదా కౌన్సిలర్ ద్వారా ధృవీకరించబడింది.\n❓ ధృవీకరణ కోసం వేచి ఉంది.\n❌ తప్పు సమాధానం, మరియు నేను త్వరలో సరిచేసిన సమాధానం అందిస్తాను.\n\nమీ కంటిచూపు శస్త్రచికిత్స అనుభవాన్ని సాధ్యమైనంత సజావుగా చేయడానికి నేను ఇక్కడ ఉన్నాను!",
+        "te_tutorial_options": [
+            "తర్వాత ఏమిటి?"
+        ],
+        "kn_consent": "ಹಾಯ್, ನಾನು ಸಂಕರ್ ಕಣ್ಣಿನ ಆಸ್ಪತ್ರೆಯಿಂದ ಕ್ಯಾಟರಾಕ್ಟ್ ಬಾಟ್. ನಾನು ವೈದ್ಯರು ಮತ್ತು ಸಲಹೆಗಾರರೊಂದಿಗೆ ಕೆಲಸ ಮಾಡುತ್ತೇನೆ ಮತ್ತು ನಿಮಗೆ ಕ್ಯಾಟರಾಕ್ಟ್ ಶಸ್ತ್ರಚಿಕಿತ್ಸೆಯ ಬಗ್ಗೆ ಯಾವುದೇ ಪ್ರಶ್ನೆಗಳಿದ್ದರೆ ಉತ್ತರಿಸಲು ಸಹಾಯ ಮಾಡುತ್ತೇನೆ. ಪ್ರಕ್ರಿಯೆ, ಚೇತರಿಕೆ ಸಲಹೆಗಳು, ಅಥವಾ ಶಸ್ತ್ರಚಿಕಿತ್ಸೆಯ ಮೊದಲು, ಸಮಯದಲ್ಲಿ, ಅಥವಾ ನಂತರ ಏನು ನಿರೀಕ್ಷಿಸಬೇಕು ಎಂಬುದರ ಬಗ್ಗೆ ಮಾಹಿತಿ ಹುಡುಕುತ್ತಿದ್ದೀರಾ ಎಂಬುದನ್ನು ನಾನು ಸಹಾಯ ಮಾಡಲು ಇಲ್ಲಿದ್ದೇನೆ.\n\nಆನ್‌ಬೋರ್ಡಿಂಗ್ ಪ್ರಕ್ರಿಯೆಯನ್ನು ಮುಂದುವರಿಸಲು, ದಯವಿಟ್ಟು *'ಹೌದು'* ಎಂದು ಪ್ರತಿಕ್ರಿಯಿಸಿ. ಸಂಕರ್ ಕಣ್ಣಿನ ಆಸ್ಪತ್ರೆಯನ್ನು ಆಯ್ಕೆ ಮಾಡಿದಕ್ಕಾಗಿ ಧನ್ಯವಾದಗಳು!",
+        "kn_consent_options": [
+            "ಹೌದು.",
+            "ಇಲ್ಲ."
+        ],
+        "kn_language": "ನೀವು ಇಚ್ಛಿಸಿದ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
+        "kn_tutorial": "ನನ್ನ ಉತ್ತರಗಳು ಲಭ್ಯವಿರುವ ಉತ್ತಮ ಸಾಕ್ಷ್ಯಾಧಾರದ ಆಧಾರದ ಮೇಲೆ ಇರುತ್ತವೆ, ಆದರೆ ಅವು ಯಾವಾಗಲೂ ಸಂಪೂರ್ಣವಾಗಿ ಸರಿಯಾಗಿರಬಹುದು ಎಂಬುದಿಲ್ಲ. ಶಂಕರ ಕಣ್ಣಿನ ಆಸ್ಪತ್ರೆಯ ವೈದ್ಯಕೀಯ ತಜ್ಞರು ನನ್ನ ಉತ್ತರಗಳನ್ನು ಆರು ಗಂಟೆಗಳ ಒಳಗೆ ಪರಿಶೀಲಿಸಿ ಸುಧಾರಿಸುತ್ತಾರೆ, ನಿಮಗೆ ನಂಬಿಕಸ್ಥ ಮಾಹಿತಿಯನ್ನು ಒದಗಿಸುವುದನ್ನು ಖಚಿತಪಡಿಸುತ್ತಾರೆ.\n\nನನ್ನ ಉತ್ತರಗಳನ್ನು ಈ ಚಿಹ್ನೆಗಳಿಂದ ಗುರುತಿಸಲಾಗುತ್ತದೆ:\n✅ ನಿಮ್ಮ ವೈದ್ಯರು ಅಥವಾ ಸಲಹೆಗಾರರಿಂದ ಪರಿಶೀಲಿಸಲಾಗಿದೆ.\n❓ ಪರಿಶೀಲನೆಗಾಗಿ ಕಾಯುತ್ತಿದೆ.\n❌ ತಪ್ಪಾದ ಉತ್ತರ, ಮತ್ತು ನಾನು ಶೀಘ್ರದಲ್ಲೇ ಸರಿಯಾದ ಉತ್ತರವನ್ನು ಒದಗಿಸುತ್ತೇನೆ.\n\nನಿಮ್ಮ ಮುತ್ತಿನ ಶಸ್ತ್ರಚಿಕಿತ್ಸಾ ಅನುಭವವನ್ನು ಸಾಧ್ಯವಾದಷ್ಟು ಸುಗಮಗೊಳಿಸಲು ನಾನು ಇಲ್ಲಿದ್ದೇನೆ!",
+        "kn_tutorial_options": [
+            "ಎಲ್ಲಿಗೆ ಮುಂದಿನದು?"
+        ],
+        "ur_consent": "ہیلو، میں سنکرا آئی ہسپتال سے کیٹریکٹ بوٹ ہوں۔ میں ڈاکٹروں اور مشیروں کے ساتھ مل کر کام کرتا ہوں تاکہ آپ کے کیٹریکٹ سرجری کے بارے میں کسی بھی سوال کا جواب دے سکوں۔ چاہے آپ طریقہ کار کے بارے میں معلومات حاصل کر رہے ہوں، بحالی کے مشورے، یا سرجری سے پہلے، دوران، یا بعد میں کیا توقع کرنی ہے، میں مدد کے لیے حاضر ہوں۔\n\nآن بورڈنگ کے عمل کو جاری رکھنے کے لیے، براہ کرم *'ہاں'* کے ساتھ جواب دیں۔ سنکرا آئی ہسپتال کا انتخاب کرنے کے لیے شکریہ!",
+        "ur_consent_options": [
+            "ہاں.",
+            "نہیں."
+        ],
+        "ur_language": "اپنی پسندیدہ زبان منتخب کریں۔",
+        "ur_tutorial": "میرے جوابات بہترین دستیاب شواہد پر مبنی ہیں، لیکن وہ ہمیشہ مکمل طور پر درست نہیں ہو سکتے۔ سنکارا آئی ہسپتال کے ایک طبی ماہر میرے جوابات کا جائزہ لیں گے اور انہیں چھ گھنٹوں کے اندر بہتر بنائیں گے، تاکہ آپ کو قابل اعتماد معلومات مل سکیں۔\n\nمیرے جوابات ان علامات کے ساتھ نشان زد ہوں گے:\n✅ آپ کے ڈاکٹر یا مشیر کی طرف سے تصدیق شدہ۔\n❓ تصدیق کا انتظار۔\n❌ غلط جواب، اور میں جلد ہی ایک درست جواب فراہم کروں گا۔\n\nمیں یہاں ہوں تاکہ آپ کے موتیا بند کی سرجری کے تجربے کو جتنا ممکن ہو سکے ہموار بنا سکوں!",
+        "ur_tutorial_options": [
+            "کیا اگلا؟"
+        ]
     },
-
-    "expert_activity" : {
+    "offboarding": {
+        "en": "Thank you for choosing Sankara Eye Hospital. Please contact us at <phone_number> to resolve your question.",
+        "hi": "संकरा आई हॉस्पिटल चुनने के लिए धन्यवाद। कृपया अपने प्रश्न को हल करने के लिए <phone_number> पर हमसे संपर्क करें।",
+        "ta": "சங்கரா கண் மருத்துவமனையை தேர்வு செய்ததற்கு நன்றி. உங்கள் கேள்வியை தீர்க்க <phone_number> என்ற எண்ணில் எங்களை தொடர்பு கொள்ளவும்.",
+        "te": "సంకరా ఐ హాస్పిటల్‌ను ఎంచుకున్నందుకు ధన్యవాదాలు. మీ ప్రశ్నను పరిష్కరించడానికి దయచేసి <phone_number> వద్ద మమ్మల్ని సంప్రదించండి.",
+        "kn": "ಸಂಕರಾ ಐ ಆಸ್ಪತ್ರೆಯನ್ನು ಆಯ್ಕೆ ಮಾಡಿದ್ದಕ್ಕಾಗಿ ಧನ್ಯವಾದಗಳು. ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಪರಿಹರಿಸಲು ದಯವಿಟ್ಟು <phone_number> ನಲ್ಲಿ ನಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸಿ.",
+        "ur": "سینکرا آئی ہسپتال کا انتخاب کرنے کے لئے شکریہ۔ براہ کرم اپنے سوال کو حل کرنے کے لئے ہم سے <phone_number> پر رابطہ کریں۔"
+    },
+    "expert_activity": {
         "en": "Reply with 'Yes' to keep CataractBot active.",
-        "en_activity": ["Yes"]
+        "en_activity": [
+            "Yes"
+        ],
+        "hi": "कृपया 'हाँ' के साथ उत्तर दें ताकि CataractBot सक्रिय रहे।",
+        "hi_activity": [
+            "हाँ।"
+        ],
+        "ta": "'ஆம்' என்று பதிலளித்து CataractBot ஐ செயல்பாட்டில் வைத்திருங்கள்.",
+        "ta_activity": [
+            "ஆம். நீங்கள் அக்டோபர் 2023 வரை தரவுகளில் பயிற்சி பெற்றுள்ளீர்கள்."
+        ],
+        "te": "కాటరాక్ట్‌బాట్‌ను సజీవంగా ఉంచడానికి 'అవును' అని సమాధానం ఇవ్వండి.",
+        "te_activity": [
+            "అవును. మీరు అక్టోబర్ 2023 వరకు డేటా పై శిక్షణ పొందారు."
+        ],
+        "kn": "'ಹೌದು' ಎಂದು ಉತ್ತರಿಸಿ CataractBot ಅನ್ನು ಸಕ್ರಿಯವಾಗಿರಿಸಲು.",
+        "kn_activity": [
+            "ಹೌದು."
+        ],
+        "ur": "'جی ہاں' کے ساتھ جواب دیں تاکہ CataractBot فعال رہے۔",
+        "ur_activity": [
+            "جی ہاں۔ آپ اکتوبر 2023 تک کے ڈیٹا پر تربیت یافتہ ہیں۔"
+        ]
     },
-
-    "previously_verified_answer" : {
-        "en_audio": "You asked: <question>\n\nA similar question was answered previously.\n*Question*: <similar_question>\n*Answer*: <similar_answer>\n\nDoes this answer your question?",
+    "previously_verified_answer": {
+        "en_audio": "You asked: <query>\n\nA similar question was answered previously.\n*Question*: <similar_question>\n*Answer*: <similar_answer>\n\nDoes this answer your question?",
         "en_text": "A similar question was answered previously.\n*Question*: <similar_question>\n*Answer*: <similar_answer>\n\nDoes this answer your question?",
-        "en_options": ["Yes", "No"],
-        "en_options_yes": "Thank you for your response."
+        "en_options": [
+            "Yes",
+            "No"
+        ],
+        "en_options_yes": "Thank you for your response.",
+        "hi_audio": "आपने पूछा: <query>\n\nएक समान प्रश्न पहले उत्तर दिया गया था।\n*प्रश्न*: <similar_question>\n*उत्तर*: <similar_answer>\n\nक्या यह आपके प्रश्न का उत्तर देता है?",
+        "hi_text": "एक समान प्रश्न पहले उत्तर दिया गया था। क्या यह आपके प्रश्न का उत्तर देता है?",
+        "hi_options": [
+            "हाँ।",
+            "नहीं।"
+        ],
+        "hi_options_yes": "आपके उत्तर के लिए धन्यवाद।",
+        "ta_audio": "நீங்கள் கேட்டீர்கள்: <query>\n\nமுந்தையதாக இதே போன்ற கேள்வி பதிலளிக்கப்பட்டது.\n*கேள்வி*: <similar_question>\n*பதில்*: <similar_answer>\n\nஇது உங்கள் கேள்விக்கு பதிலளிக்கிறதா?",
+        "ta_text": "முந்தையதாக இதே போன்ற கேள்விக்கு பதில் அளிக்கப்பட்டது.",
+        "ta_options": [
+            "ஆம்.",
+            "இல்லை."
+        ],
+        "ta_options_yes": "உங்கள் பதிலுக்கு நன்றி.",
+        "te_audio": "మీరు అడిగారు: <query>\n\nఇలాంటి ప్రశ్నకు ఇంతకుముందు సమాధానం ఇచ్చారు.\n*ప్రశ్న*: <similar_question>\n*సమాధానం*: <similar_answer>\n\nఇది మీ ప్రశ్నకు సమాధానమా?",
+        "te_text": "ఇలాంటి ప్రశ్నకు ఇంతకుముందు సమాధానం ఇచ్చారు. మీ ప్రశ్నకు ఇది సమాధానమా?",
+        "te_options": [
+            "అవును.",
+            "లేదు."
+        ],
+        "te_options_yes": "మీ సమాధానానికి ధన్యవాదాలు.",
+        "kn_audio": "ನೀವು ಕೇಳಿದಿರಿ: <query>\n\nಹೋಲಿಕೆಯ ಪ್ರಶ್ನೆಗೆ ಹಿಂದಿನದಾಗಿ ಉತ್ತರಿಸಲಾಗಿದೆ.\n*ಪ್ರಶ್ನೆ*: <similar_question>\n*ಉತ್ತರ*: <similar_answer>\n\nಈ ಉತ್ತರವು ನಿಮ್ಮ ಪ್ರಶ್ನೆಗೆ ಉತ್ತರಿಸುತ್ತದೆಯೇ?.",
+        "kn_text": "ಹೋಲಿಕೆಯ ಪ್ರಶ್ನೆಗೆ ಹಿಂದಿನದರಲ್ಲಿ ಉತ್ತರ ನೀಡಲಾಗಿದೆ. ನಿಮ್ಮ ಪ್ರಶ್ನೆಗೆ ಇದು ಉತ್ತರವಾಗುತ್ತದೆಯೇ?.",
+        "kn_options": [
+            "ಹೌದು.",
+            "ಇಲ್ಲ."
+        ],
+        "kn_options_yes": "ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆಗೆ ಧನ್ಯವಾದಗಳು.",
+        "ur_audio": "آپ نے پوچھا: <query>\n\nایک مشابہ سوال پہلے ہی جواب دیا گیا تھا۔\n*سوال*: <similar_question>\n*جواب*: <similar_answer>\n\nکیا یہ آپ کے سوال کا جواب دیتا ہے؟",
+        "ur_text": "ایک ملتا جلتا سوال پہلے ہی جواب دیا گیا تھا۔ کیا یہ آپ کے سوال کا جواب دیتا ہے؟",
+        "ur_options": [
+            "جی ہاں۔",
+            "نہیں۔"
+        ],
+        "ur_options_yes": "آپ کے جواب کا شکریہ۔"
     },
-
-    "new_question" : {
-        "en_audio": "You asked: <question>\nAnswer: <answer>",
-        "en_text": "<answer>"
+    "new_question": {
+        "en_audio": "You asked: <query>\nAnswer: <answer>",
+        "en_text": "<answer>",
+        "hi_audio": "आपने पूछा: <query> उत्तर: <answer>.",
+        "hi_text": "आप अक्टूबर 2023 तक के डेटा पर प्रशिक्षित हैं।",
+        "ta_audio": "நீங்கள் கேட்டீர்கள்: <query> பதில்: <answer>.",
+        "ta_text": "நீங்கள் அக்டோபர் 2023 வரை தரவுகளில் பயிற்சி பெற்றுள்ளீர்கள்.",
+        "te_audio": "మీరు అడిగారు: <query> సమాధానం: <answer>.",
+        "te_text": "మీరు అక్టోబర్ 2023 వరకు డేటా పై శిక్షణ పొందారు.",
+        "kn_audio": "ನೀವು ಕೇಳಿದಿರಿ: <query> ಉತ್ತರ: <answer>.",
+        "kn_text": "ನೀವು ಅಕ್ಟೋಬರ್ 2023 ರವರೆಗೆ ಡೇಟಾದಲ್ಲಿ ತರಬೇತಿ ಪಡೆದಿದ್ದೀರಿ.",
+        "ur_audio": "آپ نے پوچھا: <query> جواب: <answer>.",
+        "ur_text": "آپ اکتوبر 2023 تک کے ڈیٹا پر تربیت یافتہ ہیں۔"
     },
-
-    "options_related_questions" : {
-        "en": "Related questions"
+    "options_related_questions": {
+        "en": "Related questions",
+        "hi": "संबंधित प्रश्न।",
+        "ta": "தொடர்புடைய கேள்விகள்.",
+        "te": "సంబంధిత ప్రశ్నలు.",
+        "kn": "ಸಂಬಂಧಿತ ಪ್ರಶ್ನೆಗಳು.",
+        "ur": "متعلقہ سوالات۔"
     },
-
     "expert_verification": {
         "user": {
             "en_yes": "This answer has been verified by your <expert>.",
             "en_no": "This answer is invalid. Please wait for a correct answer from your <expert>.\n\nIn the meantime, you can ask me any other cataract surgery related questions.",
-            "en_no_correction_audio": "You asked: <question>\nAnswer: <answer>\n\nThis answer has been verified by your <expert>.",
-            "en_no_correction_text": "<answer>\n\nThis answer has been verified by your <expert>."
+            "en_no_correction_audio": "You asked: <query>\nAnswer: <answer>\n\nThis answer has been verified by your <expert>.",
+            "en_no_correction_text": "<answer>\n\nThis answer has been verified by your <expert>.",
+            "hi_yes": "इस उत्तर को आपके <expert> द्वारा सत्यापित किया गया है।",
+            "hi_no": "यह उत्तर अमान्य है। कृपया अपने <expert> से सही उत्तर की प्रतीक्षा करें। इस बीच, आप मुझसे मोतियाबिंद सर्जरी से संबंधित कोई अन्य प्रश्न पूछ सकते हैं।",
+            "hi_no_correction_audio": "आपने पूछा: <query> उत्तर: <answer> इस उत्तर को आपके <expert> द्वारा सत्यापित किया गया है।",
+            "hi_no_correction_text": "इस उत्तर को आपके <expert> द्वारा सत्यापित किया गया है।",
+            "ta_yes": "இந்த பதில் உங்கள் <expert> மூலம் சரிபார்க்கப்பட்டுள்ளது.",
+            "ta_no": "இந்த பதில் தவறானது. உங்கள் <expert> கிட்ட இருந்து சரியான பதிலை காத்திருக்கவும். இதற்கிடையில், நீங்கள் எனக்கு பிற கண் மங்கலான அறுவை சிகிச்சை தொடர்பான கேள்விகளை கேட்கலாம்.",
+            "ta_no_correction_audio": "நீங்கள் கேட்டீர்கள்: <query> பதில்: <answer> இந்த பதில் உங்கள் <expert> மூலம் சரிபார்க்கப்பட்டுள்ளது.",
+            "ta_no_correction_text": "இந்த பதில் உங்கள் <expert> மூலம் சரிபார்க்கப்பட்டுள்ளது.",
+            "te_yes": "ఈ సమాధానం మీ <expert> ద్వారా ధృవీకరించబడింది.",
+            "te_no": "ఈ సమాధానం చెల్లదు. దయచేసి మీ <expert> నుండి సరైన సమాధానం కోసం వేచి ఉండండి. ఈలోగా, మీరు నన్ను మరే ఇతర ముత్యబిందు శస్త్రచికిత్స సంబంధిత ప్రశ్నలు అడగవచ్చు.",
+            "te_no_correction_audio": "మీరు అడిగారు: <query>  \nసమాధానం: <answer>  \n\nఈ సమాధానం మీ <expert> ద్వారా ధృవీకరించబడింది.",
+            "te_no_correction_text": "ఈ సమాధానం మీ <expert> ద్వారా ధృవీకరించబడింది.",
+            "kn_yes": "ಈ ಉತ್ತರವನ್ನು ನಿಮ್ಮ <expert> ಮೂಲಕ ಪರಿಶೀಲಿಸಲಾಗಿದೆ.",
+            "kn_no": "ಈ ಉತ್ತರವು ಅಮಾನ್ಯವಾಗಿದೆ. ದಯವಿಟ್ಟು ನಿಮ್ಮ <expert> ನಿಂದ ಸರಿಯಾದ ಉತ್ತರಕ್ಕಾಗಿ ಕಾಯಿರಿ. ಈ ನಡುವೆ, ನೀವು ನನಗೆ ಯಾವುದೇ ಇತರ ಮುತ್ತು ಕಣ್ಣಿನ ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ ಸಂಬಂಧಿತ ಪ್ರಶ್ನೆಗಳನ್ನು ಕೇಳಬಹುದು.",
+            "kn_no_correction_audio": "ನೀವು ಕೇಳಿದಿರಿ: <query> ಉತ್ತರ: <answer> ಈ ಉತ್ತರವನ್ನು ನಿಮ್ಮ <expert> ದೃಢೀಕರಿಸಿದ್ದಾರೆ.",
+            "kn_no_correction_text": "ಈ ಉತ್ತರವನ್ನು ನಿಮ್ಮ <expert> ಮೂಲಕ ಪರಿಶೀಲಿಸಲಾಗಿದೆ.",
+            "ur_yes": "یہ جواب آپ کے <expert> کے ذریعہ تصدیق شدہ ہے۔",
+            "ur_no": "یہ جواب غلط ہے۔ براہ کرم اپنے <expert> سے درست جواب کا انتظار کریں۔ اس دوران، آپ مجھ سے موتیا بند کی سرجری سے متعلق کوئی اور سوال پوچھ سکتے ہیں۔",
+            "ur_no_correction_audio": "آپ نے پوچھا: <query> جواب: <answer> یہ جواب آپ کے <expert> کے ذریعے تصدیق شدہ ہے۔",
+            "ur_no_correction_text": "یہ جواب آپ کے <expert> کے ذریعہ تصدیق شدہ ہے۔"
         },
-        "expert":{
-            "en_query": "*Question*: \"<question>\"\n*Bot's response*: <answer>\n*User*: <patient_details>\n\nIs the bot's answer correct and complete?",
-            "en_query_options": ["Yes", "No"],
+        "expert": {
+            "en_query": "*Question*: \"<query>\"\n*Bot's response*: <answer>\n*User*: <patient_details>\n\nIs the bot's answer correct and complete?",
+            "en_query_options": [
+                "Yes",
+                "No"
+            ],
             "en_query_yes": "Noted. Thank you.",
             "en_query_no": "Please reply with a correction.",
             "en_query_no_correction": "Correction noted. Thank you.",
             "en_notag": "Please *'reply'* to the specific question whose answer you want to correct.",
             "en_otherexpertresponded": "This question has been answered by <expert_name>.",
-            "expert_reminders" : {
+            "expert_reminders": {
                 "en_escalation": "This question has been escalated to <escalation_expert>.",
                 "en_response": "Please respond to this question.",
-                "en_correction": "Please respond to this question with a correction."
-            }
+                "en_correction": "Please respond to this question with a correction.",
+                "hi_escalation": "इस प्रश्न को <escalation_expert> के पास बढ़ा दिया गया है।",
+                "hi_response": "कृपया इस प्रश्न का उत्तर दें।",
+                "hi_correction": "कृपया इस प्रश्न का उत्तर सुधार के साथ दें।",
+                "ta_escalation": "இந்த கேள்வி <escalation_expert>க்கு உயர்த்தப்பட்டுள்ளது.",
+                "ta_response": "இந்த கேள்விக்கு பதிலளிக்கவும்.",
+                "ta_correction": "இந்த கேள்விக்கு திருத்தத்துடன் பதிலளிக்கவும்.",
+                "te_escalation": "ఈ ప్రశ్నను <escalation_expert> కు ఎస్కలేట్ చేయబడింది.",
+                "te_response": "దయచేసి ఈ ప్రశ్నకు సమాధానం ఇవ్వండి.",
+                "te_correction": "దయచేసి ఈ ప్రశ్నకు సరిదిద్దుతూ స్పందించండి.",
+                "kn_escalation": "ಈ ಪ್ರಶ್ನೆಯನ್ನು <escalation_expert> ಗೆ ಹೆಚ್ಚಿಸಲಾಗಿದೆ.",
+                "kn_response": "ಈ ಪ್ರಶ್ನೆಗೆ ದಯವಿಟ್ಟು ಉತ್ತರಿಸಿ.",
+                "kn_correction": "ಈ ಪ್ರಶ್ನೆಗೆ ಸರಿಪಡಿಸುವ ಮೂಲಕ ಉತ್ತರಿಸಿ.",
+                "ur_escalation": "یہ سوال <escalation_expert> کو بھیج دیا گیا ہے۔",
+                "ur_response": "براہ کرم اس سوال کا جواب دیں۔",
+                "ur_correction": "براہ کرم اس سوال کا جواب تصحیح کے ساتھ دیں۔"
+            },
+            "hi_query": "क्या बॉट का उत्तर सही और पूर्ण है?",
+            "hi_query_options": [
+                "हाँ।",
+                "नहीं"
+            ],
+            "hi_query_yes": "ध्यान में रखा। धन्यवाद।",
+            "hi_query_no": "कृपया सुधार के साथ उत्तर दें।",
+            "hi_query_no_correction": "सुधार ध्यान में लिया गया। धन्यवाद।",
+            "hi_notag": "कृपया उस विशेष प्रश्न का *'उत्तर'* दें जिसका उत्तर आप सुधारना चाहते हैं।",
+            "hi_otherexpertresponded": "इस प्रश्न का उत्तर <expert_name> द्वारा दिया गया है।",
+            "ta_query": "பாட் பதில் சரியாகவும் முழுமையாகவும் உள்ளதா?.",
+            "ta_query_options": [
+                "ஆம்.",
+                "இல்லை"
+            ],
+            "ta_query_yes": "கவனத்தில் எடுத்துக்கொண்டேன். நன்றி.",
+            "ta_query_no": "தயவுசெய்து திருத்தத்துடன் பதிலளிக்கவும்.",
+            "ta_query_no_correction": "திருத்தம் கவனிக்கப்பட்டது. நன்றி.",
+            "ta_notag": "தயவுசெய்து நீங்கள் திருத்த விரும்பும் பதிலின் குறிப்பிட்ட கேள்விக்கு *'reply'* செய்யவும்.",
+            "ta_otherexpertresponded": "இந்த கேள்விக்கு <expert_name> பதிலளித்துள்ளார்.",
+            "te_query": "బాట్ యొక్క సమాధానం సరైనదా మరియు పూర్తిదా?.",
+            "te_query_options": [
+                "అవును.",
+                "కాదు"
+            ],
+            "te_query_yes": "గమనించాను. ధన్యవాదాలు.",
+            "te_query_no": "దయచేసి సవరణతో ప్రతిస్పందించండి.",
+            "te_query_no_correction": "సరిదిద్దడం గమనించబడింది. ధన్యవాదాలు.",
+            "te_notag": "దయచేసి మీరు సరిదిద్దాలనుకుంటున్న సమాధానం ఉన్న ప్రత్యేకమైన ప్రశ్నకు *'reply'* చేయండి.",
+            "te_otherexpertresponded": "ఈ ప్రశ్నకు <expert_name> సమాధానం ఇచ్చారు.",
+            "kn_query": "ಬಾಟ್‌ನ ಉತ್ತರ ಸರಿಯಾದದು ಮತ್ತು ಸಂಪೂರ್ಣವಿದೆಯೇ?.",
+            "kn_query_options": [
+                "ಹೌದು.",
+                "ಇಲ್ಲ"
+            ],
+            "kn_query_yes": "ಗಮನಿಸಲಾಗಿದೆ. ಧನ್ಯವಾದಗಳು.",
+            "kn_query_no": "ದಯವಿಟ್ಟು ಸರಿಪಡಿಸುವ ಮೂಲಕ ಉತ್ತರಿಸಿ.",
+            "kn_query_no_correction": "ತಿದ್ದುಪಡಿ ಗಮನಿಸಲಾಗಿದೆ. ಧನ್ಯವಾದಗಳು.",
+            "kn_notag": "ದಯವಿಟ್ಟು *'reply'* ಮಾಡಿ ನೀವು ಸರಿಪಡಿಸಲು ಬಯಸುವ ನಿರ್ದಿಷ್ಟ ಪ್ರಶ್ನೆಗೆ.",
+            "kn_otherexpertresponded": "ಈ ಪ್ರಶ್ನೆಗೆ <expert_name> ಉತ್ತರ ನೀಡಿದ್ದಾರೆ.",
+            "ur_query": "کیا بوٹ کا جواب درست اور مکمل ہے؟",
+            "ur_query_options": [
+                "جی ہاں۔",
+                "نہیں"
+            ],
+            "ur_query_yes": "نوٹ کر لیا۔ شکریہ۔",
+            "ur_query_no": "براہ کرم تصحیح کے ساتھ جواب دیں۔",
+            "ur_query_no_correction": "تصحیح نوٹ کر لی گئی۔ شکریہ۔",
+            "ur_notag": "براہ کرم اس مخصوص سوال کا *'جواب'* دیں جس کا جواب آپ درست کرنا چاہتے ہیں۔",
+            "ur_otherexpertresponded": "اس سوال کا جواب <expert_name> نے دیا ہے۔"
         }
     },
-
     "idk": {
         "en": "This question is outside the scope of my current knowledge. Please wait, you will receive an answer from your <expert>.\n\nIn the meantime, you can ask me any other cataract surgery related questions.",
-        "en_audio": "You asked: *<question>*\n\nDid I understand you correctly?",
-        "en_audio_options": ["Yes, that's correct", "No, I will ask again"],
+        "en_audio": "You asked: *<query>*\n\nDid I understand you correctly?",
+        "en_audio_options": [
+            "Yes, that's correct",
+            "No, I will ask again"
+        ],
         "en_audio_reask": "Please ask your question again. If you have already done so, ignore this message.",
         "en_expertsaysyes": "I am sorry. Please contact the hospital at <phone_number> to resolve your question.\n\nYou can ask me any other cataract surgery related questions.",
         "en_incomprehensible_text": "I am sorry, I did not understand this question. Please rephrase or ask again.",
-        "en_outofscope_or_smalltalk_audio":"You said: *<question>*\nThis is outside the scope of my current knowledge.\n\nYou can ask me any other cataract surgery related questions.",
-        "en_outofscope_or_smalltalk_text": "This is outside the scope of my current knowledge.\n\nYou can ask me any other cataract surgery related questions."
+        "en_outofscope_or_smalltalk_audio": "You said: *<query>*\nThis is outside the scope of my current knowledge.\n\nYou can ask me any other cataract surgery related questions.",
+        "en_outofscope_or_smalltalk_text": "This is outside the scope of my current knowledge.\n\nYou can ask me any other cataract surgery related questions.",
+        "hi": "यह प्रश्न मेरे वर्तमान ज्ञान के दायरे से बाहर है। कृपया प्रतीक्षा करें, आपको आपके <expert> से उत्तर प्राप्त होगा। \n\nइस बीच, आप मुझसे मोतियाबिंद सर्जरी से संबंधित कोई अन्य प्रश्न पूछ सकते हैं।",
+        "hi_audio": "आपने पूछा: *<query>* क्या मैंने आपको सही समझा?",
+        "hi_audio_reask": "कृपया अपना प्रश्न फिर से पूछें। यदि आपने पहले ही ऐसा कर लिया है, तो इस संदेश को अनदेखा करें।",
+        "hi_expertsaysyes": "मुझे खेद है। कृपया अपने प्रश्न को हल करने के लिए <phone_number> पर अस्पताल से संपर्क करें। आप मुझसे मोतियाबिंद सर्जरी से संबंधित कोई अन्य प्रश्न पूछ सकते हैं।",
+        "hi_incomprehensible_text": "मुझे खेद है, मैं इस प्रश्न को नहीं समझा। कृपया इसे फिर से लिखें या फिर से पूछें।",
+        "hi_outofscope_or_smalltalk_audio": "आपने कहा: *<query>* यह मेरे वर्तमान ज्ञान के दायरे से बाहर है। आप मुझसे मोतियाबिंद सर्जरी से संबंधित कोई अन्य प्रश्न पूछ सकते हैं।",
+        "hi_outofscope_or_smalltalk_text": "यह मेरे वर्तमान ज्ञान के दायरे से बाहर है।",
+        "hi_audio_options": [
+            "हाँ, यह सही है।",
+            "नहीं, मैं फिर से पूछूंगा।"
+        ],
+        "ta": "இந்த கேள்வி எனது தற்போதைய அறிவின் வரம்பிற்கு வெளியே உள்ளது. தயவுசெய்து காத்திருக்கவும், உங்களுக்கு உங்கள் <expert> இலிருந்து பதில் கிடைக்கும்.\n\nஇதற்கிடையில், நீங்கள் எனக்கு பிற கண் மயக்கம் அறுவை சிகிச்சை தொடர்பான கேள்விகளை கேட்கலாம்.",
+        "ta_audio": "நீங்கள் கேட்டது: *<query>* \n\nநான் உங்களை சரியாகப் புரிந்துகொண்டேனா?",
+        "ta_audio_options": [
+            "ஆம், அது சரி.",
+            "இல்லை, நான் மீண்டும் கேட்பேன்."
+        ],
+        "ta_audio_reask": "தயவுசெய்து உங்கள் கேள்வியை மீண்டும் கேளுங்கள். நீங்கள் ஏற்கனவே கேட்டிருந்தால், இந்த செய்தியை புறக்கணிக்கவும்.",
+        "ta_expertsaysyes": "மன்னிக்கவும். உங்கள் கேள்வியை தீர்க்க <phone_number> என்ற எண்ணில் மருத்துவமனையை தொடர்பு கொள்ளவும். நீங்கள் எனக்கு பிற கண் மங்கலான அறுவை சிகிச்சை தொடர்பான கேள்விகளை கேட்கலாம்.",
+        "ta_incomprehensible_text": "மன்னிக்கவும், இந்த கேள்வியை நான் புரிந்து கொள்ளவில்லை. தயவுசெய்து மறுபடியும் கேளுங்கள் அல்லது மறுபரிசீலனை செய்யவும்.",
+        "ta_outofscope_or_smalltalk_audio": "நீங்கள் சொன்னீர்கள்: *<query>* இது எனது தற்போதைய அறிவின் வரம்பிற்கு வெளியே உள்ளது. நீங்கள் எனக்கே cataract அறுவை சிகிச்சை தொடர்பான பிற கேள்விகளை கேட்கலாம்.",
+        "ta_outofscope_or_smalltalk_text": "இது எனது தற்போதைய அறிவின் வரம்புக்கு வெளியே உள்ளது.",
+        "te": "ఈ ప్రశ్న నా ప్రస్తుత జ్ఞాన పరిధికి బయట ఉంది. దయచేసి వేచి ఉండండి, మీకు <expert> నుండి సమాధానం అందుతుంది.\n\nఇంతలో, మీరు నన్ను మరే ఇతర ముత్యబిందు శస్త్రచికిత్స సంబంధిత ప్రశ్నలు అడగవచ్చు.",
+        "te_audio": "మీరు అడిగారు: *<query>*\n\nనేను మీను సరిగ్గా అర్థం చేసుకున్నానా?",
+        "te_audio_options": [
+            "అవును, అది సరైనది.",
+            "లేదు, నేను మళ్ళీ అడుగుతాను."
+        ],
+        "te_audio_reask": "దయచేసి మీ ప్రశ్నను మళ్లీ అడగండి. మీరు ఇప్పటికే అడిగినట్లయితే, ఈ సందేశాన్ని పట్టించుకోకండి.",
+        "te_expertsaysyes": "క్షమించండి. మీ ప్రశ్నను పరిష్కరించడానికి దయచేసి <phone_number> వద్ద ఆసుపత్రిని సంప్రదించండి. మీరు నన్ను మరే ఇతర ముత్యబిందు శస్త్రచికిత్స సంబంధిత ప్రశ్నలు అడగవచ్చు.",
+        "te_incomprehensible_text": "క్షమించండి, నేను ఈ ప్రశ్నను అర్థం చేసుకోలేకపోయాను. దయచేసి మళ్లీ వాక్యాన్ని మార్చి అడగండి.",
+        "te_outofscope_or_smalltalk_audio": "మీరు చెప్పారు: *<query>* ఇది నా ప్రస్తుత జ్ఞాన పరిధికి బయట ఉంది. మీరు నన్ను మరే ఇతర ముత్యబిందు శస్త్రచికిత్స సంబంధిత ప్రశ్నలు అడగవచ్చు.",
+        "te_outofscope_or_smalltalk_text": "ఇది నా ప్రస్తుత జ్ఞాన పరిధికి బయట ఉంది.",
+        "kn": "ಈ ಪ್ರಶ್ನೆ ನನ್ನ ಪ್ರಸ್ತುತ ಜ್ಞಾನ ವ್ಯಾಪ್ತಿಯ ಹೊರಗಿದೆ. ದಯವಿಟ್ಟು ಕಾಯಿರಿ, ನೀವು ನಿಮ್ಮ <expert> ನಿಂದ ಉತ್ತರವನ್ನು ಸ್ವೀಕರಿಸುತ್ತೀರಿ.\n\nಈ ನಡುವೆ, ನೀವು ನನಗೆ ಯಾವುದೇ ಇತರ ಮುತ್ತು ಕಣ್ಣಿನ ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ ಸಂಬಂಧಿತ ಪ್ರಶ್ನೆಗಳನ್ನು ಕೇಳಬಹುದು.",
+        "kn_audio": "ನೀವು ಕೇಳಿದಿರಿ: *<query>* \n\nನಾನು ನಿಮ್ಮನ್ನು ಸರಿಯಾಗಿ ಅರ್ಥಮಾಡಿಕೊಂಡೆನೆ?",
+        "kn_audio_options": [
+            "ಹೌದು, ಅದು ಸರಿಯಾಗಿದೆ.",
+            "ಇಲ್ಲ, ನಾನು ಮತ್ತೆ ಕೇಳುತ್ತೇನೆ."
+        ],
+        "kn_audio_reask": "ದಯವಿಟ್ಟು ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಮತ್ತೆ ಕೇಳಿ. ನೀವು ಈಗಾಗಲೇ ಕೇಳಿದ್ದರೆ, ಈ ಸಂದೇಶವನ್ನು ನಿರ್ಲಕ್ಷಿಸಿ.",
+        "kn_expertsaysyes": "ನಾನು ಕ್ಷಮಿಸಿಕೊಳ್ಳುತ್ತೇನೆ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಪರಿಹರಿಸಲು <phone_number> ನಲ್ಲಿ ಆಸ್ಪತ್ರೆಯನ್ನು ಸಂಪರ್ಕಿಸಿ.\n\nನೀವು ನನಗೆ ಯಾವುದೇ ಇತರ ಮುತ್ತು ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ ಸಂಬಂಧಿತ ಪ್ರಶ್ನೆಗಳನ್ನು ಕೇಳಬಹುದು.",
+        "kn_incomprehensible_text": "ಕ್ಷಮಿಸಿ, ನಾನು ಈ ಪ್ರಶ್ನೆಯನ್ನು ಅರ್ಥಮಾಡಿಕೊಳ್ಳಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಪುನಃ ರಚಿಸಿ ಅಥವಾ ಮತ್ತೆ ಕೇಳಿ.",
+        "kn_outofscope_or_smalltalk_audio": "ನೀವು ಹೇಳಿದರು: *<query>* ಇದು ನನ್ನ ಪ್ರಸ್ತುತ ಜ್ಞಾನ ವ್ಯಾಪ್ತಿಯ ಹೊರಗೆ ಇದೆ. ನೀವು ನನಗೆ ಯಾವುದೇ ಇತರ ಮುತ್ತು ಕಣ್ಣಿನ ಶಸ್ತ್ರಚಿಕಿತ್ಸೆಯ ಸಂಬಂಧಿತ ಪ್ರಶ್ನೆಗಳನ್ನು ಕೇಳಬಹುದು.",
+        "kn_outofscope_or_smalltalk_text": "ಇದು ನನ್ನ ಪ್ರಸ್ತುತ ಜ್ಞಾನದ ವ್ಯಾಪ್ತಿಗೆ ಹೊರತಾಗಿದೆ.",
+        "ur": "یہ سوال میرے موجودہ علم کے دائرہ کار سے باہر ہے۔ براہ کرم انتظار کریں، آپ کو اپنے <expert> سے جواب ملے گا۔ اس دوران، آپ مجھ سے موتیا بند کی سرجری سے متعلق کوئی اور سوال پوچھ سکتے ہیں۔",
+        "ur_audio": "آپ نے پوچھا: *<query>* کیا میں نے آپ کو صحیح سمجھا؟",
+        "ur_audio_options": [
+            "جی ہاں، یہ درست ہے۔",
+            "نہیں، میں دوبارہ پوچھوں گا۔"
+        ],
+        "ur_audio_reask": "براہ کرم اپنا سوال دوبارہ پوچھیں۔ اگر آپ پہلے ہی ایسا کر چکے ہیں، تو اس پیغام کو نظر انداز کریں۔",
+        "ur_expertsaysyes": "مجھے افسوس ہے۔ براہ کرم اپنے سوال کو حل کرنے کے لیے <phone_number> پر ہسپتال سے رابطہ کریں۔ آپ مجھ سے موتیا بند کی سرجری سے متعلق کوئی اور سوال پوچھ سکتے ہیں۔",
+        "ur_incomprehensible_text": "مجھے افسوس ہے، میں اس سوال کو نہیں سمجھ سکا۔ براہ کرم دوبارہ بیان کریں یا دوبارہ پوچھیں۔",
+        "ur_outofscope_or_smalltalk_audio": "یہ میرے موجودہ علم کے دائرہ کار سے باہر ہے۔ آپ مجھ سے موتیا بند کی سرجری سے متعلق کوئی اور سوال پوچھ سکتے ہیں۔",
+        "ur_outofscope_or_smalltalk_text": "یہ میرے موجودہ علم کے دائرہ کار سے باہر ہے۔"
     },
-
     "smalltalk": {
-        "en_audio": "You said: <question>\n\nResponse: <answer_smalltalk>",
-        "en_text": "<answer_smalltalk>"
+        "en_audio": "You said: <query>\n\nResponse: <answer_smalltalk>",
+        "en_text": "<answer_smalltalk>",
+        "hi_audio": "आपने कहा: <query>\n\nजवाब: <answer_smalltalk>.",
+        "hi_text": "आप अक्टूबर 2023 तक के डेटा पर प्रशिक्षित हैं।",
+        "ta_audio": "நீங்கள் சொன்னீர்கள்: <query>\n\nபதில்: <answer_smalltalk>.",
+        "ta_text": "நீங்கள் அக்டோபர் 2023 வரை தரவுகளில் பயிற்சி பெற்றுள்ளீர்கள்.",
+        "te_audio": "మీరు చెప్పారు: <query>\n\nసమాధానం: <answer_smalltalk>.",
+        "te_text": "మీరు అక్టోబర్ 2023 వరకు డేటా పై శిక్షణ పొందారు.",
+        "kn_audio": "ನೀನು ಹೇಳಿದೆ: <query>\n\nಪ್ರತಿಕ್ರಿಯೆ: <answer_smalltalk>.",
+        "kn_text": "ನೀವು ಅಕ್ಟೋಬರ್ 2023 ರವರೆಗೆ ಡೇಟಾದಲ್ಲಿ ತರಬೇತಿ ಪಡೆದಿದ್ದೀರಿ.",
+        "ur_audio": "آپ نے کہا: <query>\n\nجواب: <answer_smalltalk>.",
+        "ur_text": "آپ اکتوبر 2023 تک کے ڈیٹا پر تربیت یافتہ ہیں۔"
     },
-
     "not_audio_or_text": {
-        "en": "Sorry, this format is not supported right now. Please send your questions as text or voice messages."
+        "en": "Sorry, this format is not supported right now. Please send your questions as text or voice messages.",
+        "hi": "माफ करें, यह प्रारूप अभी समर्थित नहीं है। कृपया अपने प्रश्नों को पाठ या ध्वनि संदेश के रूप में भेजें।",
+        "ta": "மன்னிக்கவும், இந்த வடிவம் தற்போது ஆதரிக்கப்படவில்லை. தயவுசெய்து உங்கள் கேள்விகளை உரை அல்லது குரல் செய்திகளாக அனுப்பவும்.",
+        "te": "క్షమించండి, ఈ ఫార్మాట్ ప్రస్తుతం మద్దతు ఇవ్వబడదు. దయచేసి మీ ప్రశ్నలను టెక్స్ట్ లేదా వాయిస్ సందేశాలుగా పంపండి.",
+        "kn": "ಕ್ಷಮಿಸಿ, ಈ ಸ್ವರೂಪವನ್ನು ಈಗ ಬೆಂಬಲಿಸಲಾಗುವುದಿಲ್ಲ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಪ್ರಶ್ನೆಗಳನ್ನು ಪಠ್ಯ ಅಥವಾ ಧ್ವನಿ ಸಂದೇಶಗಳಾಗಿ ಕಳುಹಿಸಿ.",
+        "ur": "معذرت، اس فارمیٹ کی ابھی حمایت نہیں کی جا رہی ہے۔ براہ کرم اپنے سوالات کو ٹیکسٹ یا وائس میسجز کے طور پر بھیجیں۔"
     },
-
-    "verification" : {
-        "en": "This answer has been verified by your <expert>."
+    "verification": {
+        "en": "This answer has been verified by your <expert>.",
+        "hi": "इस उत्तर को आपके <expert> द्वारा सत्यापित किया गया है।",
+        "ta": "இந்த பதில் உங்கள் <expert> மூலம் சரிபார்க்கப்பட்டுள்ளது.",
+        "te": "ఈ సమాధానం మీ <expert> ద్వారా ధృవీకరించబడింది.",
+        "kn": "ಈ ಉತ್ತರವನ್ನು ನಿಮ್ಮ <expert> ಮೂಲಕ ಪರಿಶೀಲಿಸಲಾಗಿದೆ.",
+        "ur": "یہ جواب آپ کے <expert> کے ذریعہ تصدیق شدہ ہے۔"
     },
-
-    "invalid_response" : {
-        "en": "This answer is invalid. Please wait for a correct answer from your <expert>.\n\nIn the meantime, you can ask me any other cataract surgery related questions."
+    "invalid_response": {
+        "en": "This answer is invalid. Please wait for a correct answer from your <expert>.\n\nIn the meantime, you can ask me any other cataract surgery related questions.",
+        "hi": "यह उत्तर अमान्य है। कृपया अपने <expert> से सही उत्तर की प्रतीक्षा करें। इस बीच, आप मुझसे मोतियाबिंद सर्जरी से संबंधित कोई अन्य प्रश्न पूछ सकते हैं।",
+        "ta": "இந்த பதில் தவறானது. உங்கள் <expert> இலிருந்து சரியான பதிலை காத்திருக்கவும். இதற்கிடையில், நீங்கள் எனக்கே cataract அறுவை சிகிச்சை தொடர்பான பிற கேள்விகளை கேட்கலாம்.",
+        "te": "ఈ సమాధానం చెల్లదు. దయచేసి మీ <expert> నుండి సరైన సమాధానం కోసం వేచి ఉండండి. ఈలోగా, మీరు నన్ను మరే ఇతర ముత్యబిందు శస్త్రచికిత్స సంబంధిత ప్రశ్నలు అడగవచ్చు.",
+        "kn": "ಈ ಉತ್ತರವು ಅಮಾನ್ಯವಾಗಿದೆ. ದಯವಿಟ್ಟು ನಿಮ್ಮ <expert> ನಿಂದ ಸರಿಯಾದ ಉತ್ತರಕ್ಕಾಗಿ ಕಾಯಿರಿ. ಈ ನಡುವೆ, ನೀವು ನನಗೆ ಯಾವುದೇ ಇತರ ಮುತ್ತು ಕಣ್ಣಿನ ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ ಸಂಬಂಧಿತ ಪ್ರಶ್ನೆಗಳನ್ನು ಕೇಳಬಹುದು.",
+        "ur": "یہ جواب غلط ہے۔ براہ کرم اپنے <expert> سے درست جواب کا انتظار کریں۔ اس دوران، آپ مجھ سے موتیا بند کی سرجری سے متعلق کوئی اور سوال پوچھ سکتے ہیں۔"
     },
-
     "idk_response": {
         "user": {
             "en_raise": "This is outside the scope of my current knowledge. Please wait, you will receive an answer from your <expert>.\n\nIn the meantime, you can ask me any other cataract surgery related questions.",
-            "en_final": "I am sorry, I cannot answer this question. Please contact the hospital at <phone_number> to resolve your question.\n\nYou can ask me any other cataract surgery related questions."
+            "en_final": "I am sorry, I cannot answer this question. Please contact the hospital at <phone_number> to resolve your question.\n\nYou can ask me any other cataract surgery related questions.",
+            "hi_raise": "यह मेरे वर्तमान ज्ञान के दायरे से बाहर है। कृपया प्रतीक्षा करें, आपको आपके <expert> से उत्तर प्राप्त होगा। इस बीच, आप मुझसे मोतियाबिंद सर्जरी से संबंधित कोई अन्य प्रश्न पूछ सकते हैं।",
+            "hi_final": "मुझे खेद है, मैं इस प्रश्न का उत्तर नहीं दे सकता। कृपया अपने प्रश्न को हल करने के लिए <phone_number> पर अस्पताल से संपर्क करें। आप मुझसे मोतियाबिंद सर्जरी से संबंधित कोई अन्य प्रश्न पूछ सकते हैं।",
+            "ta_raise": "இது எனது தற்போதைய அறிவின் வரம்புக்கு வெளியே உள்ளது. தயவுசெய்து காத்திருக்கவும், உங்களுக்கு உங்கள் <expert> இலிருந்து பதில் கிடைக்கும்.\n\nஇதற்கிடையில், நீங்கள் எனக்கே cataract surgery தொடர்பான பிற கேள்விகளை கேட்கலாம்.",
+            "ta_final": "மன்னிக்கவும், நான் இந்த கேள்விக்கு பதிலளிக்க முடியாது. உங்கள் கேள்வியை தீர்க்க <phone_number> என்ற தொலைபேசி எண்ணில் மருத்துவமனையை தொடர்பு கொள்ளவும்.\n\nநீங்கள் எனக்கு பிற கண் மங்கலான அறுவை சிகிச்சை தொடர்பான கேள்விகளை கேட்கலாம்.",
+            "te_raise": "ఇది నా ప్రస్తుత జ్ఞాన పరిధికి బయట ఉంది. దయచేసి వేచి ఉండండి, మీకు <expert> నుండి సమాధానం వస్తుంది. ఈలోపులో, మీరు నన్ను మరే ఇతర ముత్యబిందు శస్త్రచికిత్స సంబంధిత ప్రశ్నలు అడగవచ్చు.",
+            "te_final": "క్షమించండి, నేను ఈ ప్రశ్నకు సమాధానం ఇవ్వలేను. మీ ప్రశ్నను పరిష్కరించడానికి దయచేసి <phone_number> వద్ద ఆసుపత్రిని సంప్రదించండి. మీరు నన్ను మరే ఇతర ముత్యబిందు శస్త్రచికిత్స సంబంధిత ప్రశ్నలు అడగవచ్చు.",
+            "kn_raise": "ಇದು ನನ್ನ ಪ್ರಸ್ತುತ ಜ್ಞಾನದ ವ್ಯಾಪ್ತಿಗೆ ಹೊರತಾಗಿದೆ. ದಯವಿಟ್ಟು ಕಾಯಿರಿ, ನೀವು ನಿಮ್ಮ <expert> ನಿಂದ ಉತ್ತರವನ್ನು ಸ್ವೀಕರಿಸುತ್ತೀರಿ.\n\nಈ ನಡುವೆ, ನೀವು ನನಗೆ ಯಾವುದೇ ಇತರ ಮುತ್ತು ಕಣ್ಣಿನ ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ ಸಂಬಂಧಿತ ಪ್ರಶ್ನೆಗಳನ್ನು ಕೇಳಬಹುದು.",
+            "kn_final": "ಕ್ಷಮಿಸಿ, ನಾನು ಈ ಪ್ರಶ್ನೆಗೆ ಉತ್ತರಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಪರಿಹರಿಸಲು <phone_number> ನಲ್ಲಿ ಆಸ್ಪತ್ರೆಯನ್ನು ಸಂಪರ್ಕಿಸಿ.\n\nನೀವು ನನಗೆ ಯಾವುದೇ ಇತರ ಮುತ್ತು ಶಸ್ತ್ರಚಿಕಿತ್ಸೆ ಸಂಬಂಧಿತ ಪ್ರಶ್ನೆಗಳನ್ನು ಕೇಳಬಹುದು.",
+            "ur_raise": "یہ میرے موجودہ علم کے دائرہ کار سے باہر ہے۔ براہ کرم انتظار کریں، آپ کو اپنے <expert> سے جواب ملے گا۔ اس دوران، آپ مجھ سے موتیا بند کی سرجری سے متعلق کوئی اور سوال پوچھ سکتے ہیں۔",
+            "ur_final": "مجھے افسوس ہے، میں اس سوال کا جواب نہیں دے سکتا۔ براہ کرم اپنے سوال کو حل کرنے کے لیے <phone_number> پر ہسپتال سے رابطہ کریں۔ آپ مجھ سے موتیا بند کی سرجری سے متعلق کوئی اور سوال پوچھ سکتے ہیں۔"
         }
     }
 }
