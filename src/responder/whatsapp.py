@@ -50,6 +50,9 @@ class WhatsappResponder(BaseResponder):
         self.template_messages = json.load(
             open(os.path.join(os.environ['DATA_PATH'], "template_messages.json"), "r")
         )
+        self.unit_contact = json.load(
+            open(os.path.join(os.environ['DATA_PATH'], "unit_contact.json"), "r")
+        )
         self.yes_responses = [
             self.language_prompts[key]
             for key in self.language_prompts.keys()
@@ -173,7 +176,9 @@ class WhatsappResponder(BaseResponder):
             onboard_wa_helper(self.config, self.logger, row_lt['whatsapp_id'], user_type, row_lt['user_language'], row_lt['user_id'], self.user_db)
         else:
             text_message = self.template_messages["offboarding"]["en"]
+            text_message = text_message.replace("<phone_number>", self.unit_contact["phone_number"][row_lt['org_id']])
             text = self.template_messages["offboarding"][row_lt['user_language']]
+            text = text.replace("<phone_number>", self.unit_contact["phone_number"][row_lt['org_id']])
             
             self.messenger.send_message(row_lt['whatsapp_id'], text, reply_to_msg_id=None)
         self.logger.add_log(
@@ -383,6 +388,9 @@ class WhatsappResponder(BaseResponder):
 
     def send_idk_raise(self, row_lt, row_query, msg_type="text"):
         raise_message = self.template_messages["idk"][row_lt['user_language']]
+        expert_type = self.category_to_expert[row_query["query_type"]]
+        expert_title = self.template_messages["expert_title"][expert_type][row_lt['user_language']]
+        raise_message = raise_message.replace("<expert>", expert_title)
         _, list_title, questions_source, _ = self.get_suggested_questions(
             row_lt,
             row_query,
@@ -952,7 +960,9 @@ class WhatsappResponder(BaseResponder):
             
             if row_response["message_category"] == "IDK":
                 text = self.template_messages["idk"]["en_expertsaysyes"]
+                text = text.replace("<phone_number>", self.unit_contact["phone_number"][user_row_lt["org_id"]])
                 final_message = self.template_messages["idk"][f"{user_row_lt['user_language']}_expertsaysyes"]
+                final_message = final_message.replace("<phone_number>", self.unit_contact["phone_number"][user_row_lt["org_id"]])
                 # _, list_title, questions_source, _ = self.get_suggested_questions(
                 #     user_row_lt,
                 #     row_query,
