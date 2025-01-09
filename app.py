@@ -17,10 +17,11 @@ import traceback
 __import__("pysqlite3")
 sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
 sys.path.append("src")
-from onboard import onboard_template
 from conversation_database import LoggingDatabase
-from responder.whatsapp import WhatsappResponder
-
+from responder import WhatsappResponder
+from medics_integration import OnboardMedics
+from az_table import PatientTable
+from utils import is_older_than_n_minutes
 
 with open("config.yaml") as file:
     config = yaml.load(file, Loader=yaml.FullLoader)
@@ -31,6 +32,7 @@ log = logging.getLogger("werkzeug")
 log.setLevel(logging.ERROR)
 
 logger = LoggingDatabase(config)
+medics_onboard = OnboardMedics(config, logger)
 print("Loading Databases done")
 
 if config["CHAT_APPLICATION"] == "whatsapp":
@@ -41,13 +43,14 @@ pause_queue = False
 queue_lock = Lock()
 
 queue_name = os.environ["AZURE_QUEUE_NAME"].strip()
-queue_connection_string = os.environ["AZURE_STORAGE_CONNECTION_STRING"].strip()
-queue_client = QueueClient.from_connection_string(queue_connection_string, queue_name)
+queue_client = QueueClient.from_connection_string(os.environ["AZURE_STORAGE_CONNECTION_STRING"].strip(), queue_name)
 
 try:
     queue_client.create_queue()
 except ResourceExistsError:
     pass
+
+patient_table = PatientTable()
 
 
 @app.route("/")
@@ -55,11 +58,38 @@ def index():
     print("Request for index page received")
     return "Flask is running!"
 
+@app.route('/medics', methods=['POST'])
+def medics():
+    data = request.json
+    for row in data:
+        medics_onboard.onboard_medics_helper(row)
+    return 'OK', 200
 
 @app.route("/webhooks", methods=["POST"])
 def webhook():
     body = request.json
+    if (
+        body.get("object")
+        and body.get("entry")
+        and body["entry"][0].get("changes")
+        and body["entry"][0]["changes"][0].get("value")
+        and body["entry"][0]["changes"][0]["value"].get("messages")
+        and body["entry"][0]["changes"][0]["value"]["messages"][0]
+    ):
+        timestamp = body["entry"][0]["changes"][0]["value"]["messages"][0]["timestamp"]
+        n = 2
+        if is_older_than_n_minutes(int(timestamp), n=n):
+            logger.add_log(
+                sender_id="whatsapp_api",
+                receiver_id="Bot",
+                message_id=None,
+                action_type="Old message",
+                details={"message": f"Message older than {n} minutes"},
+                timestamp=datetime.now(),
+            )
+            return "OK", 200
     # adding request to queue
+    print("Adding message to queue, ", body)
     queue_client.send_message(json.dumps(body))
     return "OK", 200
 
@@ -71,8 +101,8 @@ def scheduler():
         receiver_id="Bot",
         message_id=None,
         action_type="Scheduler",
-        details={"date": datetime.now()},
-        timestamp=datetime.now(),
+        details={},
+        timestamp=str(datetime.now()),
     )
     # stop the process queue
     global pause_queue, queue_lock
@@ -83,7 +113,7 @@ def scheduler():
     now = datetime.now(pytz.timezone("Asia/Kolkata"))
     print("Current time: ", now)
     # Round the time to the nearest half hour
-    minutes = (now.minute // 30) * 30
+    minutes = (now.minute // 5) * 5
     rounded_now = now.replace(minute=minutes, second=0, microsecond=0)
 
     # Parse the cron schedules
@@ -118,14 +148,33 @@ def scheduler():
 
 
 # Define a route for handling a POST request related to long-term processing
-@app.route("/long_term", methods=["POST"])
+@app.route("/medics-sankara", methods=["POST"])
 def long_term():
-    data_row = request.json
-    print("Long term updated")
-    print(data_row)
-    onboard_template(config, logger, data_row)
+    data = request.json
+    data = data["data"]
+    logger.add_log(
+        sender_id="Medics",
+        receiver_id="Bot",
+        message_id=None,
+        action_type="Medics",
+        details=data,
+        timestamp=datetime.now()
+    )
+    for row in data:
+        #make all values string
+        for key in row:
+            row[key] = str(row[key])
+        try:
+            patient_table.insert_data(row)
+        except Exception as e:
+            print(e)
+            traceback.print_exc()
+    print("Medics sankara data received")
     return "OK", 200
 
+@app.route("/cache-clear", methods=["POST"])
+def clear_cache():
+    responder.clear_cache()
 
 # Define a route for handling webhooks
 @app.route("/webhooks", methods=["GET"])
@@ -157,9 +206,20 @@ def process_queue():
             sleep(0.01)
             continue
         try:
-            messages = queue_client.receive_messages(messages_per_page=1)
+            messages = queue_client.receive_messages(messages_per_page=1, visibility_timeout=5)
             for message in messages:
                 try:
+                    if message.dequeue_count > 1:
+                        logger.add_log(
+                            sender_id="queue_processor",
+                            receiver_id="Bot",
+                            message_id=None,
+                            action_type="Dequeue count exceeded",
+                            details={"message": message.content},
+                            timestamp=datetime.now(),
+                        )
+                        queue_client.delete_message(message)
+                        continue
                     print("Message received", message.content)
                     body = json.loads(message.content)
                     print("Processing new message")

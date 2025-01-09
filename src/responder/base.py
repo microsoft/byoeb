@@ -7,10 +7,6 @@ class BaseResponder(ABC):
         pass
 
     @abstractmethod
-    def update_users(self):
-        pass
-
-    @abstractmethod
     def update_kb(self):
         pass
 

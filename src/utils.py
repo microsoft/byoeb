@@ -9,21 +9,44 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import time
 from openai import OpenAI, AzureOpenAI
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 
+def get_client_with_token_provider():
+    token_provider = get_bearer_token_provider(
+        DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
+    )
+    
 
-def get_llm_response(prompt):
-    openai.api_base = os.environ["OPENAI_API_ENDPOINT"].strip()
-    openai.api_type = os.environ["OPENAI_API_TYPE"].strip()
-    openai.api_key = os.environ["OPENAI_API_KEY"].strip()
-    openai.api_version = os.environ["OPENAI_API_VERSION"].strip()
-
-    model_engine = "gpt-4-32k"
-
-    client = AzureOpenAI(
-        api_key=os.environ["OPENAI_API_KEY"].strip(),
+    return AzureOpenAI(
+        azure_ad_token_provider=token_provider,
         api_version=os.environ["OPENAI_API_VERSION"].strip(),
         azure_endpoint=os.environ["OPENAI_API_ENDPOINT"].strip(),
     )
+
+def get_client_with_key():
+    return OpenAI(
+        api_key = os.environ['OPENAI_API_KEY'].strip(),
+        organization=os.environ['OPENAI_ORG_ID'].strip(),
+    )
+
+def get_llm_response(prompt, schema=None):
+    client = None
+    api_key = None
+    model_engine = os.environ["OPENAI_API_MODEL"].strip()
+    response_format = None
+    print(response_format)
+    if schema is not None:
+        response_format= { "type": "json_schema", "json_schema": schema }
+    
+    print("Response format: ", response_format)
+    try:
+        api_key = os.environ["OPENAI_API_KEY"].strip()
+    except KeyError:
+        print("API key not found in environment variables.")
+    if api_key is not None:
+        client = get_client_with_key()
+    else:
+        client = get_client_with_token_provider()
 
     i = 1
     flag = False
@@ -33,6 +56,7 @@ def get_llm_response(prompt):
                 model=model_engine,
                 messages=prompt,
                 temperature=0,
+                response_format=response_format,
             )
             flag = True
         except Exception as e:
@@ -43,7 +67,7 @@ def get_llm_response(prompt):
                 i = i * 2
             else:
                 i = 1
-
+    print("Respnse: ", response)
     response_text = response.choices[0].message.content.strip()
     return response_text
 
@@ -203,3 +227,14 @@ def clean_txt_from_pdf(text: str):
     _text = re.sub(r"[^a-zA-Z0-9•\n]", " ", _text)
     # save the cleaned text
     return _text
+
+def is_older_than_n_minutes(unix_timestamp, n):
+    # Get the current time in Unix timestamp format
+    diff_seconds = n*60
+    current_time = int(time.time())
+    
+    # Calculate the difference
+    time_difference = current_time - unix_timestamp
+    
+    # Check if the difference is greater than 120 seconds (2 minutes)
+    return time_difference > diff_seconds

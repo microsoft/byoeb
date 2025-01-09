@@ -4,17 +4,21 @@
 *.ogg
 *.exe
 *.wav
+*.aac
 *.ipynb
 **/*.ipynb
 # anything in scratch
 scratch/
 
 # the .env file
+*.env
 .env
 
 # the .env file in any subdirectory
 **/.env
 **/**/.env
+**/*.env
+**/**/*.env
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -164,3 +168,6 @@ notebooks/*
 test.py
 cred.txt
 openssl-1.1.1u/*
+templates.json
+medics_test.py
+register_template.py

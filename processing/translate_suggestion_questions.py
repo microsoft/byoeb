@@ -18,7 +18,7 @@ list_title = "Related questions"
 questions = config['SUGGESTION_QUESTIONS']
 data = {"title": title, "list_title": list_title, "questions": questions}
 onboard_ques = {"en": data}
-languages = ["hi", "kn", "ta", "te"]
+languages = config['LANGUAGES']
 
 logger = LoggingDatabase(config)
 
@@ -47,4 +47,4 @@ os.makedirs(os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"], "onboa
 save_path = os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"], "onboarding/suggestion_questions.json")
 
 with open(save_path, "w") as fp:
-    json.dump(onboard_ques, fp)
+    json.dump(onboard_ques, fp, indent=4, ensure_ascii=False)

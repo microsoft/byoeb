@@ -1,38 +1,55 @@
 # For details of the below fields, please refer CUSTOMISE.md
-PROJECT_NAME: science_bot
+PROJECT_NAME: cataract_bot_hierarchy
 CHAT_APPLICATION: whatsapp
 API_ACTIVATED: true
-USERS : ['Student']
+USERS : ['Patient']
 EXPERTS:
-  Teacher: 'Academic'
+  Doctor: 'medical'
+  Counsellor: 'logistical'
 ESCALATION:
-  Teacher: 
+  Doctor: 
     name: 'Senior Teacher'
     whatsapp_id: '919876543210'
-USER_PROMPT : 'You are a science bot. Your purpose is to help students with any queries that they might have.'
+USER_PROMPT : 'You are a cataract bot. Your purpose is to help patients with any queries that they might have.'
 
 RECREATE_EMBEDDINGS: false
 SHOW_CITATIONS: true
 SEND_POLL: true
+SEND_CONSENSUS_POLL: true
 SUGGEST_NEXT_QUESTIONS: true
 MAX_CONVERSATION_LENGTH: 5
 GLOB_SUFFIX: '*.txt'
+FAQ: false
 
 WELCOME_MESSAGES:
   USERS:
-    - 'Hi! I am a science bot. I can help you with any queries that you have regarding your science curriculum.'
+    - 'Hi! I am a cataract bot. I can help you with any queries that you have regarding your cataract surgeries.'
   EXPERTS:
-    - 'Hi! I am a science bot. Thank you for volunteering to help students with their science queries.'
+    - 'Hi! I am a cataract bot. Thank you for volunteering to help patients with their science queries.'
 SUGGESTION_QUESTIONS:
-  - 'What topics can you help me with?'
-  - 'What is photosynthesis?'
-  - 'What is the difference between a plant cell and an animal cell?'
+  - 'How can I prepare myself for Cataract Surgery?'
+  - 'How safe is Cataract Surgery?'
+  - 'How long does it take to recover from surgery?'
 
-COSMOS_DB_NAME: science_bot
-COSMOS_DB_COLLECTION: conversation_science_bot
-COSMOS_LONGTERM_COLLECTION: science_bot_users
-COSMOS_LOGGING_COLLECTION: logs_science_bot
-AZURE_BLOB_CONTAINER_NAME: science-bot-audio-storage
+LANGUAGES:
+  - en
+  - hi
+  - te
+  - ta
+  - kn
+  - ur
+ 
+COSMOS_DB_NAME: cataract-bot-test
+AZURE_BLOB_CONTAINER_NAME: swaasthya-bot-audio-storage
+
+#NEW_DB
+COSMOS_USER_COLLECTION: users
+COSMOS_RELATIONS_COLLECTION: relations
+COSMOS_USER_CONV_COLLECTION: user_conversations
+COSMOS_BOT_CONV_COLLECTION: bot_conversations
+COSMOS_EXPERT_CONV_COLLECTION: expert_conversations
+COSMOS_LOGGING_COLLECTION: 'logs'
+COSMOS_FAQ_COLLECTION: 'faqs'
 
 SPREADSHEET_ID: abcd
 SHEET_LINK: https://docs.google.com/spreadsheets/d/abcd/edit?usp=sharing

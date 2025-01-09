@@ -2,7 +2,8 @@ from conversation_database import LoggingDatabase
 import json
 import os
 from azure_language_tools import translator
-from messenger.whatsapp import WhatsappMessenger
+from messenger import WhatsappMessenger
+from database import UserDB
 
 
 def onboard_template(config: dict, logger: LoggingDatabase, data_row: dict) -> None:
@@ -28,6 +29,20 @@ def onboard_template(config: dict, logger: LoggingDatabase, data_row: dict) -> N
                 lang,
             )
 
+def onboar_medics_template(
+    config: dict,
+    logger: LoggingDatabase,
+    to_number: str,
+    ) -> None:
+    messenger = WhatsappMessenger(config, logger)
+    try:
+        messenger.send_template(to_number, 'onboard_cataractbot', 'en', logger)
+        messenger.send_template(to_number, 'lang_selection_blr', 'en', logger)
+        print('Template sent to user')
+    except Exception as e:
+        print(e)
+        print('Error in sending template to user')
+
 
 def onboard_wa_helper(
     config: dict,
@@ -35,6 +50,8 @@ def onboard_wa_helper(
     to_number: str,
     role: str,
     lang: str,
+    user_id: str,
+    user_db: UserDB,
 ) -> None:
     messenger = WhatsappMessenger(config, logger)
     welcome_messages = json.load(
@@ -44,12 +61,12 @@ def onboard_wa_helper(
     )
     language_prompts = json.load(
         open(
-            os.path.join(os.environ['APP_PATH'], os.environ['DATA_PATH'],"/onboarding/language_prompts.json"),
+            os.path.join(os.environ['APP_PATH'], os.environ['DATA_PATH'],"onboarding/language_prompts.json"),
         )
     )
     suggestion_questions = json.load(
         open(
-            os.path.join(os.environ['APP_PATH'], os.environ['DATA_PATH'],"/onboarding/suggestion_questions.json"),
+            os.path.join(os.environ['APP_PATH'], os.environ['DATA_PATH'],"onboarding/suggestion_questions.json"),
         )
     )
 
@@ -58,11 +75,7 @@ def onboard_wa_helper(
             messenger.send_message(to_number, message)
         audio_file = os.path.join(os.environ['APP_PATH'], os.environ['DATA_PATH'],f"onboarding/welcome_messages_users_{lang}.aac")
         messenger.send_audio(audio_file, to_number)
-        messenger.send_language_poll(
-            to_number,
-            language_prompts[lang],
-            language_prompts[lang + "_title"],
-        )
+        user_db.add_or_update_related_qns(user_id, suggestion_questions["en"]["questions"])
         title, questions, list_title = (
             suggestion_questions[lang]["title"],
             suggestion_questions[lang]["questions"],
