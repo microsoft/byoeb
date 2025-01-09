@@ -6,7 +6,7 @@ from azure_language_tools import translator
 import json
 import subprocess
 
-languages = ["en", "hi", "kn", "ta", "te"]
+languages = ["en", "hi", "kn", "ta", "te", "ur"]
 roles = ["users", "experts"]
 
 role = "experts"
@@ -43,7 +43,7 @@ for language in languages:
     final_message = ""
     for message in welcome_messages[role][language]:
         final_message += message + "\n\n"
-
+    print(final_message)
     audio_path = (
         "onboarding/welcome_messages_"
         + role
@@ -56,4 +56,6 @@ for language in languages:
 
     subprocess.run(
         ["ffmpeg", "-y", "-i", audio_path, "-codec:a", "aac", audio_path[:-3] + "aac"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
         )
