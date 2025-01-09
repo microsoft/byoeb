@@ -31,6 +31,14 @@ SUGGESTION_QUESTIONS:
   - 'How safe is Cataract Surgery?'
   - 'How long does it take to recover from surgery?'
 
+LANGUAGES:
+  - en
+  - hi
+  - te
+  - ta
+  - kn
+  - ur
+ 
 COSMOS_DB_NAME: cataract-bot-test
 AZURE_BLOB_CONTAINER_NAME: swaasthya-bot-audio-storage
 

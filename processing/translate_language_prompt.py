@@ -19,7 +19,7 @@ title = f"Options"
 
 lang_prompts = {"en": reminder_message, "en_title": title, "en_yes": "Yes", "en_no": "No"}
 
-languages = ["hi", "kn", "ta", "te"]
+languages = config['LANGUAGES']
 
 logger = LoggingDatabase(config)
 
@@ -47,4 +47,4 @@ for lang in languages:
 os.makedirs(os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"], "onboarding"), exist_ok=True)
 save_path = os.path.join(os.environ["APP_PATH"], os.environ["DATA_PATH"], "onboarding/language_prompts.json")
 with open(save_path, "w") as fp:
-    json.dump(lang_prompts, fp)
+    json.dump(lang_prompts, fp, indent=4, ensure_ascii=False)

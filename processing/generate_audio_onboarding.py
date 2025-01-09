@@ -5,8 +5,11 @@ sys.path.append(local_path)
 from azure_language_tools import translator
 import json
 import subprocess
+import yaml
+with open(os.path.join(os.environ['APP_PATH'], 'config.yaml')) as file:
+    config = yaml.load(file, Loader=yaml.FullLoader)
 
-languages = ["en", "hi", "kn", "ta", "te", "ur"]
+languages = config['LANGUAGES']
 roles = ["users", "experts"]
 
 role = "experts"
