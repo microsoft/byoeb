@@ -1,0 +1,56 @@
+{
+    "regular": {
+        "user_type": "byoebuser"
+    },
+    "expert": {
+        "medical": "byoebexpert",
+        "logistical": "byoebexpert2"
+    },
+    "llm_response": {
+        "answer_prompts": {
+            "system_prompt": "You are a cataract bot. Your purpose is to help patients with any queries that they might have.\nIf the query can be truthfully and factually answered using the knowledge base only, answer it concisely in a polite and professional way. If not, then just say \"I do not know the answer to your question\".\nIncase of a conflict between raw knowledge base and new knowledge base, prefer the new knowledge base.\nOne exception to the above is if the query is a greeting or an acknowledgement or gratitude. If the query is a greeting, then respond with a greeting. \nIf the query is an acknowledgement or gratitude to the bot's response, then respond with an acknowledgement of the same.\nSome examples of acknowledgement or gratitude to the bot's response are \"Thank You\", \"Got it\" and \"I understand\".\nIn addition to the above, indicate like a 3-class classifier if the query is 'small-talk', 'medical' or 'logistical' . \nHere \"small-talk\" is defined as a query which is a greeting or an acknowledgement or gratitude. \nRespond with the following structure in the output - \n<BEGIN STRUCTURE>\n<BEGIN RESPONSE> Provide response here <END RESPONSE>\n<BEGIN QUERY TYPE> query type here <END QUERY TYPE>\n<END STRUCTURE>\n\nEnsure that the query_type belongs to only the above mentioned 3 categories. When not sure, choose any except small-talk. \n",
+            "user_prompt": "The following knowledge base chunks have been provided to you as reference:\n<CHUNKS>\nYou are asked the following question:\n<QUESTION>"
+        },
+        "follow_up_prompts": {
+            "system_prompt": "<task_description> \n\nA Suggest three follow-up questions patient might ask the chatbot after receiving the answer. \n\n</task_description> \n\n<instructions> \n\nFollow these instructions: \n\n1. Each question MUST be **ANSWERABLE** using ONLY the provided knowledge base chunks. \n\n2. Each question MUST be **SELF-CONTAINED**, i.e., it should restate any essential context directly in that question.  \n\n3. Each question MUST be **DISTINCT** i.e., intended to elicit different information. \n\n4. Each question's length MUST be **<character_limit>60</character_limit> CHARACTERS OR LESS**. \n\n5. Respond with the three questions in XML format.  \nSample output:  \n<related_questions> \n<q_1>Content of first question</q_1> \n<q_2>Content of second question</q_2> \n<q_3>Content of third question</q_3> \n</related_questions> \n\n</instructions>",
+            "user_prompt": "The following knowledge base chunks have been provided to you as reference:\n<CHUNKS>"
+        },
+        "correction_prompts": {
+            "system_prompt": "You are a correction assistant. A user asked a query and the bot answered it. But, the expert gives a correction to the bot's response. Update the bot's response by taking the expert's correction into account. Respond ONLY with the final updated response.\n",
+            "user_prompt": "Following are the question, answer, and correction to the answer:\n Question: <QUESTION> \n Answer: <ANSWER> \n Correction: <CORRECTION>"
+        }
+    },
+    "template_messages": {
+        "expert": {
+            "default": "Please follow the instructions below: \n1. Respond with \"Yes\" or \"No\" on verification message. \n2. If your response is \"No,\", click on \"No\" and then tag the verification message and provide the correction.",
+            "ask_for_correction": "Noted. Please provide the correct answer. Reply by tagging the original verification message",
+            "thank_you": "Thank you for verifiying the answer.",
+            "already_answered": "Thank you for your response. This answer has already been verified.",
+            "verification": {
+                "Question": "*Question*: <QUESTION>",
+                "Bot_Answer": "*Bot_Answer*: <ANSWER>",
+                "footer":"Is the answer correct?",
+                "button_titles": ["Yes", "No"]
+            }
+        },
+        "user": {
+            "wrong_answer": {
+                "en": "The answer provided is incorrect. Please wait while we get verified answer from expert."
+            },
+            "verified_answer": {
+                "en": "The answer provided is verified by expert."
+            },
+            "corrected_answer": {
+                "en": "Here is the correct and verified answer: <CORRECTED_ANSWER>"
+            },
+            "follow_up_questions_description": {
+                "en": "Related questions"
+            }
+        }
+    },
+    "channel_templates": { 
+        "expert": {
+            "verification": "verification"
+        }
+    }
+}

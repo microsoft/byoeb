@@ -1,4 +1,10 @@
-# any mp3/oggclear
+# vscode
+.vscode/
+
+#poetry
+*.lock
+
+# any mp3/oggclear/txt
  audio files
 *.mp3
 *.ogg
@@ -6,15 +12,19 @@
 *.wav
 *.ipynb
 **/*.ipynb
+*.txt
 # anything in scratch
 scratch/
+
+# os extensions
+*:Zone.Identifier
 
 # the .env file
 .env
 
 # the .env file in any subdirectory
-**/.env
-**/**/.env
+**/*.env
+**/**/*.env
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

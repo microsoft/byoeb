@@ -1,0 +1,37 @@
+{
+    "app":{
+        "batch_size": 5,
+        "azure_cognitive_endpoint": "https://cognitiveservices.azure.com/.default",
+        "queue_provider": "azure_storage_queue",
+        "db_provider": "azure_cosmos_mongo_db"
+    },
+    "embeddings": {
+        "azure": {
+            "model": "text-embedding-3-large",
+            "endpoint": "https://swasthyabot-oai-vision.openai.azure.com/",
+            "deployment_name": "text-embedding-3-large",
+            "api_version": "2023-03-15-preview"
+        }
+    },
+    "llms": {
+        "azure": {
+            "model": "gpt-4o",
+            "endpoint": "https://swasthyabot-oai-vision.openai.azure.com/",
+            "deployment_name": "gpt-4o",
+            "api_version": "2023-03-15-preview"
+        }
+    },
+    "media_storage": {
+        "azure": {
+            "account_url": "https://kgretrieval.blob.core.windows.net",
+            "container_name": "testcontainerbyoeb"
+        }
+    },
+    "vector_store": {
+        "chroma": {
+            "store_name": "byoeb",
+            "doc_collection_name": "vector_collection",
+            "qa_collection_name": "qa_collection"
+        }
+    }
+}

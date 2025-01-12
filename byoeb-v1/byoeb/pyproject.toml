@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "byoeb"
+version = "0.1.0"
+description = ""
+authors = ["Rahul Sharma <rahul5982439@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.115.5"
+aiocache = "0.12.3"
+byoeb-integrations = {path = "../byoeb-integrations/dist/byoeb_integrations-0.1.0-py3-none-any.whl"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
