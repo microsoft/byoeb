@@ -3,16 +3,18 @@ import byoeb.services.chat.utils as utils
 from typing import List, Dict, Any
 from byoeb_core.models.byoeb.message_context import ByoebMessageContext, MessageTypes
 from byoeb.services.channel.base import BaseChannelService, MessageReaction
-from byoeb.services.databases.mongo_db import MongoDBService
+from byoeb.services.databases.mongo_db import UserMongoDBService, MessageMongoDBService
 from byoeb.services.chat.message_handlers.base import Handler
 from byoeb.services.channel.base import MessageReaction
 
 class ByoebExpertSendResponse(Handler):
     def __init__(
         self,
-        mongo_db_service: MongoDBService,
+        user_db_service: UserMongoDBService,
+        message_db_service: MessageMongoDBService,
     ):
-        self._mongo_db_service = mongo_db_service
+        self._user_db_service = user_db_service
+        self._message_db_service = message_db_service
 
     def get_channel_service(
         self,
@@ -59,10 +61,10 @@ class ByoebExpertSendResponse(Handler):
             message_update_queries = []
         else:
             message_update_queries = (
-                self._mongo_db_service.correction_update_query(byoeb_user_messages, byoeb_expert_message) +
-                self._mongo_db_service.verification_status_update_query(byoeb_user_messages, byoeb_expert_message)
+                self._message_db_service.correction_update_query(byoeb_user_messages, byoeb_expert_message) +
+                self._message_db_service.verification_status_update_query(byoeb_user_messages, byoeb_expert_message)
             )
-        user_update_queries = [self._mongo_db_service.user_activity_update_query(byoeb_expert_message.user)]
+        user_update_queries = [self._user_db_service.user_activity_update_query(byoeb_expert_message.user)]
         return {
             constants.MESSAGE_DB_QUERIES: {
                 constants.UPDATE: message_update_queries

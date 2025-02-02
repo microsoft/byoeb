@@ -12,7 +12,7 @@ from byoeb.handler import (
 )
 from byoeb.chat_app.configuration.config import app_config
 from byoeb.listener.message_consumer import QueueConsumer
-from byoeb.services.databases.mongo_db import MongoDBService
+from byoeb.services.databases.mongo_db import UserMongoDBService, MessageMongoDBService
 
 SINGLETON = "singleton"
 
@@ -27,7 +27,11 @@ mongo_db_factory = MongoDBFactory(
     scope=SINGLETON
 )
 
-mongo_db_service = MongoDBService(
+user_db_service = UserMongoDBService(
+    config=app_config,
+    mongo_db_factory=mongo_db_factory
+)
+message_db_service = MessageMongoDBService(
     config=app_config,
     mongo_db_factory=mongo_db_factory
 )
@@ -46,7 +50,8 @@ message_consumer = QueueConsumer(
     account_url=app_config["message_queue"]["azure"]["account_url"],
     queue_name=app_config["message_queue"]["azure"]["queue_bot"],
     consuemr_type=app_config["app"]["queue_provider"],
-    mongo_db_service=mongo_db_service,
+    user_db_service=user_db_service,
+    message_db_service=message_db_service,
     channel_client_factory=channel_client_factory
 )
 
@@ -126,7 +131,10 @@ from byoeb.services.chat.message_handlers import (
     ByoebUserGenerateResponse, 
     ByoebUserSendResponse
 )
-byoeb_user_send_response = ByoebUserSendResponse(mongo_db_service=mongo_db_service)
+byoeb_user_send_response = ByoebUserSendResponse(
+    user_db_service=user_db_service,
+    message_db_service=message_db_service
+)
 byoeb_user_generate_response = ByoebUserGenerateResponse(successor=byoeb_user_send_response)
 byoeb_user_process = ByoebUserProcess(successor=byoeb_user_generate_response)
 
@@ -136,6 +144,9 @@ from byoeb.services.chat.message_handlers import (
     ByoebExpertGenerateResponse, 
     ByoebExpertSendResponse
 )
-byoeb_expert_send_response = ByoebExpertSendResponse(mongo_db_service=mongo_db_service)
+byoeb_expert_send_response = ByoebExpertSendResponse(
+    user_db_service=user_db_service,
+    message_db_service=message_db_service
+)
 byoeb_expert_generate_response = ByoebExpertGenerateResponse(successor=byoeb_expert_send_response)
 byoeb_expert_process = ByoebExpertProcess(successor=byoeb_expert_generate_response)

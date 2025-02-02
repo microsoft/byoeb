@@ -7,7 +7,7 @@ from byoeb.services.chat import mocks
 from typing import Any, Dict, List
 from byoeb_core.models.byoeb.message_context import ByoebMessageContext, MessageTypes
 from byoeb.services.channel.base import BaseChannelService, MessageReaction
-from byoeb.services.databases.mongo_db import MongoDBService
+from byoeb.services.databases.mongo_db import UserMongoDBService, MessageMongoDBService
 from byoeb.services.chat.message_handlers.base import Handler
 from byoeb.services.channel.base import MessageReaction
 
@@ -16,9 +16,11 @@ class ByoebUserSendResponse(Handler):
 
     def __init__(
         self,
-        mongo_db_service: MongoDBService,
+        user_db_service: UserMongoDBService,
+        message_db_service: MessageMongoDBService,
     ):
-        self._mongo_db_service = mongo_db_service
+        self._user_db_service = user_db_service
+        self._message_db_service = message_db_service
 
     def get_channel_service(
         self,
@@ -35,14 +37,14 @@ class ByoebUserSendResponse(Handler):
         byoeb_user_message: ByoebMessageContext,
     ):
         message_db_queries = {
-            constants.CREATE: self._mongo_db_service.message_create_queries(convs)
+            constants.CREATE: self._message_db_service.message_create_queries(convs)
         }
         qa = {
             constants.QUESTION: byoeb_user_message.reply_context.reply_english_text,
             constants.ANSWER: byoeb_user_message.message_context.message_english_text
         }
         user_db_queries = {
-            constants.UPDATE: [self._mongo_db_service.user_activity_update_query(byoeb_user_message.user, qa)]
+            constants.UPDATE: [self._user_db_service.user_activity_update_query(byoeb_user_message.user, qa)]
         }
         return {
             constants.MESSAGE_DB_QUERIES: message_db_queries,
@@ -59,7 +61,7 @@ class ByoebUserSendResponse(Handler):
         #     mocks.get_mock_whatsapp_response(expert_message_context.user.phone_number_id)
         # ]
         # return responses
-        user_timestamp = await self._mongo_db_service.get_user_activity_timestamp(expert_message_context.user.user_id)
+        user_timestamp = await self._user_db_service.get_user_activity_timestamp(expert_message_context.user.user_id)
         last_active_duration_seconds = utils.get_last_active_duration_seconds(user_timestamp)
         expert_requests = channel_service.prepare_requests(expert_message_context)
         interactive_button_message = expert_requests[0]
