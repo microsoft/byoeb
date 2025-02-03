@@ -43,7 +43,7 @@ class MessageProducerService:
         channel
     ):
         byoeb_message: ByoebMessageContext = None
-        n = 2
+        n = 5
         if channel == "whatsapp":
             byoeb_message = self.__convert_whatsapp_to_byoeb_message(message)
         if byoeb_message is None or byoeb_message is False:

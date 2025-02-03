@@ -113,7 +113,10 @@ class MessageConsmerService:
             json_message = json.loads(message)
             byoeb_message = ByoebMessageContext.model_validate(json_message)
             byoeb_messages.append(byoeb_message)
+        start_time = datetime.now().timestamp()
         conversations = await self.__create_conversations(byoeb_messages)
+        end_time = datetime.now().timestamp()
+        b_utils.log_to_text_file(f"Conversations created in: {end_time - start_time} seconds")
         task = []
         for conversation in conversations:
             conversation.user.activity_timestamp = str(int(datetime.now().timestamp()))
@@ -127,12 +130,15 @@ class MessageConsmerService:
             if err is not None or queries is None:
                 continue
             successfully_processed_messages.append(processed_message)
+        start_time = datetime.now().timestamp()
         user_queries = self._user_db_service.aggregate_queries(results)
         message_queries = self._message_db_service.aggregate_queries(results)
         await asyncio.gather(
             self._user_db_service.execute_queries(user_queries),
             self._message_db_service.execute_queries(message_queries)
         )
+        end_time = datetime.now().timestamp()
+        b_utils.log_to_text_file(f"DB queries executed in: {end_time - start_time} seconds")
         return successfully_processed_messages
 
     async def __process_byoebuser_conversation(self, byoeb_message):

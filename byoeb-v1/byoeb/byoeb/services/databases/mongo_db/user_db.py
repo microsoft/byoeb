@@ -14,16 +14,17 @@ class UserMongoDBService(BaseMongoDBService):
         self._history_length = self._config["app"]["history_length"]
         self.collection_name = self._config["databases"]["mongo_db"]["user_collection"]
         self.cache = Cache(Cache.MEMORY)
+    
+    async def invalidate_user_cache(self, user_id: str):
+        print(self.cache)
+        await self.cache.delete(user_id)
 
     async def get_user_activity_timestamp(self, user_id: str):
         """Get the user's last activity timestamp with caching."""
         cached_data = await self.cache.get(user_id)
-        if cached_data:
-            cached_timestamp, activity_timestamp = cached_data
-            if datetime.utcnow() - cached_timestamp > timedelta(hours=24):
-                await self.cache.delete(user_id)
-            else:
-                return activity_timestamp
+        if cached_data is not None and isinstance(cached_data, dict):
+            user = User(**cached_data)
+            return user.activity_timestamp, True
 
         user_collection_client = await self._get_collection_client(self.collection_name)
         user_obj = await user_collection_client.afetch({"_id": user_id})
@@ -34,8 +35,8 @@ class UserMongoDBService(BaseMongoDBService):
         user = User(**user_obj["User"])
         activity_timestamp = user.activity_timestamp
 
-        await self.cache.set(user_id, (datetime.utcnow(), activity_timestamp), ttl=3600)
-        return activity_timestamp
+        await self.cache.set(user_id, user.model_dump(), ttl=3600)
+        return activity_timestamp, False
 
     async def get_users(self, user_ids: List[str]) -> List[User]:
         """Fetch multiple users from the database."""
@@ -45,7 +46,7 @@ class UserMongoDBService(BaseMongoDBService):
 
     def user_activity_update_query(self, user: User, qa: Dict[str, Any] = None):
         """Generate update query for user activity."""
-        latest_timestamp = str(int(datetime.utcnow().timestamp()))
+        latest_timestamp = str(int(datetime.now().timestamp()))
         update_data = {"$set": {"User.activity_timestamp": latest_timestamp}}
 
         if qa is None:

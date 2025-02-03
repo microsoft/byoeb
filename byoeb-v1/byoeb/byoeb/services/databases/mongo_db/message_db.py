@@ -95,7 +95,7 @@ class MessageMongoDBService(BaseMongoDBService):
             {
                 "_id": message.message_context.message_id,
                 "message_data": message.model_dump(),
-                "timestamp": str(int(datetime.utcnow().timestamp())),
+                "timestamp": str(int(datetime.now().timestamp())),
             }
             for message in byoeb_messages
         ]

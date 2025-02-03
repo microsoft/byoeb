@@ -51,7 +51,22 @@ class ByoebUserSendResponse(Handler):
             constants.USER_DB_QUERIES: user_db_queries
         }
         
-
+    async def is_active_user(self, user_id: str):
+        user_timestamp, cached = await self._user_db_service.get_user_activity_timestamp(user_id)
+        last_active_duration_seconds = utils.get_last_active_duration_seconds(user_timestamp)
+        print("Last active duration", last_active_duration_seconds)
+        print("Cached", cached)
+        if last_active_duration_seconds >= 120 and cached:
+            print("Invalidating cache")
+            await self._user_db_service.invalidate_user_cache(user_id)
+            user_timestamp, cached = await self._user_db_service.get_user_activity_timestamp(user_id)
+            print("Cached", cached)
+            last_active_duration_seconds = utils.get_last_active_duration_seconds(user_timestamp)
+            print("Last active duration", last_active_duration_seconds)
+        if last_active_duration_seconds >= 120:
+            return False
+        return True
+    
     async def __handle_expert(
         self,
         channel_service: BaseChannelService,
@@ -61,13 +76,12 @@ class ByoebUserSendResponse(Handler):
         #     mocks.get_mock_whatsapp_response(expert_message_context.user.phone_number_id)
         # ]
         # return responses
-        user_timestamp = await self._user_db_service.get_user_activity_timestamp(expert_message_context.user.user_id)
-        last_active_duration_seconds = utils.get_last_active_duration_seconds(user_timestamp)
+        is_active_user = await self.is_active_user(expert_message_context.user.user_id)
         expert_requests = channel_service.prepare_requests(expert_message_context)
         interactive_button_message = expert_requests[0]
         template_verification_message = expert_requests[1]
         
-        if last_active_duration_seconds >= self.__max_last_active_duration_seconds:
+        if not is_active_user:
             expert_message_context.message_context.message_type = MessageTypes.TEMPLATE_BUTTON.value
             responses, message_ids = await channel_service.send_requests([template_verification_message])
         else:
@@ -110,6 +124,7 @@ class ByoebUserSendResponse(Handler):
             message_ids = message_id_audio + message_id_text
         else:
             responses, message_ids = await channel_service.send_requests(user_requests)
+            print("user responses", responses)
         pending_emoji = user_message_context.message_context.additional_info.get(constants.EMOJI)
         message_reactions = [
             MessageReaction(

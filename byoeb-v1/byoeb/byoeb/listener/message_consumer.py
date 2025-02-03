@@ -103,7 +103,7 @@ class QueueConsumer:
                 message_content.append(message.content)
             if len(messages) == 0:
                 self._logger.info("No messages received")
-                await asyncio.sleep(2)
+                await asyncio.sleep(0.5)
                 continue
             try:
                 self._logger.info(f"Received {len(messages)} messages")
@@ -119,7 +119,7 @@ class QueueConsumer:
             duration = (end_time - start_time).seconds
             self._logger.info(f"Processing time: {duration} seconds")
             utils.log_to_text_file(f"Processed {len(messages)} message in: {duration} seconds")
-            await asyncio.sleep(2)
+            await asyncio.sleep(0.5)
     
     async def close(
         self

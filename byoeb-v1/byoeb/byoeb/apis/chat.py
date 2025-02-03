@@ -31,7 +31,7 @@ async def get_bot_messages(
     """
     Get all messages for a specific BO.
     """
-    responses = await dependency_setup.mongo_db_service.get_latest_bot_messages_by_timestamp(timestamp)
+    responses = await dependency_setup.message_db_service.get_latest_bot_messages_by_timestamp(timestamp)
     byoeb_response = []
     for response in responses:
         byoeb_response.append(response.model_dump())
