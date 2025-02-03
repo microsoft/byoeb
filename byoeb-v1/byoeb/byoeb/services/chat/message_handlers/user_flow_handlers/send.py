@@ -1,6 +1,7 @@
 import asyncio
 import byoeb.services.chat.constants as constants
 import byoeb.utils.utils as b_utils
+from datetime import datetime
 from byoeb.chat_app.configuration.config import app_config
 from byoeb.services.chat import utils
 from byoeb.services.chat import mocks
@@ -56,14 +57,14 @@ class ByoebUserSendResponse(Handler):
         last_active_duration_seconds = utils.get_last_active_duration_seconds(user_timestamp)
         print("Last active duration", last_active_duration_seconds)
         print("Cached", cached)
-        if last_active_duration_seconds >= 120 and cached:
+        if last_active_duration_seconds >= self.__max_last_active_duration_seconds and cached:
             print("Invalidating cache")
             await self._user_db_service.invalidate_user_cache(user_id)
             user_timestamp, cached = await self._user_db_service.get_user_activity_timestamp(user_id)
             print("Cached", cached)
             last_active_duration_seconds = utils.get_last_active_duration_seconds(user_timestamp)
             print("Last active duration", last_active_duration_seconds)
-        if last_active_duration_seconds >= 120:
+        if last_active_duration_seconds >= self.__max_last_active_duration_seconds:
             return False
         return True
     
@@ -185,9 +186,11 @@ class ByoebUserSendResponse(Handler):
         if messages is None or len(messages) == 0:
             return {}
         try:
+            start_time = datetime.now().timestamp()
             convs, byoeb_user_message = await self.__handle_message_send_workflow(messages)
             db_queries = self.__prepare_db_queries(convs, byoeb_user_message)
-            b_utils.log_to_text_file("Successfully send the message to the user and expert")
+            end_time = datetime.now().timestamp()
+            b_utils.log_to_text_file(f"Successfully send the message to the user and expert in {end_time - start_time} seconds")
             return db_queries
         except Exception as e:
             b_utils.log_to_text_file(f"Error in sending message to user and expert: {str(e)}")
