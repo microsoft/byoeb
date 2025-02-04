@@ -1,13 +1,14 @@
 import asyncio
 import byoeb.services.chat.constants as constants
 import byoeb.utils.utils as b_utils
+from datetime import datetime
 from byoeb.chat_app.configuration.config import app_config
 from byoeb.services.chat import utils
 from byoeb.services.chat import mocks
 from typing import Any, Dict, List
 from byoeb_core.models.byoeb.message_context import ByoebMessageContext, MessageTypes
 from byoeb.services.channel.base import BaseChannelService, MessageReaction
-from byoeb.services.databases.mongo_db import MongoDBService
+from byoeb.services.databases.mongo_db import UserMongoDBService, MessageMongoDBService
 from byoeb.services.chat.message_handlers.base import Handler
 from byoeb.services.channel.base import MessageReaction
 
@@ -16,9 +17,11 @@ class ByoebUserSendResponse(Handler):
 
     def __init__(
         self,
-        mongo_db_service: MongoDBService,
+        user_db_service: UserMongoDBService,
+        message_db_service: MessageMongoDBService,
     ):
-        self._mongo_db_service = mongo_db_service
+        self._user_db_service = user_db_service
+        self._message_db_service = message_db_service
 
     def get_channel_service(
         self,
@@ -35,21 +38,36 @@ class ByoebUserSendResponse(Handler):
         byoeb_user_message: ByoebMessageContext,
     ):
         message_db_queries = {
-            constants.CREATE: self._mongo_db_service.message_create_queries(convs)
+            constants.CREATE: self._message_db_service.message_create_queries(convs)
         }
         qa = {
             constants.QUESTION: byoeb_user_message.reply_context.reply_english_text,
             constants.ANSWER: byoeb_user_message.message_context.message_english_text
         }
         user_db_queries = {
-            constants.UPDATE: [self._mongo_db_service.user_activity_update_query(byoeb_user_message.user, qa)]
+            constants.UPDATE: [self._user_db_service.user_activity_update_query(byoeb_user_message.user, qa)]
         }
         return {
             constants.MESSAGE_DB_QUERIES: message_db_queries,
             constants.USER_DB_QUERIES: user_db_queries
         }
         
-
+    async def is_active_user(self, user_id: str):
+        user_timestamp, cached = await self._user_db_service.get_user_activity_timestamp(user_id)
+        last_active_duration_seconds = utils.get_last_active_duration_seconds(user_timestamp)
+        print("Last active duration", last_active_duration_seconds)
+        print("Cached", cached)
+        if last_active_duration_seconds >= self.__max_last_active_duration_seconds and cached:
+            print("Invalidating cache")
+            await self._user_db_service.invalidate_user_cache(user_id)
+            user_timestamp, cached = await self._user_db_service.get_user_activity_timestamp(user_id)
+            print("Cached", cached)
+            last_active_duration_seconds = utils.get_last_active_duration_seconds(user_timestamp)
+            print("Last active duration", last_active_duration_seconds)
+        if last_active_duration_seconds >= self.__max_last_active_duration_seconds:
+            return False
+        return True
+    
     async def __handle_expert(
         self,
         channel_service: BaseChannelService,
@@ -59,13 +77,12 @@ class ByoebUserSendResponse(Handler):
         #     mocks.get_mock_whatsapp_response(expert_message_context.user.phone_number_id)
         # ]
         # return responses
-        user_timestamp = await self._mongo_db_service.get_user_activity_timestamp(expert_message_context.user.user_id)
-        last_active_duration_seconds = utils.get_last_active_duration_seconds(user_timestamp)
+        is_active_user = await self.is_active_user(expert_message_context.user.user_id)
         expert_requests = channel_service.prepare_requests(expert_message_context)
         interactive_button_message = expert_requests[0]
         template_verification_message = expert_requests[1]
         
-        if last_active_duration_seconds >= self.__max_last_active_duration_seconds:
+        if not is_active_user:
             expert_message_context.message_context.message_type = MessageTypes.TEMPLATE_BUTTON.value
             responses, message_ids = await channel_service.send_requests([template_verification_message])
         else:
@@ -108,6 +125,7 @@ class ByoebUserSendResponse(Handler):
             message_ids = message_id_audio + message_id_text
         else:
             responses, message_ids = await channel_service.send_requests(user_requests)
+            print("user responses", responses)
         pending_emoji = user_message_context.message_context.additional_info.get(constants.EMOJI)
         message_reactions = [
             MessageReaction(
@@ -168,9 +186,11 @@ class ByoebUserSendResponse(Handler):
         if messages is None or len(messages) == 0:
             return {}
         try:
+            start_time = datetime.now().timestamp()
             convs, byoeb_user_message = await self.__handle_message_send_workflow(messages)
             db_queries = self.__prepare_db_queries(convs, byoeb_user_message)
-            b_utils.log_to_text_file("Successfully send the message to the user and expert")
+            end_time = datetime.now().timestamp()
+            b_utils.log_to_text_file(f"Successfully send the message to the user and expert in {end_time - start_time} seconds")
             return db_queries
         except Exception as e:
             b_utils.log_to_text_file(f"Error in sending message to user and expert: {str(e)}")

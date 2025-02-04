@@ -5,7 +5,7 @@ from datetime import datetime
 from byoeb_core.message_queue.base import BaseQueue
 from byoeb.factory import ChannelClientFactory
 from byoeb.services.chat.message_consumer import MessageConsmerService
-from byoeb.services.databases.mongo_db import MongoDBService
+from byoeb.services.databases.mongo_db import UserMongoDBService, MessageMongoDBService
 from byoeb_integrations.message_queue.azure.async_azure_storage_queue import AsyncAzureStorageQueue
 
 class QueueConsumer:
@@ -16,7 +16,8 @@ class QueueConsumer:
         account_url: str,
         queue_name: str,
         config: dict,
-        mongo_db_service: MongoDBService,
+        user_db_service: UserMongoDBService,
+        message_db_service: MessageMongoDBService,
         channel_client_factory: ChannelClientFactory,
         consuemr_type: str = None,
     ):
@@ -25,7 +26,8 @@ class QueueConsumer:
         self._account_url = account_url
         self._queue_name = queue_name
         self._config = config
-        self._mongo_db_service = mongo_db_service
+        self._user_db_service = user_db_service
+        self._message_db_service = message_db_service
         self._channel_client_factory = channel_client_factory
     
     async def __get_or_create_az_storage_queue_client(
@@ -86,7 +88,8 @@ class QueueConsumer:
         await self.initialize()
         message_consumer_svc = MessageConsmerService(
             config=self._config,
-            mongo_db_service=self._mongo_db_service,
+            user_db_service=self._user_db_service,
+            message_db_service=self._message_db_service,
             channel_client_factory=self._channel_client_factory
         )
         self._logger.info(f"Queue info: {self._az_storage_queue}")
@@ -100,7 +103,7 @@ class QueueConsumer:
                 message_content.append(message.content)
             if len(messages) == 0:
                 self._logger.info("No messages received")
-                await asyncio.sleep(2)
+                await asyncio.sleep(0.5)
                 continue
             try:
                 self._logger.info(f"Received {len(messages)} messages")
@@ -116,7 +119,7 @@ class QueueConsumer:
             duration = (end_time - start_time).seconds
             self._logger.info(f"Processing time: {duration} seconds")
             utils.log_to_text_file(f"Processed {len(messages)} message in: {duration} seconds")
-            await asyncio.sleep(2)
+            await asyncio.sleep(0.5)
     
     async def close(
         self

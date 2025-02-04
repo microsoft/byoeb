@@ -2,6 +2,7 @@ import hashlib
 import byoeb.services.chat.constants as constants
 import re
 import byoeb.utils.utils as utils
+from datetime import datetime
 from tenacity import retry, stop_after_attempt, wait_exponential, RetryError
 from typing import List, Dict, Any
 from byoeb.chat_app.configuration.config import bot_config, app_config
@@ -267,6 +268,8 @@ class ByoebUserGenerateResponse(Handler):
         tokens = llm_client.get_response_tokens(llm_response)
         utils.log_to_text_file(f"Generated answer tokens: {str(tokens)}")
         answer, query_type = parse_response(response_text)
+        print("Generated answer: ", answer)
+        print("Query type: ", query_type)
         if answer is None or query_type is None:
             raise ValueError("Parsing failed, response or query_type is None.")
         return answer, query_type
@@ -328,8 +331,10 @@ class ByoebUserGenerateResponse(Handler):
             return {}
         new_messages = []
         try:
+            start_time = datetime.now().timestamp()
             new_messages = await self.__handle_message_generate_workflow(messages)
-            utils.log_to_text_file(f"Generated answer and related questions")
+            end_time = datetime.now().timestamp()
+            utils.log_to_text_file(f"Generated answer and related questions in {end_time - start_time} seconds")
         except RetryError as e:
             utils.log_to_text_file(f"RetryError in generating response: {e}")
             print("RetryError in generating response: ", e)

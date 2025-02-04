@@ -2,16 +2,15 @@ import logging
 import asyncio
 import json
 import hashlib
-import byoeb.services.chat.constants as constants
 import byoeb.utils.utils as b_utils
 from datetime import datetime
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from byoeb.models.message_category import MessageCategory
-from byoeb.factory import MongoDBFactory, ChannelClientFactory
+from byoeb.factory import ChannelClientFactory
 from byoeb.chat_app.configuration.config import bot_config
 from byoeb_core.models.byoeb.user import User
-from byoeb.services.databases.mongo_db import MongoDBService
+from byoeb.services.databases.mongo_db import UserMongoDBService, MessageMongoDBService
 from byoeb_core.models.byoeb.message_context import ByoebMessageContext
 
 class Conversation(BaseModel):
@@ -25,12 +24,14 @@ class MessageConsmerService:
     def __init__(
         self,
         config,
-        mongo_db_service: MongoDBService,
+        user_db_service: UserMongoDBService,
+        message_db_service: MessageMongoDBService,
         channel_client_factory: ChannelClientFactory
     ):
         self._config = config
         self._logger = logging.getLogger(self.__class__.__name__)
-        self._mongo_db_service = mongo_db_service
+        self._user_db_service = user_db_service
+        self._message_db_service = message_db_service
         self._channel_client_factory = channel_client_factory
         self._regular_user_type = bot_config["regular"]["user_type"]
         self._expert_user_types = bot_config["expert"]
@@ -73,11 +74,11 @@ class MessageConsmerService:
     ) -> List[ByoebMessageContext]:
         phone_numbers = list(set([message.user.phone_number_id for message in messages]))
         user_ids = list(set([hashlib.md5(number.encode()).hexdigest() for number in phone_numbers]))
-        byoeb_users = await self._mongo_db_service.get_users(user_ids)
+        byoeb_users = await self._user_db_service.get_users(user_ids)
         bot_message_ids = list(
             set(message.reply_context.reply_id for message in messages if message.reply_context.reply_id is not None)
         )
-        bot_messages = await self._mongo_db_service.get_bot_messages(bot_message_ids)
+        bot_messages = await self._message_db_service.get_bot_messages(bot_message_ids)
         conversations = []
         for message in messages:
             user = self.__get_user(byoeb_users,message.user.phone_number_id)
@@ -112,7 +113,10 @@ class MessageConsmerService:
             json_message = json.loads(message)
             byoeb_message = ByoebMessageContext.model_validate(json_message)
             byoeb_messages.append(byoeb_message)
+        start_time = datetime.now().timestamp()
         conversations = await self.__create_conversations(byoeb_messages)
+        end_time = datetime.now().timestamp()
+        b_utils.log_to_text_file(f"Conversations created in: {end_time - start_time} seconds")
         task = []
         for conversation in conversations:
             conversation.user.activity_timestamp = str(int(datetime.now().timestamp()))
@@ -126,11 +130,15 @@ class MessageConsmerService:
             if err is not None or queries is None:
                 continue
             successfully_processed_messages.append(processed_message)
-        message_queries, user_queries = self._mongo_db_service.aggregate_queries(results)
+        start_time = datetime.now().timestamp()
+        user_queries = self._user_db_service.aggregate_queries(results)
+        message_queries = self._message_db_service.aggregate_queries(results)
         await asyncio.gather(
-            self._mongo_db_service.execute_message_queries(message_queries),
-            self._mongo_db_service.execute_user_queries(user_queries)
+            self._user_db_service.execute_queries(user_queries),
+            self._message_db_service.execute_queries(message_queries)
         )
+        end_time = datetime.now().timestamp()
+        b_utils.log_to_text_file(f"DB queries executed in: {end_time - start_time} seconds")
         return successfully_processed_messages
 
     async def __process_byoebuser_conversation(self, byoeb_message):
