@@ -24,3 +24,8 @@ jobs:
         run: |
           cd byoeb-v1/byoeb-core
           ls
+          
+      - name: Poetry Install
+        uses: knowsuchagency/poetry-install@v2
+        with:
+          create-virtualenv: # optional, default is false
