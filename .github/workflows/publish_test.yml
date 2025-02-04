@@ -1,13 +1,12 @@
 name: Test
 
 on:
+  workflow_dispatch: # Put here!!
   push:
     branches:
       - rash598/bv1_dev
     paths:
       - '**/*.py'
-  workflow_dispatch: # Put here!!
-  
 jobs:
   build:
     runs-on: ubuntu-latest
