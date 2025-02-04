@@ -1,32 +1,16 @@
-name: Build and Publish Wheel
+name: Test
 
 on:
-  push:
-    branches:
-      - rash598/bv1_dev
-    paths:
-      - '**/*.py'
-  pull_request:
-    branches:
-      - main
-    paths:
-      - '**/*.py'
-  workflow_dispatch:
-
+  release:
+    types: [created]
+  workflow_dispatch: # Put here!!
+  
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'  # Use your desired Python version
-
-      - name: Poetry Install
-        uses: knowsuchagency/poetry-install@v2
-        with:
-          create-virtualenv: # optional, default is false
+      - name: Run a one-line script
+        run: echo Hello, world!
