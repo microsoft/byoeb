@@ -27,5 +27,6 @@ jobs:
           
       - name: Poetry Install
         run: |
+          pip install poetry --no-interaction
           cd byoeb-v1/byoeb-core
           poetry install --no-interaction
