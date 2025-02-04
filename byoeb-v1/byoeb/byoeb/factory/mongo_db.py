@@ -29,7 +29,7 @@ class MongoDBFactory:
         if db_provider == MongoDBProviderType.AZURE_COSMOS_MONGO_DB.value:
             return await self.__get_or_create_az_cosmos_mongo_db_client()
         else:
-            raise Exception("Invalid db type")
+            raise Exception("Invalid db type.")
         
     async def __get_or_create_az_cosmos_mongo_db_client(
         self
