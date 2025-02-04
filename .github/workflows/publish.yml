@@ -26,7 +26,6 @@ jobs:
           ls
           
       - name: Poetry Install
-        uses: knowsuchagency/poetry-install@v2
-        with:
-          create-virtualenv: # optional, default is false
-        working-directory: byoeb-v1/byoeb-core
+        run: |
+          cd byoeb-v1/byoeb-core
+          poetry install --no-interaction
