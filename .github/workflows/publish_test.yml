@@ -1,8 +1,11 @@
 name: Test
 
 on:
-  release:
-    types: [created]
+  push:
+    branches:
+      - rash598/bv1_dev
+    paths:
+      - '**/*.py'
   workflow_dispatch: # Put here!!
   
 jobs:
