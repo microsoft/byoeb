@@ -29,3 +29,4 @@ jobs:
         uses: knowsuchagency/poetry-install@v2
         with:
           create-virtualenv: # optional, default is false
+        working-directory: byoeb-v1/byoeb-core
