@@ -9,3 +9,11 @@ app_config_path = os.path.normpath(app_config_path)
 app_config = None
 with open(app_config_path, 'r') as file:
     app_config = json.load(file)
+
+prompt_config_path = os.path.join(current_dir, '..', 'prompts.json')
+prompt_config_path = os.path.normpath(prompt_config_path)
+prompt_config = None
+with open(prompt_config_path, 'r') as file:
+    prompt_config = json.load(file)
+
+# print(prompt_config)

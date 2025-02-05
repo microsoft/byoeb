@@ -92,6 +92,10 @@
     "vector_store": {
         "chroma": {
             "collection_name": "vector_collection"
+        },
+        "azure_vector_search": {
+            "service_name": "byoeb-search",
+            "doc_index_name": "byoeb-index"
         }
     }
 }
