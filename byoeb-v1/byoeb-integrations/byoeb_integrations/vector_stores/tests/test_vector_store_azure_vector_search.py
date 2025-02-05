@@ -7,7 +7,7 @@ from byoeb_integrations.embeddings.llama_index.azure_openai import AzureOpenAIEm
 from byoeb_integrations.llms.llama_index.llama_index_azure_openai import AsyncLLamaIndexAzureOpenAILLM
 from byoeb_integrations import test_environment_path
 from dotenv import load_dotenv
-from byoeb_integrations.vector_stores.azure_vector_search.azure_vector_search import AzureVectorStore
+from byoeb_integrations.vector_stores.azure_vector_search.azure_vector_search import AzureVectorStore, AzureVectorSearchType
 
 load_dotenv(test_environment_path)
 
@@ -121,6 +121,7 @@ async def test_azure_vector_search_query():
         results = await azure_vector_search.aretrieve_top_k_chunks(
             query_text=query_text,
             k=3,
+            search_type=AzureVectorSearchType.DENSE.value,
             select=["id", "text", "metadata", "related_questions"],
             vector_field="text_vector_3072"
         )
@@ -138,7 +139,7 @@ def test_azure_vector_search_delete():
     azure_vector_search.delete_store()
 
 if __name__ == "__main__":
-    asyncio.run(test_azure_vector_search_upload_documents())
+    # asyncio.run(test_azure_vector_search_upload_documents())
     asyncio.run(test_azure_vector_search_query())
     # test_azure_vector_search_delete()
     

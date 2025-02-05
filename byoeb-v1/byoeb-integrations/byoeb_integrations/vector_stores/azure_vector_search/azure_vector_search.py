@@ -179,7 +179,7 @@ class AzureVectorStore(BaseVectorStore):
         self,
         query_text: str,
         k: int,
-        search_type=AzureVectorSearchType.HYBRID,
+        search_type=AzureVectorSearchType.HYBRID.value,
         select=None,
         vector_field=None,
         **kwargs
@@ -188,25 +188,24 @@ class AzureVectorStore(BaseVectorStore):
         results = []
         if (search_type == AzureVectorSearchType.HYBRID or search_type == AzureVectorSearchType.DENSE) and vector_field is None:
             raise ValueError("vector_field is required for dense and hybrid search types")
-        if search_type == AzureVectorSearchType.BM25:
+        if search_type == AzureVectorSearchType.BM25.value:
             results = self.search_client.search(
                 search_text=query_text,
                 select=select,
                 top=k
             )
-        elif search_type == AzureVectorSearchType.DENSE:
+        elif search_type == AzureVectorSearchType.DENSE.value:
             vector_query = VectorizableTextQuery(
                 text=query_text,
                 k_nearest_neighbors=10,
                 fields=vector_field
             )
             results = self.search_client.search(
-                search_text=query_text,
                 vector_queries=[vector_query],
                 select=select,
                 top=k
             )
-        elif search_type == AzureVectorSearchType.HYBRID:
+        elif search_type == AzureVectorSearchType.HYBRID.value:
             vector_query = VectorizableTextQuery(
                 text=query_text,
                 k_nearest_neighbors=10,
