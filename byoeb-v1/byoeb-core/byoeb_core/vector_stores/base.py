@@ -14,6 +14,15 @@ class BaseVectorStore(ABC):
     ) -> Any:
         pass
 
+    async def aadd_chunks(
+        self,
+        data_chunks: list, 
+        metadata: list,
+        ids: list,
+        **kwargs
+    ) -> Any:
+        return NotImplementedError
+
     @abstractmethod
     def update_chunks(
         self,
@@ -23,6 +32,15 @@ class BaseVectorStore(ABC):
         **kwargs
     ) -> Any:
         pass
+
+    async def aupdate_chunks(
+        self,
+        data_chunks: list, 
+        metadata: list,
+        ids: list,
+        **kwargs
+    ) -> Any:
+        return NotImplementedError
     
     @abstractmethod
     def delete_chunks(
@@ -31,6 +49,13 @@ class BaseVectorStore(ABC):
         **kwargs
     ) -> Any:
         pass
+
+    async def adelete_chunks(
+        self,
+        ids: list,
+        **kwargs
+    ) -> Any:
+        return NotImplementedError
 
     @abstractmethod
     def retrieve_top_k_chunks(
