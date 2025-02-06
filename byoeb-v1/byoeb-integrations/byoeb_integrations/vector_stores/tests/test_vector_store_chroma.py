@@ -23,7 +23,7 @@ def test_chroma_vector_store_ops():
     token_provider = get_bearer_token_provider(
         AzureCliCredential(), AZURE_COGNITIVE_ENDPOINT
     )
-
+    
     embedding_fn = AzureOpenAIEmbeddingFunction(
         model=EMBEDDINGS_MODEL,
         deployment_name=EMBEDDINGS_DEPLOYMENT_NAME,

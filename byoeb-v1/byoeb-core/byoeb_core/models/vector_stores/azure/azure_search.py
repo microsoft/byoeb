@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 
-class Chunk_metadata(BaseModel):
+class Metadata(BaseModel):
     source: Optional[str] = Field(None, description="Source of the chunk")
 
     # Optional fields
@@ -18,9 +18,11 @@ class Chunk_metadata(BaseModel):
         {},
         description="Additional metadata associated with the chunk"
     )
-class Chunk(BaseModel):
+
+class AzureSearchNode(BaseModel):
     # Mandatory fields
-    chunk_id: str = Field(..., description="Unique identifier for the chunk")
-    text: str = Field(..., description="Content of the chunk")
-    metadata: Optional[Chunk_metadata] = Field(None, description="Metadata associated with the chunk")
+    id: Optional[str] = Field(None, description="Unique identifier for the chunk")
+    text: Optional[str] = Field(None, description="Content of the chunk")
+    text_vector_3072: Optional[list] = Field(None, description="Vector representation of the text")
+    metadata: Optional[Metadata] = Field(None, description="Metadata associated with the chunk")
     related_questions: Optional[dict] = Field({}, description="Related questions for the chunk")

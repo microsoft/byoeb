@@ -1,4 +1,4 @@
-name: Test
+name: Test Poetry install
 
 on:
   workflow_dispatch: # Put here!!
@@ -12,7 +12,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'  # Use your desired Python version
+          
+      - name: Change to project directory
+        run: |
+          cd byoeb-v1/byoeb-core
+          ls
+          
+      - name: Poetry Install
+        run: |
+          pip install poetry
+          cd byoeb-v1/byoeb-core
+          poetry install --no-interaction
