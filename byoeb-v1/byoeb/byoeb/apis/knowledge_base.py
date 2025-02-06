@@ -1,6 +1,6 @@
 import logging
 import json
-import byoeb.services.knowledge_base.knowledge_base as kb
+import byoeb.services.knowledge_base.local_chromadb as kb
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 

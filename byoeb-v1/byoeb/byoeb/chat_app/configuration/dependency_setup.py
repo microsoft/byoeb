@@ -96,9 +96,12 @@ speech_translator_whisper = AsyncAzureOpenAIWhisper(
 import os
 from byoeb_integrations.embeddings.llama_index.azure_openai import AzureOpenAIEmbed
 from byoeb_integrations.vector_stores.llama_index.llama_index_chroma_store import LlamaIndexChromaDBStore
+from byoeb_integrations.vector_stores.azure_vector_search.azure_vector_search import AzureVectorStore
 
-git_root_dir = byoeb_utils.get_git_root_path()
-vector_db_path = os.path.join(git_root_dir, "../vector_db")
+azure_search_doc_index_name = app_config["vector_store"]["azure_vector_search"]["doc_index_name"]
+azure_search_service_name = app_config["vector_store"]["azure_vector_search"]["service_name"]
+# git_root_dir = byoeb_utils.get_git_root_path()
+# vector_db_path = os.path.join(git_root_dir, "../vector_db")
 
 azure_openai_embed = AzureOpenAIEmbed(
     model=app_config["embeddings"]["azure"]["model"],
@@ -109,10 +112,17 @@ azure_openai_embed = AzureOpenAIEmbed(
 )
 embedding_fn = azure_openai_embed.get_embedding_function()
 
-vector_store = LlamaIndexChromaDBStore(
-    vector_db_path,
-    app_config["vector_store"]["chroma"]["collection_name"],
-    embedding_function=embedding_fn
+# vector_store = LlamaIndexChromaDBStore(
+#     vector_db_path,
+#     app_config["vector_store"]["chroma"]["collection_name"],
+#     embedding_function=embedding_fn
+# )
+
+vector_store = AzureVectorStore(
+    service_name=azure_search_service_name,
+    index_name=azure_search_doc_index_name,
+    embedding_function=embedding_fn,
+    credential=AzureCliCredential()
 )
 
 # llm

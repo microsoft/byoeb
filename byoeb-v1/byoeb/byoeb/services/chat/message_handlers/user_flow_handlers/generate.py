@@ -2,17 +2,21 @@ import hashlib
 import byoeb.services.chat.constants as constants
 import re
 import byoeb.utils.utils as utils
+import random
 from datetime import datetime
 from tenacity import retry, stop_after_attempt, wait_exponential, RetryError
 from typing import List, Dict, Any
 from byoeb.chat_app.configuration.config import bot_config, app_config
 from byoeb.models.message_category import MessageCategory
+from byoeb_core.models.vector_stores.chunk import Chunk
+from byoeb_core.models.vector_stores.azure.azure_search import AzureSearchNode
 from byoeb_core.models.byoeb.message_context import (
     ByoebMessageContext,
     MessageContext,
     ReplyContext,
     MessageTypes
 )
+from byoeb_integrations.vector_stores.azure_vector_search.azure_vector_search import AzureVectorSearchType
 from byoeb_core.models.byoeb.user import User
 from byoeb.services.chat.message_handlers.base import Handler
 from byoeb.chat_app.configuration.dependency_setup import llm_client
@@ -23,14 +27,23 @@ class ByoebUserGenerateResponse(Handler):
     _expert_user_types = bot_config["expert"]
     _regular_user_type = bot_config["regular"]["user_type"]
 
-    async def __aretrieve_chunks_list(
+    async def __aretrieve_chunks(
         self,
         text,
         k
-    ) -> List[str]:
+    ) -> List[Chunk]:
         from byoeb.chat_app.configuration.dependency_setup import vector_store
-        retrieved_chunks = await vector_store.aretrieve_top_k_chunks(text, k)
-        return [chunk.text for chunk in retrieved_chunks]
+        start_time = datetime.now().timestamp()
+        retrieved_chunks = await vector_store.aretrieve_top_k_chunks(
+            text,
+            k,
+            search_type=AzureVectorSearchType.DENSE.value,
+            select=["id", "text", "metadata", "related_questions"],
+            vector_field="text_vector_3072"
+        )
+        end_time = datetime.now().timestamp()
+        utils.log_to_text_file(f"Retrieved chunks in {end_time - start_time} seconds")
+        return retrieved_chunks
         
     def __augment(
         self,
@@ -242,7 +255,7 @@ class ByoebUserGenerateResponse(Handler):
     async def agenerate_answer(
         self,
         question,
-        chunks_list,
+        retrieved_chunks: List[Chunk],
     ):
         def parse_response(response_text):
             # Regular expressions to extract the response and relevance
@@ -258,6 +271,7 @@ class ByoebUserGenerateResponse(Handler):
             query_type = query_type_match.group(1).strip() if query_type_match else None
             return response, query_type
         
+        chunks_list = [chunk.text for chunk in retrieved_chunks]
         system_prompt = bot_config["llm_response"]["answer_prompts"]["system_prompt"]
         template_user_prompt = bot_config["llm_response"]["answer_prompts"]["user_prompt"]
         # Replace placeholders with actual values
@@ -280,8 +294,9 @@ class ByoebUserGenerateResponse(Handler):
     )
     async def agenerate_follow_up_questions(
         self,
-        chunks_list,
+        retrieved_chunks: List[Chunk],
     ):
+        chunks_list = [chunk.text for chunk in retrieved_chunks]
         system_prompt = bot_config["llm_response"]["follow_up_prompts"]["system_prompt"]
         template_user_prompt = bot_config["llm_response"]["follow_up_prompts"]["user_prompt"]
         chunks = ", ".join(chunks_list)
@@ -295,18 +310,28 @@ class ByoebUserGenerateResponse(Handler):
             raise ValueError("Parsing failed, next_questions.")
         return next_questions
     
+    def get_follow_up_questions(
+        self,
+        user_lang_code: str,
+        retrieved_chunks: List[Chunk],
+    ):
+        random_selection = []
+        for retrieved_chunk in retrieved_chunks:
+            related_questions = retrieved_chunk.related_questions.get(user_lang_code)
+            if related_questions is not None:
+                random_selection.append(random.choice(related_questions))
+        return random_selection
+    
     async def __handle_message_generate_workflow(
         self,
         messages: ByoebMessageContext
     ) -> List[ByoebMessageContext]:
-        message = messages[0].model_copy(deep=True)
+        message: ByoebMessageContext = messages[0].model_copy(deep=True)
         read_reciept_message = self.__create_read_reciept_message(message)
         message_english = message.message_context.message_english_text
-        chunks_list = await self.__aretrieve_chunks_list(message_english, k=3)
-        answer_task = self.agenerate_answer(message_english, chunks_list)
-        follow_up_questions_task = self.agenerate_follow_up_questions(chunks_list)
-        answer, query_type = await answer_task
-        related_questions = await follow_up_questions_task
+        retrieved_chunks = await self.__aretrieve_chunks(message_english, k=3)
+        answer, query_type = await self.agenerate_answer(message_english, retrieved_chunks)
+        related_questions = self.get_follow_up_questions(message.user.user_language, retrieved_chunks)
         byoeb_user_message = await self.__create_user_message(
             message=message,
             response_text=answer,
