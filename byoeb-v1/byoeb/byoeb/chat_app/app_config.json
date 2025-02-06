@@ -95,7 +95,7 @@
         },
         "azure_vector_search": {
             "service_name": "byoeb-search",
-            "doc_index_name": "byoeb-index"
+            "doc_index_name": "byoeb_index"
         }
     }
 }
