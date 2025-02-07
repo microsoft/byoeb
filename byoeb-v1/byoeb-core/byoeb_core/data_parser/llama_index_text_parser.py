@@ -3,26 +3,40 @@ from byoeb_core.models.media_storage.file_data import FileData, FileMetadata
 from enum import Enum
 from llama_index.core.schema import TextNode, Document
 from llama_index.core.text_splitter import SentenceSplitter
+from llama_index.core.node_parser import TokenTextSplitter
 
 class LLamaIndexTextSplitterType(Enum):
     SENTENCE = "sentence"
     SEMANTIC_DOUBLE_MERGING = "semantic_double_merging"
+    TOKEN_TEXT_SPLITTER = "token_text_splitter"
 
 class LLamaIndexTextParser:
     def __init__(
         self,
         chunk_size: int = 256,
-        chunk_overlap: int = 10
+        chunk_overlap: int = 10,
+        separator: str = " "
     ):
         self._chunk_size = chunk_size
         self._chunk_overlap = chunk_overlap
+        self._separator = separator
 
     def get_sentence_splitter(
         self,
     ) -> SentenceSplitter:
         return SentenceSplitter(
             chunk_size=self._chunk_size,
-            chunk_overlap=self._chunk_overlap
+            chunk_overlap=self._chunk_overlap,
+            separator=self._separator
+        )
+    
+    def get_token_text_splitter(
+        self,
+    ) -> TokenTextSplitter:
+        return TokenTextSplitter(
+            chunk_size=self._chunk_size,
+            chunk_overlap=self._chunk_overlap,
+            separator=self._separator
         )
     
     def get_splitter(
@@ -31,6 +45,8 @@ class LLamaIndexTextParser:
     ):
         if type == LLamaIndexTextSplitterType.SENTENCE:
             return self.get_sentence_splitter()
+        elif type == LLamaIndexTextSplitterType.TOKEN_TEXT_SPLITTER:
+            return self.get_token_text_splitter()
         else:
             raise ValueError("Invalid type")
         

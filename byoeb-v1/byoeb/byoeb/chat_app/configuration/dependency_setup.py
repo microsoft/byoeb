@@ -10,6 +10,7 @@ from byoeb.handler import (
     QueueProducerHandler,
     UsersHandler
 )
+import byoeb.chat_app.configuration.config as env_config
 from byoeb.chat_app.configuration.config import app_config
 from byoeb.listener.message_consumer import QueueConsumer
 from byoeb.services.databases.mongo_db import UserMongoDBService, MessageMongoDBService
@@ -78,11 +79,11 @@ text_translator = AsyncAzureTextTranslator(
 
 # Speech translator
 # TODO: factory implementation
-speech_translator = AsyncAzureSpeechTranslator(
-    token_provider=token_provider,
-    region=app_config["translators"]["speech"]["azure_cognitive"]["region"],
-    resource_id=app_config["translators"]["speech"]["azure_cognitive"]["resource_id"],
-)
+# speech_translator = AsyncAzureSpeechTranslator(
+#     token_provider=token_provider,
+#     region=app_config["translators"]["speech"]["azure_cognitive"]["region"],
+#     resource_id=app_config["translators"]["speech"]["azure_cognitive"]["resource_id"],
+# )
 
 from byoeb_integrations.translators.speech.azure.async_azure_openai_whisper import AsyncAzureOpenAIWhisper
 speech_translator_whisper = AsyncAzureOpenAIWhisper(
@@ -126,14 +127,22 @@ vector_store = AzureVectorStore(
 )
 
 # llm
-from byoeb_integrations.llms.llama_index.llama_index_azure_openai import AsyncLLamaIndexAzureOpenAILLM
-llm_client = AsyncLLamaIndexAzureOpenAILLM(
-    model=app_config["llms"]["azure"]["model"],
-    deployment_name=app_config["llms"]["azure"]["deployment_name"],
-    azure_endpoint=app_config["llms"]["azure"]["endpoint"],
-    token_provider=token_provider,
-    api_version=app_config["llms"]["azure"]["api_version"]
+# from byoeb_integrations.llms.llama_index.llama_index_azure_openai import AsyncLLamaIndexAzureOpenAILLM
+# llm_client = AsyncLLamaIndexAzureOpenAILLM(
+#     model=app_config["llms"]["azure"]["model"],
+#     deployment_name=app_config["llms"]["azure"]["deployment_name"],
+#     azure_endpoint=app_config["llms"]["azure"]["endpoint"],
+#     token_provider=token_provider,
+#     api_version=app_config["llms"]["azure"]["api_version"]
+# )
+from byoeb_integrations.llms.llama_index.llama_index_openai import AsyncLLamaIndexOpenAILLM
+llm_client = AsyncLLamaIndexOpenAILLM(
+    model=app_config["llms"]["openai"]["model"],
+    api_key=env_config.env_openai_api_key,
+    api_version=app_config["llms"]["openai"]["api_version"],
+    organization=env_config.env_openai_org_id
 )
+
 
 # Process user message Chain of Responsibility
 from byoeb.services.chat.message_handlers import (

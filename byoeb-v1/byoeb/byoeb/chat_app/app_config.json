@@ -32,15 +32,15 @@
         "mongo_db":
         {
             "provider_type": "azure_cosmos_mongo_db",
-            "database_name": "byoebv1",
-            "user_collection": "byoebusers",
-            "message_collection": "byoebmessages"
+            "database_name": "ashadb",
+            "user_collection": "ashausers",
+            "message_collection": "ashamessages"
         }
     },
     "embeddings": {
         "azure": {
             "model": "text-embedding-3-large",
-            "endpoint": "https://swasthyabot-oai-vision.openai.azure.com/",
+            "endpoint": "https://khushi-baby-asha-oai.openai.azure.com/",
             "deployment_name": "text-embedding-3-large",
             "api_version": "2023-03-15-preview"
         }
@@ -48,20 +48,24 @@
     "llms": {
         "azure": {
             "model": "gpt-4o",
-            "endpoint": "https://swasthyabot-oai-vision.openai.azure.com/",
+            "endpoint": "https://khushi-baby-asha-oai.openai.azure.com/",
             "deployment_name": "gpt-4o",
+            "api_version": "2023-03-15-preview"
+        },
+        "openai": {
+            "model": "gpt-4o-2024-08-06",
             "api_version": "2023-03-15-preview"
         }
     },
     "media_storage": {
         "azure": {
-            "account_url": "https://kgretrieval.blob.core.windows.net",
-            "container_name": "testcontainerbyoeb"
+            "account_url": "https://khushibabyashastorage.blob.core.windows.net",
+            "container_name": "ashacontainer"
         }
     },
     "message_queue": {
         "azure": {
-            "account_url": "https://kgretrieval.queue.core.windows.net",
+            "account_url": "https://khushibabyashastorage.queue.core.windows.net",
             "queue_status": "statusmessages",
             "queue_bot": "botmessages",
             "queue_channel": "channelmessages",
@@ -73,19 +77,19 @@
     "translators": {
         "speech":{
             "azure_cognitive": {
-                "resource_id": "/subscriptions/cef13953-6a76-4434-9a65-1d95481f83c7/resourceGroups/swasthyabot/providers/Microsoft.CognitiveServices/accounts/swasthyabot-speech2",
-                "region": "centralindia"
+                "resource_id": "/subscriptions/fa06c841-cd7a-4855-b39b-70621812fff3/resourceGroups/khushi_baby_asha/providers/Microsoft.CognitiveServices/accounts/khushi-baby-asha-speech-to-text",
+                "region": "swedencentral"
             },
             "azure_oai": {
-                "endpoint": "https://swasthyabot-oai-vision.openai.azure.com/",
+                "endpoint": "https://khushibabyashastorage.queue.core.windows.net",
                 "model": "whisper",
                 "api_version": "2024-06-01"
             }
         },
         "text": {
             "azure_cognitive": {
-                "resource_id": "/subscriptions/cef13953-6a76-4434-9a65-1d95481f83c7/resourceGroups/swasthyabot/providers/Microsoft.CognitiveServices/accounts/swasthyabot-translator",
-                "region": "centralindia"
+                "resource_id": "/subscriptions/fa06c841-cd7a-4855-b39b-70621812fff3/resourceGroups/khushi_baby_asha/providers/Microsoft.CognitiveServices/accounts/khushi-baby-asha-text-to-text",
+                "region": "swedencentral"
             }
         }
     },
@@ -94,8 +98,8 @@
             "collection_name": "vector_collection"
         },
         "azure_vector_search": {
-            "service_name": "byoeb-search",
-            "doc_index_name": "byoeb_index"
+            "service_name": "khushi-baby-asha-search",
+            "doc_index_name": "khushi-baby-asha-doc-index"
         }
     }
 }

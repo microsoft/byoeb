@@ -16,4 +16,10 @@ prompt_config = None
 with open(prompt_config_path, 'r') as file:
     prompt_config = json.load(file)
 
-# print(prompt_config)
+environment_path = os.path.join(current_dir, '../../..', 'keys.env')
+environment_path = os.path.normpath(environment_path)
+load_dotenv(environment_path)
+
+# OpenAI
+env_openai_api_key = os.getenv("OPENAI_API_KEY")
+env_openai_org_id = os.getenv("OPENAI_ORG_ID")
