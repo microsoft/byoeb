@@ -13,14 +13,45 @@ from byoeb_core.data_parser.llama_index_text_parser import LLamaIndexTextParser,
 from byoeb_core.models.media_storage.file_data import FileMetadata, FileData
 
 logger = logging.getLogger("kb_service")
-text_parser = LLamaIndexTextParser(
+
+
+prefix_raw_documents = "raw_documents"
+prefix_updated_documents = "expert_update_documents"
+
+async def create_update_files_chunk(files: list):
+    delimiter = "##"
+    metadatas, texts = [], []
+    files = [file for file in files if prefix_updated_documents in file.file_name]
+    files_data = await abulk_download_files(files)
+    if isinstance(texts, list) and all(isinstance(item, FileData) for item in texts):
+        texts = [d.data.decode("utf-8") for d in files_data]
+        metadatas = [d.metadata.model_dump() for d in files_data]
+    else:
+        raise ValueError("Invalid data")
+    
+    chunk_ids, chunk_texts, chunk_metadatas = [], [], []
+    for text, metadata in zip(texts, metadatas):
+        sections = [section.strip() for section in text.split(delimiter) if section.strip()]
+        for section in sections:
+            chunk_id = hashlib.md5(section.encode()).hexdigest()
+            chunk_text = section
+            chunk_metadata = {
+                "source": metadata["file_name"],
+                "creation_timestamp": str(int(datetime.now().timestamp())),
+                "update_timestamp": str(int(datetime.now().timestamp())),
+            }
+            chunk_ids.append(chunk_id)
+            chunk_texts.append(chunk_text)
+            chunk_metadatas.append(chunk_metadata)
+    return chunk_ids, chunk_texts, chunk_metadatas
+
+async def create_raw_files_chunks(files: list):
+    files = [file for file in files if prefix_raw_documents in file.file_name]
+    files_data = await abulk_download_files(files)
+    text_parser = LLamaIndexTextParser(
         chunk_size=300,
         chunk_overlap=50,
     )
-
-async def create_kb_from_blob_store():
-    files = await amedia_storage.aget_all_files_properties()
-    files_data = await abulk_download_files(files)
     chunks = text_parser.get_chunks_from_collection(
         files_data,
         splitter_type=LLamaIndexTextSplitterType.SENTENCE
@@ -35,14 +66,22 @@ async def create_kb_from_blob_store():
         for chunk in chunks
     ]
     chunk_ids = [hashlib.md5(chunk.text.encode()).hexdigest() for chunk in chunks]
-    print(f"Number of chunks: {len(chunks)}")
+    return chunk_ids, chunk_texts, chunk_metadatas
+
+async def create_kb_from_blob_store():
+    files = await amedia_storage.aget_all_files_properties()
+    raw_chunks_ids, raw_chunks_text, raw_chunks_metadata = await create_raw_files_chunks(files)
+    update_chunks_ids, update_chunks_text, update_chunks_metadata = await create_update_files_chunk(files)
+    chunk_ids = raw_chunks_ids + update_chunks_ids
+    chunk_texts = raw_chunks_text + update_chunks_text
+    chunk_metadatas = raw_chunks_metadata + update_chunks_metadata
     await vector_store.aadd_chunks(
         ids=chunk_ids,
         data_chunks=chunk_texts,
         metadata=chunk_metadatas,
         llm_client=llm_client,
         languages_translation_prompts=prompt_config["languages_translation_prompts"],
-        batch_size=5,
+        batch_size=10,
         show_progress=True
     )
 

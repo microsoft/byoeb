@@ -19,8 +19,16 @@ with open(bot_config_path, 'r') as file:
 environment_path = os.path.join(current_dir, '../../..', 'keys.env')
 environment_path = os.path.normpath(environment_path)
 load_dotenv(environment_path)
+
 # Environment variables
+# Whatsapp
 env_whatsapp_token = os.getenv("WHATSAPP_VERIFICATION_TOKEN")
 env_whatsapp_auth_token = os.getenv("WHATSAPP_AUTH_TOKEN")
 env_whatsapp_phone_number_id = os.getenv("WHATSAPP_PHONE_NUMBER_ID")
+
+# OpenAI
+env_openai_api_key = os.getenv("OPENAI_API_KEY")
+env_openai_org_id = os.getenv("OPENAI_ORG_ID")
+
+# Azure cosmos db
 env_mongo_db_connection_string = os.getenv("MONGO_DB_CONNECTION_STRING")

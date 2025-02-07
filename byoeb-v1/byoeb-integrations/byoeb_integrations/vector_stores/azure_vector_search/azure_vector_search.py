@@ -115,7 +115,7 @@ class AzureVectorStore(BaseVectorStore):
         total_batches = (len(data_chunks) + batch_size - 1) // batch_size  # Calculate total batches
     
         # Initialize tqdm progress bar if enabled
-        progress_bar = tqdm(total=total_batches, desc="Preparing documents to upload to azure vector search", disable=not show_progress)
+        progress_bar = tqdm(total=total_batches, desc="Started uploading documents to Azure vector search", disable=not show_progress)
         for i in range(0, len(data_chunks), batch_size):
             batch_chunks = data_chunks[i:i+batch_size]
             batch_ids = ids[i:i+batch_size]
@@ -132,22 +132,17 @@ class AzureVectorStore(BaseVectorStore):
                     system_prompt=system_prompt
                 ) for idx in range(len(batch_chunks))
             ])
-
-            # Convert models and extend document list
-            documents.extend([node.model_dump(exclude_none=True, exclude_defaults=True) for node in batch_nodes])
+            current_documents = [node.model_dump(exclude_none=True, exclude_defaults=True) for node in batch_nodes]
+            with SearchIndexingBufferedSender(
+                endpoint=self.__endpoint,
+                index_name=self.__index_name,
+                credential=self.__credential,
+                on_error=self.fails
+            ) as batch_client:
+                batch_client.upload_documents(documents=current_documents)
             progress_bar.update(1)
         
         progress_bar.close()
-
-        # Upload documents to Azure
-        print("Started uploading documents to Azure vector search")
-        with SearchIndexingBufferedSender(
-            endpoint=self.__endpoint,
-            index_name=self.__index_name,
-            credential=self.__credential,
-            on_error=self.fails
-        ) as batch_client:
-            batch_client.upload_documents(documents=documents)
         print(f"Uploading process complete")
         # return True
 
