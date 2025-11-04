@@ -1,6 +1,7 @@
 import os
 import shutil
 import sys
+import ast
 __import__("pysqlite3")
 sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
 
@@ -263,7 +264,7 @@ class KnowledgeBase:
         prompt.append({"role": "user", "content": query_prompt})
 
         llm_out = get_llm_response(prompt)
-        next_questions = eval(llm_out.strip("\n"))
+        next_questions =  ast.literal_eval(llm_out.strip("\n"))
 
         logger.add_log(
             sender_id="bot",
