@@ -91,7 +91,7 @@ nest-asyncio==1.5.7
 nltk==3.8.1
 numexpr==2.8.5
 numpy==1.25.2
-oauthlib==3.2.2
+oauthlib==4.0.0
 onnxruntime==1.15.1
 openai==1.2.2
 openapi-schema-pydantic==1.2.4
